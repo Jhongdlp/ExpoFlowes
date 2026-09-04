@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     secret_key: str
     access_token_expire_minutes: int = 60
     cors_origins: str = ""
+    login_rate_limit: str = "5/minute"
     app_base_url: str = "http://localhost:5173"
     log_level: str = "INFO"
 

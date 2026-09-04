@@ -58,3 +58,18 @@ class InvalidCredentialsError(DomainError):
 class NotFoundError(DomainError):
     code = "NOT_FOUND"
     status_code = 404
+
+
+class NotAuthenticatedError(DomainError):
+    """Token ausente, mal formado o expirado. Distinto de un login fallido: el frontend
+    reacciona limpiando la sesion, no mostrando 'contraseña incorrecta'."""
+
+    code = "NOT_AUTHENTICATED"
+    status_code = 401
+
+
+class ForbiddenError(DomainError):
+    """El rol no alcanza para la operacion. Nunca se usa para un recurso ajeno: eso es 404."""
+
+    code = "FORBIDDEN"
+    status_code = 403
