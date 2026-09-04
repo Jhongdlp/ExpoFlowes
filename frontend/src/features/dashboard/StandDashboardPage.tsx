@@ -1,10 +1,12 @@
 import { useQuery } from '@tanstack/react-query'
+import { Link } from 'react-router-dom'
 
 import { api, ApiError } from '../../api/client'
 import type { MyQuota } from '../../api/types'
 import { Loading } from '../../components/Loading'
 import { PageHeader } from '../../components/PageHeader'
 import { Stat, StatRow } from '../../components/Stat'
+import { Button } from '../../components/ui/Button'
 import { Notice } from '../../components/ui/Notice'
 import { QuotaTable } from './QuotaTable'
 
@@ -25,7 +27,20 @@ export function StandDashboardPage() {
 
   return (
     <>
-      <PageHeader title={data.stand_name} subtitle={data.legal_name} />
+      <PageHeader
+        title={data.stand_name}
+        subtitle={data.legal_name}
+        actions={
+          <>
+            <Link to="/stand/credenciales">
+              <Button variant="secondary">Ver credenciales</Button>
+            </Link>
+            <Link to="/stand/credenciales/nueva">
+              <Button>Nueva credencial</Button>
+            </Link>
+          </>
+        }
+      />
 
       <StatRow>
         <Stat label="Metraje" value={`${data.requested_m2} m²`} note={data.stand_category} />
@@ -50,7 +65,11 @@ export function StandDashboardPage() {
         <Notice title="Hay credenciales sin correo de contacto" className="mt-8">
           {data.participants_without_email} de sus {data.participants_total} acreditados no
           tienen correo registrado, así que no reciben la confirmación de su credencial. Puede
-          completarlo desde el listado de credenciales.
+          completarlo desde el{' '}
+          <Link to="/stand/credenciales" className="underline underline-offset-2">
+            listado de credenciales
+          </Link>
+          .
         </Notice>
       ) : null}
     </>

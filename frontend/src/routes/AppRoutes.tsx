@@ -1,8 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 
 import { AppLayout } from '../components/AppLayout'
-import { EmptyState } from '../components/EmptyState'
-import { PageHeader } from '../components/PageHeader'
 import { HomeRedirect, RequireRole } from '../features/auth/guards'
 import { LoginPage } from '../features/auth/LoginPage'
 import { SetPasswordPage } from '../features/auth/SetPasswordPage'
@@ -10,21 +8,10 @@ import { AdminDashboardPage } from '../features/dashboard/AdminDashboardPage'
 import { ExhibitorCreatePage } from '../features/exhibitors/ExhibitorCreatePage'
 import { ExhibitorDetailPage } from '../features/exhibitors/ExhibitorDetailPage'
 import { ExhibitorListPage } from '../features/exhibitors/ExhibitorListPage'
+import { MyParticipantListPage } from '../features/participants/MyParticipantListPage'
+import { ParticipantCreatePage } from '../features/participants/ParticipantCreatePage'
 import { ParticipantListPage } from '../features/participants/ParticipantListPage'
 import { StandDashboardPage } from '../features/dashboard/StandDashboardPage'
-
-/** Secciones cuyo contenido llega en las fases siguientes. La navegacion no miente. */
-function Pending({ title }: { title: string }) {
-  return (
-    <>
-      <PageHeader title={title} />
-      <EmptyState
-        title="Sección en preparación"
-        description="Esta pantalla se habilita en la siguiente entrega. El resto de la plataforma ya funciona."
-      />
-    </>
-  )
-}
 
 export function AppRoutes() {
   return (
@@ -54,7 +41,8 @@ export function AppRoutes() {
         }
       >
         <Route path="/stand" element={<StandDashboardPage />} />
-        <Route path="/stand/credenciales" element={<Pending title="Credenciales del stand" />} />
+        <Route path="/stand/credenciales" element={<MyParticipantListPage />} />
+        <Route path="/stand/credenciales/nueva" element={<ParticipantCreatePage />} />
       </Route>
 
       <Route path="/" element={<HomeRedirect />} />

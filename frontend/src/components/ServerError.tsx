@@ -81,6 +81,20 @@ export function ServerError({ error, onDismiss }: { error: unknown; onDismiss?: 
     )
   }
 
+  if (error.code === 'QUOTA_EXCEEDED') {
+    const { category, quota, used } = error.details
+    return (
+      <Notice title={error.message} onDismiss={onDismiss}>
+        {typeof category === 'string' && typeof quota === 'number' && typeof used === 'number' ? (
+          <>
+            {category}: {used} de {quota} credenciales ya asignadas. Elimine una credencial de
+            esa categoría o solicite al organizador un metraje mayor.
+          </>
+        ) : null}
+      </Notice>
+    )
+  }
+
   if (error.code === 'PARTICIPANT_ALREADY_REGISTERED') {
     const registeredIn = error.details.registered_in
     return (

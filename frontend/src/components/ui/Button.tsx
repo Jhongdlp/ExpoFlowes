@@ -15,9 +15,18 @@ interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
   size?: 'sm' | 'md'
 }
 
-export function Button({ variant = 'primary', size = 'md', className, ...props }: Props) {
+export function Button({
+  variant = 'primary',
+  size = 'md',
+  // Por defecto NO envia el formulario: un <button> sin type dentro de un <form> es submit,
+  // y eso convierte cualquier boton auxiliar (cerrar un aviso, quitar una fila) en un envio.
+  type = 'button',
+  className,
+  ...props
+}: Props) {
   return (
     <button
+      type={type}
       className={cn(
         'inline-flex items-center justify-center gap-2 rounded-sm font-medium transition-colors',
         'disabled:cursor-not-allowed disabled:opacity-60',
