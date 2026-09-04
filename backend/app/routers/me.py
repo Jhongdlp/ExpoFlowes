@@ -6,15 +6,27 @@ Ningun id de empresa aparece en la ruta: el `exhibitor_id` y el `event_id` salen
 
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, Query, Response, status
+from fastapi import APIRouter, Depends, File, Query, Response, UploadFile, status
 from sqlalchemy.orm import Session
 
 from app.core.security import AuthContext, RepresentativeUser
 from app.db.session import get_db
+from app.domain.exceptions import InvalidPayloadError
+from app.integrations.excel import (
+    MAX_UPLOAD_BYTES,
+    XLSX_MEDIA_TYPE,
+    participants_template,
+)
 from app.schemas.dashboard import MyQuota
 from app.schemas.exhibitor import ExhibitorDetail
 from app.schemas.pagination import DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE, Page
-from app.schemas.participant import Category, ParticipantIn, ParticipantRead, ParticipantUpdate
+from app.schemas.participant import (
+    BulkUploadReport,
+    Category,
+    ParticipantIn,
+    ParticipantRead,
+    ParticipantUpdate,
+)
 from app.services import dashboard_service, exhibitor_service, participant_service
 
 router = APIRouter(prefix="/me", tags=["representante"])
@@ -60,6 +72,40 @@ def list_participants(
 def create_participant(payload: ParticipantIn, auth: RepresentativeUser, db: DbSession) -> Any:
     event_id, exhibitor_id = scope(auth)
     return participant_service.create_participant(db, event_id, exhibitor_id, payload)
+
+
+@router.get(
+    "/participants/template.xlsx",
+    response_class=Response,
+    responses={200: {"content": {XLSX_MEDIA_TYPE: {}}, "description": "Plantilla de carga"}},
+)
+def participants_template_xlsx(auth: RepresentativeUser) -> Response:
+    """Plantilla generada desde el MISMO diccionario de columnas que valida la carga (§13)."""
+    return Response(
+        content=participants_template(),
+        media_type=XLSX_MEDIA_TYPE,
+        headers={"Content-Disposition": 'attachment; filename="plantilla-credenciales.xlsx"'},
+    )
+
+
+@router.post("/participants/bulk", response_model=BulkUploadReport)
+def bulk_upload(
+    auth: RepresentativeUser,
+    db: DbSession,
+    file: Annotated[UploadFile, File()],
+    dry_run: bool = False,
+) -> dict[str, Any]:
+    """Un solo endpoint para preview y confirmacion: con `dry_run=true` recorre exactamente
+    el mismo codigo de validacion y no inserta nada (§11)."""
+    event_id, exhibitor_id = scope(auth)
+    if file.size is not None and file.size > MAX_UPLOAD_BYTES:
+        # Se rechaza por el tamaño declarado, sin llegar a leer el cuerpo (§8.10).
+        raise InvalidPayloadError(
+            f"El archivo supera el maximo de {MAX_UPLOAD_BYTES // (1024 * 1024)} MB."
+        )
+    return participant_service.bulk_create_participants(
+        db, event_id, exhibitor_id, file.filename, file.file.read(), dry_run
+    )
 
 
 @router.get("/participants/{participant_id}", response_model=ParticipantRead)

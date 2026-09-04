@@ -1,3 +1,5 @@
+from collections.abc import Sequence
+
 from sqlalchemy import ColumnElement, func, select
 
 from app.models import Exhibitor, Participant
@@ -105,6 +107,23 @@ class ParticipantRepository(EventScopedRepository):
         )
         row = self.db.execute(stmt).first()
         return (row[0], row[1]) if row else None
+
+    def find_owners(self, identifications: Sequence[str]) -> dict[str, str]:
+        """Version por lote de `find_owner`: identificacion -> razon social de quien la tiene.
+
+        La carga masiva puede traer 500 filas; una consulta por fila serian 500 viajes.
+        """
+        if not identifications:
+            return {}
+        stmt = (
+            select(Participant.identification, Exhibitor.legal_name)
+            .join(Exhibitor, Exhibitor.id == Participant.exhibitor_id)
+            .where(
+                Participant.event_id == self.event_id,
+                Participant.identification.in_(identifications),
+            )
+        )
+        return {identification: name for identification, name in self.db.execute(stmt)}
 
     def lock_exhibitor(self, exhibitor_id: int) -> Exhibitor | None:
         """SELECT ... FOR UPDATE sobre la fila del expositor (§9.3).

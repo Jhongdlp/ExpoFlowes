@@ -78,3 +78,12 @@ class ParticipantWithExhibitor(ParticipantRead):
 
     exhibitor_id: int
     exhibitor_name: str
+
+
+class BulkUploadReport(BaseModel):
+    """Informe de la carga masiva. Con `dry_run` es identico salvo `inserted` (§11)."""
+
+    total_rows: int
+    valid_rows: int
+    inserted: int
+    dry_run: bool

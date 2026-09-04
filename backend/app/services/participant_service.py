@@ -10,19 +10,29 @@ Dos invariantes que este modulo protege y que no pueden vivir en el router:
 """
 
 import logging
+from collections import Counter
 from typing import Any
 
+from pydantic import ValidationError
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.domain.exceptions import (
+    BulkUploadValidationError,
     DuplicateParticipantError,
+    InvalidIdentificationError,
     InvalidPayloadError,
     NotFoundError,
     QuotaExceededError,
 )
 from app.domain.identification import validate_identification
 from app.domain.rules import quota_breakdown
+from app.integrations.excel import (
+    PARTICIPANT_COLUMNS,
+    InvalidWorkbookError,
+    ensure_xlsx,
+    read_participant_rows,
+)
 from app.models import Participant
 from app.repositories.participant import ParticipantRepository
 from app.repositories.rules import RulesRepository
@@ -171,3 +181,154 @@ def delete_participant(db: Session, event_id: int, exhibitor_id: int, participan
         raise NotFoundError("El participante solicitado no existe.")
     repo.delete(participant)
     db.commit()
+
+
+def _row_error(row: int, field: str, code: str, message: str) -> dict[str, Any]:
+    return {"row": row, "field": field, "code": code, "message": message}
+
+
+def _field_label(field: str) -> str:
+    """Devuelve el encabezado del Excel, no el nombre del campo Python: el usuario corrige
+    su archivo mirando la columna, no el modelo."""
+    for header, name in PARTICIPANT_COLUMNS.items():
+        if name == field:
+            return header
+    return field
+
+
+def bulk_create_participants(
+    db: Session,
+    event_id: int,
+    exhibitor_id: int,
+    filename: str | None,
+    content: bytes,
+    dry_run: bool,
+) -> dict[str, Any]:
+    """Carga masiva todo-o-nada (§11). `dry_run` recorre EXACTAMENTE el mismo codigo de
+    validacion; la unica diferencia es que no inserta ni confirma.
+
+    El cupo se verifica contra el lote completo dentro de la transaccion con el mismo
+    `FOR UPDATE` del alta manual: fila a fila, cinco altas de una credencial cada una
+    pasarian la verificacion y el stand acabaria con cuatro credenciales de mas.
+    """
+    try:
+        ensure_xlsx(filename, content)
+        rows = read_participant_rows(content)
+    except InvalidWorkbookError as exc:
+        raise InvalidPayloadError(str(exc)) from exc
+
+    repo = ParticipantRepository(db, event_id)
+    errors: list[dict[str, Any]] = []
+    valid: list[ParticipantIn] = []
+    seen: dict[str, int] = {}
+
+    for row_number, values in rows:
+        try:
+            payload = ParticipantIn.model_validate(values)
+        except ValidationError as exc:
+            errors += [
+                _row_error(
+                    row_number,
+                    # loc vacio = invariante entre campos; el unico que hay es el de
+                    # empresa proveedora (§5.3), asi que la columna a corregir es esa.
+                    _field_label(str(err["loc"][0]) if err["loc"] else "provider_company"),
+                    "VALIDATION_ERROR",
+                    err["msg"],
+                )
+                for err in exc.errors()
+            ]
+            continue
+
+        try:
+            validate_identification(payload.identification, payload.identification_type)
+        except InvalidIdentificationError as exc:
+            errors.append(_row_error(row_number, "identificacion", exc.code, exc.message))
+            continue
+
+        first_seen = seen.get(payload.identification)
+        if first_seen is not None:
+            errors.append(
+                _row_error(
+                    row_number,
+                    "identificacion",
+                    DuplicateParticipantError.code,
+                    f"La identificacion {payload.identification} ya aparece en la fila "
+                    f"{first_seen} de este mismo archivo.",
+                )
+            )
+            continue
+
+        seen[payload.identification] = row_number
+        valid.append(payload)
+
+    # Una sola consulta para todo el lote, no una por fila.
+    owners = repo.find_owners(list(seen))
+    for payload in valid:
+        owner = owners.get(payload.identification)
+        if owner is not None:
+            errors.append(
+                _row_error(
+                    seen[payload.identification],
+                    "identificacion",
+                    DuplicateParticipantError.code,
+                    f"{DUPLICATE_MESSAGE} Ya la registro: {owner}.",
+                )
+            )
+    if owners:
+        valid = [p for p in valid if p.identification not in owners]
+
+    if errors:
+        # Todo o nada: con una sola fila invalida no entra ninguna (§0.12).
+        raise BulkUploadValidationError(
+            "El archivo tiene filas invalidas. No se importo ninguna credencial.",
+            {
+                "total_rows": len(rows),
+                "valid_rows": len(valid),
+                "errors": sorted(errors, key=lambda e: (e["row"], e["field"])),
+            },
+        )
+
+    report: dict[str, Any] = {
+        "total_rows": len(rows),
+        "valid_rows": len(valid),
+        "inserted": 0 if dry_run else len(valid),
+        "dry_run": dry_run,
+    }
+
+    try:
+        with db.begin_nested():
+            for category, requested in Counter(p.category for p in valid).items():
+                _check_quota(db, event_id, repo, exhibitor_id, category, requested)
+            if dry_run:
+                return report
+            for payload in valid:
+                repo.add(
+                    Participant(
+                        event_id=event_id,
+                        exhibitor_id=exhibitor_id,
+                        **payload.model_dump(mode="json"),
+                    )
+                )
+            db.flush()
+    except IntegrityError as exc:
+        # Otra transaccion registro una de estas identificaciones mientras validabamos.
+        taken = repo.find_owners([p.identification for p in valid])
+        raise BulkUploadValidationError(
+            "El archivo tiene filas invalidas. No se importo ninguna credencial.",
+            {
+                "total_rows": len(rows),
+                "valid_rows": len(valid) - len(taken),
+                "errors": [
+                    _row_error(
+                        seen[identification],
+                        "identificacion",
+                        DuplicateParticipantError.code,
+                        f"{DUPLICATE_MESSAGE} Ya la registro: {owner}.",
+                    )
+                    for identification, owner in taken.items()
+                ],
+            },
+        ) from exc
+
+    db.commit()
+    return report
