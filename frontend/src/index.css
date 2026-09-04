@@ -18,6 +18,8 @@
   --radius-*: initial;
   --radius-sm: 2px;
   --radius-md: 3px;
+  /* Solo el marco de la aplicacion usa un radio grande; el contenido sigue siendo de canto vivo. */
+  --radius-xl: 14px;
 }
 
 @layer base {
