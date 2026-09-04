@@ -19,12 +19,12 @@ interface Props {
  * negocio se escribe aqui, ni siquiera como texto de ayuda.
  */
 export function QuotaTable({ categories, quota, assigned, available, className }: Props) {
-  const { t } = useTranslation()
+  const { t, lang } = useTranslation()
   const rules = useCredentialRules()
 
   const ruleText = (category: string): string => {
     const rule = rules.data?.find((item) => item.category === category)
-    return rule === undefined ? '' : ruleLabel(rule)
+    return rule === undefined ? '' : ruleLabel(rule, lang)
   }
 
   return (

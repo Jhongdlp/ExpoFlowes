@@ -77,7 +77,7 @@ function QuotaSimulator({ standSizes }: { standSizes: StandSizeRule[] }) {
                   <span className="tnum font-medium text-ink">
                     {rule.min_m2}–{rule.max_m2} m²
                   </span>{' '}
-                  ({rule.label})
+                  ({(t.standSizes as Record<string, string>)[rule.label] ?? rule.label})
                 </span>
               ))}
               .
@@ -93,7 +93,7 @@ function QuotaSimulator({ standSizes }: { standSizes: StandSizeRule[] }) {
               <div className="flex items-baseline gap-2">
                 <span className="label-caps">{t.rules.standCategory}</span>
                 <span className="text-[15px] font-semibold text-ink">
-                  {simulation.data.stand_category}
+                  {(t.standSizes as Record<string, string>)[simulation.data.stand_category] ?? simulation.data.stand_category}
                 </span>
               </div>
 
@@ -177,7 +177,7 @@ export function RulesPage() {
           <TBody>
             {standSizes.data.map((rule) => (
               <TR key={rule.id}>
-                <TD className="font-medium">{rule.label}</TD>
+                <TD className="font-medium">{(t.standSizes as Record<string, string>)[rule.label] ?? rule.label}</TD>
                 <TD label={t.tables.min} className="tnum text-right">
                   {rule.min_m2} m²
                 </TD>
@@ -222,7 +222,7 @@ export function RulesPage() {
                   </span>
                 </TD>
                 <TD label={t.tables.formula} className="tnum">
-                  {ruleLabel(rule)}
+                  {ruleLabel(rule, lang)}
                 </TD>
                 <TD label={t.tables.rounding} className="text-ink-soft">
                   <Status

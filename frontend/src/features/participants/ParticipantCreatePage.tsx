@@ -12,8 +12,10 @@ import { Notice } from '../../components/ui/Notice'
 import { Status } from '../../components/ui/Status'
 import { ParticipantForm } from './ParticipantForm'
 import type { ParticipantFormValues } from './schema'
+import { useTranslation } from '../i18n/LanguageContext'
 
 export function ParticipantCreatePage() {
+  const { t, lang } = useTranslation()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [lastCreated, setLastCreated] = useState<string | null>(null)
@@ -41,7 +43,7 @@ export function ParticipantCreatePage() {
     },
   })
 
-  if (rules.isPending || quota.isPending) return <Loading label="Cargando el formulario" />
+  if (rules.isPending || quota.isPending) return <Loading label={lang === 'en' ? 'Loading form…' : 'Cargando el formulario'} />
 
   const available = quota.data === undefined ? {} : quota.data.available
   const categories = (rules.data ?? []).map((rule) => rule.category)
@@ -49,15 +51,15 @@ export function ParticipantCreatePage() {
   return (
     <>
       <PageHeader
-        title="Nueva credencial"
-        subtitle="Cada credencial consume cupo de su categoría. El cupo se calcula con el metraje de su stand."
+        title={t.participants.newCredential}
+        subtitle={lang === 'en' ? 'Each credential consumes quota in its category. Quotas are calculated based on your stand size.' : 'Cada credencial consume cupo de su categoría. El cupo se calcula con el metraje de su stand.'}
         actions={
           <>
             <Link to="/stand/credenciales/carga">
-              <Button variant="secondary">Carga masiva</Button>
+              <Button variant="secondary">{t.dashboard.bulkUpload}</Button>
             </Link>
             <Link to="/stand/credenciales">
-              <Button variant="ghost">Ver credenciales</Button>
+              <Button variant="ghost">{t.bulk.viewCredentials}</Button>
             </Link>
           </>
         }
@@ -67,6 +69,7 @@ export function ParticipantCreatePage() {
       <div className="mb-4 grid grid-cols-1 gap-px overflow-hidden rounded-lg border border-line bg-line sm:grid-cols-3">
         {categories.map((category) => {
           const free = available[category] ?? 0
+          const displayCat = (t.categories as Record<string, string>)[category] ?? category
           return (
             <div key={category} className="bg-surface px-4 py-2.5">
               <div className="flex items-center gap-1.5">
@@ -74,12 +77,12 @@ export function ParticipantCreatePage() {
                   aria-hidden="true"
                   className={`h-1.5 w-1.5 shrink-0 rounded-full ${CATEGORY_BAR[category] ?? 'bg-ink-faint'}`}
                 />
-                <p className="label-caps truncate">{category}</p>
+                <p className="label-caps truncate">{displayCat}</p>
               </div>
               <div className="mt-1">
                 <Status
                   tone={free === 0 ? 'error' : 'ok'}
-                  label={free === 0 ? 'Sin cupo' : `${free} disponibles`}
+                  label={free === 0 ? t.dashboard.quotaExhausted : t.dashboard.availableCount.replace('{count}', String(free))}
                 />
               </div>
             </div>
@@ -90,10 +93,10 @@ export function ParticipantCreatePage() {
       {lastCreated === null ? null : (
         <Notice
           tone="success"
-          title={`Credencial registrada para ${lastCreated}`}
+          title={lang === 'en' ? `Credential registered for ${lastCreated}` : `Credencial registrada para ${lastCreated}`}
           onDismiss={() => setLastCreated(null)}
         >
-          Puede registrar a la siguiente persona; el formulario ya está limpio.
+          {lang === 'en' ? 'You can register the next person; the form is ready.' : 'Puede registrar a la siguiente persona; el formulario ya está limpio.'}
         </Notice>
       )}
 

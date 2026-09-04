@@ -6,8 +6,10 @@ import type { ExhibitorDetail } from '../../api/types'
 import { PageHeader } from '../../components/PageHeader'
 import { ExhibitorForm } from './ExhibitorForm'
 import type { ExhibitorFormValues } from './schema'
+import { useTranslation } from '../i18n/LanguageContext'
 
 export function ExhibitorCreatePage() {
+  const { t, lang } = useTranslation()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
@@ -26,8 +28,12 @@ export function ExhibitorCreatePage() {
   return (
     <>
       <PageHeader
-        title="Nuevo expositor"
-        subtitle="Al guardar se crea el acceso del representante y se le envía el enlace para establecer su contraseña."
+        title={t.dashboard.newExhibitor}
+        subtitle={
+          lang === 'en'
+            ? 'Upon saving, representative access is created and an invitation link to set password is sent.'
+            : 'Al guardar se crea el acceso del representante y se le envía el enlace para establecer su contraseña.'
+        }
       />
       <ExhibitorForm
         onSubmit={async (values) => {

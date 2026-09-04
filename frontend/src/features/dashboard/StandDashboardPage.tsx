@@ -45,11 +45,13 @@ export function StandDashboardPage() {
   const totalAvailable = totalQuota - data.participants_total
   const burnRate = totalQuota === 0 ? 0 : Math.round((data.participants_total / totalQuota) * 100)
 
+  const standCategoryName = (t.standSizes as Record<string, string>)[data.stand_category] ?? data.stand_category
+
   return (
     <div className="space-y-7">
       <PageHeader
         title={data.stand_name}
-        subtitle={`${data.legal_name} · Stand ${data.stand_category} · ${data.requested_m2} m²`}
+        subtitle={`${data.legal_name} · Stand ${standCategoryName} · ${data.requested_m2} m²`}
         actions={
           <>
             <Link to="/stand/credenciales/carga">
@@ -63,7 +65,7 @@ export function StandDashboardPage() {
       />
 
       <StatRow>
-        <Stat label={t.tables.standSize} value={`${data.requested_m2} m²`} note={`Stand ${data.stand_category}`} />
+        <Stat label={t.tables.standSize} value={`${data.requested_m2} m²`} note={`Stand ${standCategoryName}`} />
         <Stat label={t.common.totalQuota} value={totalQuota} note={t.dashboard.allCategories} />
         <Stat label={t.common.assigned} value={data.participants_total} note={t.dashboard.usedRate.replace('{percent}', String(burnRate))} />
         <Stat label={t.common.available} value={totalAvailable} note={t.dashboard.freeQuotas} />

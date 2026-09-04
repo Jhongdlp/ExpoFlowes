@@ -222,7 +222,11 @@ export function ExhibitorDetailPage() {
       )}
 
       <StatRow>
-        <Stat label={t.tables.standSize} value={`${data.requested_m2} m²`} note={data.stand_category} />
+        <Stat
+          label={t.tables.standSize}
+          value={`${data.requested_m2} m²`}
+          note={(t.standSizes as Record<string, string>)[data.stand_category] ?? data.stand_category}
+        />
         <Stat label={t.common.totalQuota} value={quota} />
         <Stat label={t.common.assigned} value={assigned} />
         <Stat label={t.common.available} value={quota - assigned} />

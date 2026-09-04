@@ -10,6 +10,7 @@ import { Field } from '../../components/ui/Field'
 import { Notice } from '../../components/ui/Notice'
 import { HOME_BY_ROLE } from './guards'
 import { useSession } from './session'
+import { useTranslation } from '../i18n/LanguageContext'
 
 const schema = z.object({
   email: z.email('Escriba un correo válido.'),
@@ -18,17 +19,8 @@ const schema = z.object({
 
 type Values = z.infer<typeof schema>
 
-/** Credenciales del demo, visibles por exigencia del entregable (§14.5). */
-const DEMO_ACCOUNTS = [
-  { role: 'Organización', email: 'admin@expoflores.demo', password: 'Admin123!' },
-  {
-    role: 'Representante',
-    email: 'mariana.cevallos@rosascotopaxi.demo',
-    password: 'Demo1234!',
-  },
-]
-
 export function LoginPage() {
+  const { t, lang } = useTranslation()
   const { status, user, signIn } = useSession()
   const navigate = useNavigate()
   const location = useLocation()
@@ -38,6 +30,19 @@ export function LoginPage() {
     resolver: zodResolver(schema),
     defaultValues: { email: '', password: '' },
   })
+
+  const demoAccounts = [
+    {
+      role: t.nav.roles.admin,
+      email: 'admin@expoflores.demo',
+      password: 'Admin123!',
+    },
+    {
+      role: t.nav.roles.representative,
+      email: 'mariana.cevallos@rosascotopaxi.demo',
+      password: 'Demo1234!',
+    },
+  ]
 
   if (status === 'authenticated' && user !== null) {
     const from = (location.state as { from?: string } | null)?.from
@@ -51,7 +56,13 @@ export function LoginPage() {
       navigate('/', { replace: true })
     } catch (error) {
       // El backend responde lo mismo exista o no el correo (§8.8); la UI no añade pistas.
-      setFailure(error instanceof ApiError ? error.message : 'No se pudo iniciar sesión.')
+      setFailure(
+        error instanceof ApiError
+          ? error.message
+          : lang === 'en'
+            ? 'Could not sign in.'
+            : 'No se pudo iniciar sesión.',
+      )
     }
   })
 
@@ -86,36 +97,41 @@ export function LoginPage() {
         />
 
         <p className="text-[11px] font-medium tracking-[0.08em] text-white/85 uppercase">
-          Demo técnico · datos ficticios · no afiliado a Expoflores
+          {t.nav.demoBanner}
         </p>
 
         <div className="mt-8 max-w-md sm:mt-10">
           <h1 className="text-[22px] leading-tight font-semibold tracking-tight">
-            Expo Flor Ecuador
+            {t.nav.appTitle}
           </h1>
           <p className="mt-2 max-w-sm text-[13px] text-white/80">
-            Gestión de expositores y credenciales de stand. Cada feria mantiene sus datos,
-            sus rangos de metraje y sus cuotas por separado.
+            {lang === 'en'
+              ? 'Exhibitor management and stand credentials. Each fair manages its data, stand size ranges and quotas independently.'
+              : 'Gestión de expositores y credenciales de stand. Cada feria mantiene sus datos, sus rangos de metraje y sus cuotas por separado.'}
           </p>
         </div>
 
         <p className="mt-auto pt-10 text-[12px] text-white/75">
-          Edición 2026 · 7 al 9 de octubre
+          {lang === 'en' ? '2026 Edition · October 7 to 9' : 'Edición 2026 · 7 al 9 de octubre'}
         </p>
       </section>
 
       <section className="flex items-center justify-center bg-surface px-5 py-8 sm:px-6 sm:py-12">
         <div className="w-full max-w-sm">
-          <h2 className="text-[19px] font-semibold tracking-tight">Iniciar sesión</h2>
+          <h2 className="text-[19px] font-semibold tracking-tight">
+            {lang === 'en' ? 'Sign in' : 'Iniciar sesión'}
+          </h2>
           <p className="mt-1 text-[12px] text-ink-soft">
-            Acceda con el correo con el que se registró su empresa.
+            {lang === 'en'
+              ? 'Sign in with the email address registered for your company.'
+              : 'Acceda con el correo con el que se registró su empresa.'}
           </p>
 
           {failure !== null ? <Notice tone="error" title={failure} className="mt-5" /> : null}
 
           <form onSubmit={onSubmit} noValidate className="mt-6 space-y-4">
             <Field
-              label="Correo"
+              label={t.common.email}
               type="email"
               autoComplete="username"
               autoFocus
@@ -123,21 +139,25 @@ export function LoginPage() {
               {...form.register('email')}
             />
             <Field
-              label="Contraseña"
+              label={t.common.password}
               type="password"
               autoComplete="current-password"
               error={form.formState.errors.password?.message}
               {...form.register('password')}
             />
             <Button type="submit" className="w-full" loading={form.formState.isSubmitting}>
-              {form.formState.isSubmitting ? 'Verificando…' : 'Entrar'}
+              {form.formState.isSubmitting
+                ? (lang === 'en' ? 'Signing in…' : 'Verificando…')
+                : (lang === 'en' ? 'Sign in' : 'Entrar')}
             </Button>
           </form>
 
           <div className="mt-8 border-t border-line pt-4">
-            <p className="label-caps">Cuentas de demostración</p>
+            <p className="label-caps">
+              {lang === 'en' ? 'Demo accounts' : 'Cuentas de demostración'}
+            </p>
             <ul className="mt-3 space-y-3">
-              {DEMO_ACCOUNTS.map((account) => (
+              {demoAccounts.map((account) => (
                 <li
                   key={account.email}
                   className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3"
@@ -157,7 +177,7 @@ export function LoginPage() {
                       form.setValue('password', account.password)
                     }}
                   >
-                    Usar
+                    {lang === 'en' ? 'Use' : 'Usar'}
                   </Button>
                 </li>
               ))}

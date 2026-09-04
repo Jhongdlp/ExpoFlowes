@@ -16,6 +16,7 @@ import {
   participantSchema,
   type ParticipantFormValues,
 } from './schema'
+import { useTranslation } from '../i18n/LanguageContext'
 
 interface Props {
   categories: string[]
@@ -28,8 +29,6 @@ interface Props {
   resetSignal: number
 }
 
-const TYPES = IDENTIFICATION_TYPES.map((type) => ({ value: type.value, label: type.label }))
-
 export function ParticipantForm({
   categories,
   onSubmit,
@@ -39,6 +38,7 @@ export function ParticipantForm({
   onDismissError,
   resetSignal,
 }: Props) {
+  const { t, lang } = useTranslation()
   const form = useForm<ParticipantFormValues>({
     resolver: zodResolver(participantSchema),
     defaultValues: EMPTY_PARTICIPANT,
@@ -73,6 +73,11 @@ export function ParticipantForm({
       ? serverError
       : null
 
+  const idTypes = IDENTIFICATION_TYPES.map((type) => ({
+    value: type.value,
+    label: (t.idTypes as Record<string, string>)[type.value] ?? type.label,
+  }))
+
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} noValidate className="max-w-3xl space-y-6">
       <div ref={alertRef}>
@@ -83,46 +88,65 @@ export function ParticipantForm({
         )}
       </div>
 
-      <FormSection title="Persona">
+      <FormSection title={t.tables.person}>
         <Field
-          label="Nombre"
+          label={t.common.name}
           error={errors.first_name?.message}
           {...form.register('first_name')}
         />
         <Field
-          label="Apellido"
+          label={t.common.lastName}
           error={errors.last_name?.message}
           {...form.register('last_name')}
         />
         <Select
-          label="Tipo de identificación"
-          options={TYPES}
+          label={t.common.identificationType}
+          options={idTypes}
           error={errors.identification_type?.message}
           {...form.register('identification_type')}
         />
         <Field
-          label="Identificación"
-          hint="Es la clave que impide acreditar a la misma persona en dos stands."
+          label={t.tables.identification}
+          hint={
+            lang === 'en'
+              ? 'The key that prevents registering the same person in multiple stands.'
+              : 'Es la clave que impide acreditar a la misma persona en dos stands.'
+          }
           error={errors.identification?.message}
           {...form.register('identification')}
         />
-        <Field label="Celular" error={errors.phone?.message} {...form.register('phone')} />
-        <Field label="Cargo" error={errors.position?.message} {...form.register('position')} />
         <Field
-          label="Correo (opcional)"
+          label={lang === 'en' ? 'Mobile / Phone' : 'Celular'}
+          error={errors.phone?.message}
+          {...form.register('phone')}
+        />
+        <Field
+          label={t.tables.position}
+          error={errors.position?.message}
+          {...form.register('position')}
+        />
+        <Field
+          label={lang === 'en' ? 'Email (optional)' : 'Correo (opcional)'}
           type="email"
           className="sm:col-span-2"
-          hint="Si lo indica, la persona recibirá la confirmación de su credencial."
+          hint={
+            lang === 'en'
+              ? 'If provided, the person will receive their credential confirmation.'
+              : 'Si lo indica, la persona recibirá la confirmación de su credencial.'
+          }
           error={errors.email?.message}
           {...form.register('email')}
         />
       </FormSection>
 
-      <FormSection title="Credencial">
+      <FormSection title={t.participants.title}>
         <Select
-          label="Categoría"
-          placeholder="Seleccionar categoría"
-          options={categories.map((item) => ({ value: item, label: item }))}
+          label={t.tables.category}
+          placeholder={lang === 'en' ? 'Select category' : 'Seleccionar categoría'}
+          options={categories.map((item) => ({
+            value: item,
+            label: (t.categories as Record<string, string>)[item] ?? item,
+          }))}
           error={errors.category?.message}
           {...form.register('category')}
         />
@@ -130,8 +154,8 @@ export function ParticipantForm({
         {isService ? (
           <div className="animate-rise">
             <Field
-              label="Empresa proveedora"
-              hint="Obligatoria para la categoría Service."
+              label={lang === 'en' ? 'Service provider company' : 'Empresa proveedora'}
+              hint={lang === 'en' ? 'Required for Service category.' : 'Obligatoria para la categoría Service.'}
               error={errors.provider_company?.message}
               {...form.register('provider_company')}
             />
@@ -141,10 +165,10 @@ export function ParticipantForm({
 
       <div className="flex justify-end gap-2 border-t border-line pt-5">
         <Button type="button" variant="ghost" onClick={onCancel} disabled={submitting}>
-          Cancelar
+          {t.common.cancel}
         </Button>
         <Button type="submit" loading={submitting}>
-          {submitting ? 'Registrando…' : 'Registrar credencial'}
+          {submitting ? t.common.saving : t.participants.newCredential}
         </Button>
       </div>
     </form>

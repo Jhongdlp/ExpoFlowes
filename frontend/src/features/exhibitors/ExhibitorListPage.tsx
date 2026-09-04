@@ -257,7 +257,7 @@ export function ExhibitorListPage() {
                   {exhibitor.requested_m2} m²
                 </TD>
                 <TD label={t.tables.category} className="text-ink-soft sm:max-lg:hidden">
-                  {exhibitor.stand_category}
+                  {(t.standSizes as Record<string, string>)[exhibitor.stand_category] ?? exhibitor.stand_category}
                 </TD>
                 {categories.map((category) => (
                   <TD key={category} label={t.categories[category as keyof typeof t.categories] ?? category} className="tnum text-right">

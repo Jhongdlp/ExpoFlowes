@@ -29,7 +29,10 @@ export function useStandSizeRules() {
   })
 }
 
-/** "2 por cada 5 m²" derivado de la fila, nunca escrito a mano. */
-export function ruleLabel(rule: CredentialRule): string {
+/** "2 por cada 5 m²" / "2 per each 5 m²" derivado de la fila, con soporte de idioma. */
+export function ruleLabel(rule: CredentialRule, lang: 'es' | 'en' = 'es'): string {
+  if (lang === 'en') {
+    return `${rule.credentials_per_block} per each ${rule.block_m2} m²`
+  }
   return `${rule.credentials_per_block} por cada ${rule.block_m2} m²`
 }

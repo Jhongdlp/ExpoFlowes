@@ -159,9 +159,10 @@ export function AdminDashboardPage() {
                       ? 0
                       : Math.round((row.exhibitors / data.exhibitors_total) * 100)
 
+                  const label = (t.standSizes as Record<string, string>)[row.label] ?? row.label
                   return (
                     <TR key={row.label}>
-                      <TD className="font-medium">{row.label}</TD>
+                      <TD className="font-medium">{label}</TD>
                       <TD label={t.tables.range} className="tnum text-ink-soft">
                         {row.min_m2} – {row.max_m2} m²
                       </TD>
@@ -173,7 +174,7 @@ export function AdminDashboardPage() {
                           <Meter
                             used={row.exhibitors}
                             total={data.exhibitors_total}
-                            label={`${t.tables.stands} ${row.label}`}
+                            label={`${t.tables.stands} ${label}`}
                             className="flex-1"
                           />
                           <span className="tnum w-8 text-right text-[11px] text-ink-faint">

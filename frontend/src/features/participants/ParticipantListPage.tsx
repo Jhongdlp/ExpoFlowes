@@ -116,7 +116,7 @@ export function ParticipantListPage() {
               onChange={(event) => onFilter(() => setCategory(event.target.value))}
               options={(rules.data ?? []).map((rule) => ({
                 value: rule.category,
-                label: rule.category,
+                label: (t.categories as Record<string, string>)[rule.category] ?? rule.category,
               }))}
             />
           </div>
