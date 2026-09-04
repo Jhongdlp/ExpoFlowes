@@ -73,3 +73,17 @@ class ForbiddenError(DomainError):
 
     code = "FORBIDDEN"
     status_code = 403
+
+
+class DuplicateExhibitorError(DomainError):
+    """Ya existe un expositor vivo con ese RUC/ID en el evento."""
+
+    code = "EXHIBITOR_ALREADY_REGISTERED"
+    status_code = 409
+
+
+class DuplicateEmailError(DomainError):
+    """El correo del representante ya tiene usuario en el evento."""
+
+    code = "EMAIL_ALREADY_REGISTERED"
+    status_code = 409

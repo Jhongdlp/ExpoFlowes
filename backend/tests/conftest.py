@@ -18,7 +18,14 @@ from app.db.base import Base
 from app.db.session import get_db
 from app.main import app
 from app.models import *  # noqa: F401,F403  (registra las tablas en Base.metadata)
-from app.models import Event, Exhibitor, User
+from app.models import (
+    CredentialRule,
+    Event,
+    Exhibitor,
+    Representative,
+    StandSizeRule,
+    User,
+)
 
 ADMIN_PASSWORD = "Admin123!"  # noqa: S105  solo para los tests
 REP_PASSWORD = "Representante123!"  # noqa: S105
@@ -91,6 +98,22 @@ def event(db: Session) -> Event:
     )
     db.add(row)
     db.flush()
+
+    # Mismas reglas que el seed (§5.1 y §5.2). Viven en la base, no en el codigo: los tests
+    # de parametrizacion las modifican con UPDATE y el comportamiento cambia solo.
+    for label, min_m2, max_m2 in [("Pequeño", 5, 12), ("Mediano", 13, 30), ("Grande", 31, 50)]:
+        db.add(StandSizeRule(event_id=row.id, label=label, min_m2=min_m2, max_m2=max_m2))
+    for category, per_block, block in [("Exhibitor", 2, 5), ("Guest", 2, 10), ("Service", 3, 10)]:
+        db.add(
+            CredentialRule(
+                event_id=row.id,
+                category=category,
+                credentials_per_block=per_block,
+                block_m2=block,
+                rounding_mode="floor",
+            )
+        )
+    db.flush()
     return row
 
 
@@ -105,6 +128,20 @@ def _exhibitor(db: Session, event: Event, tax_id: str, name: str) -> Exhibitor:
         requested_m2=25,
     )
     db.add(row)
+    db.flush()
+    # Todo expositor tiene representante (1:1, FK not null). El alta por API lo crea sola.
+    db.add(
+        Representative(
+            event_id=event.id,
+            exhibitor_id=row.id,
+            full_name=f"Representante de {name}",
+            identification="1710000017",
+            identification_type="CEDULA",
+            email=f"rep{row.id}@example.com",
+            phone="0990000000",
+            position="Coordinador",
+        )
+    )
     db.flush()
     return row
 
