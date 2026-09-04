@@ -36,9 +36,14 @@ export function MyParticipantListPage() {
   })
 
   const nueva = (
-    <Link to="/stand/credenciales/nueva">
-      <Button>Nueva credencial</Button>
-    </Link>
+    <>
+      <Link to="/stand/credenciales/carga">
+        <Button variant="secondary">Carga masiva</Button>
+      </Link>
+      <Link to="/stand/credenciales/nueva">
+        <Button>Nueva credencial</Button>
+      </Link>
+    </>
   )
 
   return (

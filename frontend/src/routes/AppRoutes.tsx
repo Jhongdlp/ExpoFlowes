@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 
 import { AppLayout } from '../components/AppLayout'
+import { BulkUploadPage } from '../features/bulk-upload/BulkUploadPage'
 import { HomeRedirect, RequireRole } from '../features/auth/guards'
 import { LoginPage } from '../features/auth/LoginPage'
 import { SetPasswordPage } from '../features/auth/SetPasswordPage'
@@ -43,6 +44,7 @@ export function AppRoutes() {
         <Route path="/stand" element={<StandDashboardPage />} />
         <Route path="/stand/credenciales" element={<MyParticipantListPage />} />
         <Route path="/stand/credenciales/nueva" element={<ParticipantCreatePage />} />
+        <Route path="/stand/credenciales/carga" element={<BulkUploadPage />} />
       </Route>
 
       <Route path="/" element={<HomeRedirect />} />

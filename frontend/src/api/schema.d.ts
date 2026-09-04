@@ -190,6 +190,47 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/me/participants/template.xlsx": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Participants Template Xlsx
+         * @description Plantilla generada desde el MISMO diccionario de columnas que valida la carga (§13).
+         */
+        get: operations["participants_template_xlsx_api_v1_me_participants_template_xlsx_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/participants/bulk": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Bulk Upload
+         * @description Un solo endpoint para preview y confirmacion: con `dry_run=true` recorre exactamente
+         *     el mismo codigo de validacion y no inserta nada (§11).
+         */
+        post: operations["bulk_upload_api_v1_me_participants_bulk_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/me/participants/{participant_id}": {
         parameters: {
             query?: never;
@@ -320,6 +361,25 @@ export interface components {
             /** Stand Categories */
             stand_categories: components["schemas"]["StandCategoryCount"][];
         };
+        /** Body_bulk_upload_api_v1_me_participants_bulk_post */
+        Body_bulk_upload_api_v1_me_participants_bulk_post: {
+            /** File */
+            file: string;
+        };
+        /**
+         * BulkUploadReport
+         * @description Informe de la carga masiva. Con `dry_run` es identico salvo `inserted` (§11).
+         */
+        BulkUploadReport: {
+            /** Total Rows */
+            total_rows: number;
+            /** Valid Rows */
+            valid_rows: number;
+            /** Inserted */
+            inserted: number;
+            /** Dry Run */
+            dry_run: boolean;
+        };
         /** CategoryTotals */
         CategoryTotals: {
             /** Quota */
@@ -437,6 +497,8 @@ export interface components {
             representative: components["schemas"]["RepresentativeRead"];
             /** Contacts */
             contacts: components["schemas"]["ContactRead"][];
+            /** Password Setup Link */
+            password_setup_link?: string | null;
         };
         /**
          * ExhibitorRead
@@ -1193,6 +1255,61 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ParticipantRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    participants_template_xlsx_api_v1_me_participants_template_xlsx_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Plantilla de carga */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": unknown;
+                };
+            };
+        };
+    };
+    bulk_upload_api_v1_me_participants_bulk_post: {
+        parameters: {
+            query?: {
+                dry_run?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_bulk_upload_api_v1_me_participants_bulk_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BulkUploadReport"];
                 };
             };
             /** @description Validation Error */

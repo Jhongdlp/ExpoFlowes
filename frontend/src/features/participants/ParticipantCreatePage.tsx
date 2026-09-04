@@ -50,9 +50,14 @@ export function ParticipantCreatePage() {
         title="Nueva credencial"
         subtitle="Cada credencial consume cupo de su categoría. El cupo se calcula con el metraje de su stand."
         actions={
-          <Link to="/stand/credenciales">
-            <Button variant="secondary">Ver credenciales</Button>
-          </Link>
+          <>
+            <Link to="/stand/credenciales/carga">
+              <Button variant="secondary">Carga masiva</Button>
+            </Link>
+            <Link to="/stand/credenciales">
+              <Button variant="ghost">Ver credenciales</Button>
+            </Link>
+          </>
         }
       />
 

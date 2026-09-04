@@ -221,7 +221,14 @@ def delete_participant(db: Session, event_id: int, exhibitor_id: int, participan
 
 
 def _row_error(row: int, field: str, code: str, message: str) -> dict[str, Any]:
-    return {"row": row, "field": field, "code": code, "message": message}
+    # Pydantic antepone "Value error, " a los mensajes de sus validadores; el representante
+    # ve este texto tal cual sobre su fila.
+    return {
+        "row": row,
+        "field": field,
+        "code": code,
+        "message": message.removeprefix("Value error, "),
+    }
 
 
 def _field_label(field: str) -> str:

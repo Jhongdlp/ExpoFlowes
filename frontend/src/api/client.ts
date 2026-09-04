@@ -71,6 +71,10 @@ async function request<T>(method: string, path: string, body?: Body): Promise<T>
     throw new ApiError('NETWORK_ERROR', {}, 0, '')
   }
 
+  return finish<T>(response)
+}
+
+async function finish<T>(response: Response): Promise<T> {
   if (response.status === 401) {
     // Token ausente, caducado o revocado: se limpia y se avisa una sola vez (§13).
     clearToken()
@@ -80,6 +84,24 @@ async function request<T>(method: string, path: string, body?: Body): Promise<T>
   if (!response.ok) throw await toApiError(response)
   if (response.status === 204) return undefined as T
   return (await response.json()) as T
+}
+
+/** Subida multipart. No se fija Content-Type: lo pone el navegador con su `boundary`. */
+export async function upload<T>(path: string, file: File): Promise<T> {
+  const token = getToken()
+  const form = new FormData()
+  form.append('file', file)
+  let response: Response
+  try {
+    response = await fetch(`${BASE_URL}${path}`, {
+      method: 'POST',
+      headers: token === null ? {} : { Authorization: `Bearer ${token}` },
+      body: form,
+    })
+  } catch {
+    throw new ApiError('NETWORK_ERROR', {}, 0, '')
+  }
+  return finish<T>(response)
 }
 
 export const api = {

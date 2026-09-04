@@ -19,6 +19,7 @@ const NAV: Record<Role, NavItem[]> = {
   representative: [
     { to: '/stand', label: 'Panel' },
     { to: '/stand/credenciales', label: 'Credenciales' },
+    { to: '/stand/credenciales/carga', label: 'Carga masiva' },
   ],
 }
 
