@@ -126,11 +126,16 @@ SMTP_USER=<usuario del inbox>
 SMTP_PASSWORD=<contraseña del inbox>
 ```
 
-Los valores están en Mailtrap → *Email Testing* → *Inboxes* → su inbox → *Integrations* →
-*SMTP*. El cifrado es **oportunista**: se usa STARTTLS cuando el servidor lo ofrece —Mailtrap
+Los valores están en Mailtrap → *Sandboxes* → su sandbox → *Integration* → pestaña *SMTP*.
+El cifrado es **oportunista**: se usa STARTTLS cuando el servidor lo ofrece —Mailtrap
 lo hace— y se sigue sin él cuando no, para que el mismo mailer sirva con un buzón de captura
 local. Para comprobar que llegan, cree un expositor desde la interfaz (correo al representante)
 y luego una credencial con correo (correo al participante).
+
+El sandbox gratuito limita los envíos por segundo y responde `550` si se le mandan dos
+seguidos. Es el caso que el diseño ya contempla: el fallo queda en el log, la credencial se da
+de alta igual y `credential_notified_at` se queda sin marcar, así que el aviso vuelve a
+intentarse la próxima vez que se edite esa credencial.
 
 Para probar el alta de un representante sin acceso al inbox, `EXPOSE_SETUP_LINK=true` devuelve
 el enlace de establecer contraseña en la respuesta del alta. **Es un interruptor de demo**: en
