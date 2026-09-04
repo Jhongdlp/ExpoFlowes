@@ -42,13 +42,13 @@ function readShortages(details: ErrorDetails): { category: string; quota: number
 
 export function ServerError({ error, onDismiss }: { error: unknown; onDismiss?: () => void }) {
   if (!(error instanceof ApiError)) {
-    return <Notice title="Ocurrió un error inesperado. Inténtelo nuevamente." onDismiss={onDismiss} />
+    return <Notice tone="error" title="Ocurrió un error inesperado. Inténtelo nuevamente." onDismiss={onDismiss} />
   }
 
   if (error.code === 'STAND_SIZE_OUT_OF_RANGE') {
     const ranges = readRanges(error.details)
     return (
-      <Notice title={error.message} onDismiss={onDismiss}>
+      <Notice tone="error" title={error.message} onDismiss={onDismiss}>
         {ranges.length === 0 ? null : (
           <>
             <p>Rangos configurados para esta feria:</p>
@@ -68,7 +68,7 @@ export function ServerError({ error, onDismiss }: { error: unknown; onDismiss?: 
   if (error.code === 'QUOTA_BELOW_ASSIGNED') {
     const shortages = readShortages(error.details)
     return (
-      <Notice title={error.message} onDismiss={onDismiss}>
+      <Notice tone="error" title={error.message} onDismiss={onDismiss}>
         <ul className="tnum space-y-0.5">
           {shortages.map((row) => (
             <li key={row.category}>
@@ -84,7 +84,7 @@ export function ServerError({ error, onDismiss }: { error: unknown; onDismiss?: 
   if (error.code === 'QUOTA_EXCEEDED') {
     const { category, quota, used } = error.details
     return (
-      <Notice title={error.message} onDismiss={onDismiss}>
+      <Notice tone="error" title={error.message} onDismiss={onDismiss}>
         {typeof category === 'string' && typeof quota === 'number' && typeof used === 'number' ? (
           <>
             {category}: {used} de {quota} credenciales ya asignadas. Elimine una credencial de
@@ -98,13 +98,13 @@ export function ServerError({ error, onDismiss }: { error: unknown; onDismiss?: 
   if (error.code === 'PARTICIPANT_ALREADY_REGISTERED') {
     const registeredIn = error.details.registered_in
     return (
-      <Notice title={error.message} onDismiss={onDismiss}>
+      <Notice tone="error" title={error.message} onDismiss={onDismiss}>
         {typeof registeredIn === 'string' ? <>Ya está acreditada por {registeredIn}.</> : null}
       </Notice>
     )
   }
 
-  return <Notice title={error.message} onDismiss={onDismiss} />
+  return <Notice tone="error" title={error.message} onDismiss={onDismiss} />
 }
 
 /** Errores de campo que envia el backend en VALIDATION_ERROR, con su ruta con puntos. */

@@ -1,6 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
-import { Building2, Maximize2, IdCard, Ticket } from 'lucide-react'
 
 import { api, ApiError } from '../../api/client'
 import type { AdminDashboard } from '../../api/types'
@@ -11,6 +10,8 @@ import { PageHeader } from '../../components/PageHeader'
 import { Stat, StatRow } from '../../components/Stat'
 import { Button } from '../../components/ui/Button'
 import { Notice } from '../../components/ui/Notice'
+import { Meter } from '../../components/ui/Meter'
+import { Table, TBody, TD, TH, TR } from '../../components/ui/Table'
 import { QuotaTable } from './QuotaTable'
 
 const DATE = new Intl.DateTimeFormat('es-EC', {
@@ -20,18 +21,57 @@ const DATE = new Intl.DateTimeFormat('es-EC', {
   timeZone: 'UTC',
 })
 
+/** Rotulo de seccion: mismo peso en todas las paginas, con su dato a la derecha. */
+function SectionHeading({ title, meta }: { title: string; meta?: React.ReactNode }) {
+  return (
+    <div className="mb-2.5 flex items-baseline justify-between gap-3">
+      <h2 className="label-caps">{title}</h2>
+      {meta === undefined ? null : <span className="text-[11px] text-ink-faint">{meta}</span>}
+    </div>
+  )
+}
+
 export function AdminDashboardPage() {
   const { data, isPending, isError, error } = useQuery({
     queryKey: ['dashboard', 'admin'],
     queryFn: () => api.get<AdminDashboard>('/dashboard/admin'),
   })
 
-  if (isPending) return <Loading label="Cargando el panel" />
+  const header = (subtitle?: string) => (
+    <PageHeader
+      title="Panel general"
+      subtitle={subtitle}
+      actions={
+        <>
+          <DownloadReportButton />
+          <Link to="/admin/expositores/nuevo">
+            <Button>Nuevo expositor</Button>
+          </Link>
+        </>
+      }
+    />
+  )
+
+  if (isPending) {
+    return (
+      <>
+        {header()}
+        <Loading label="Cargando el panel" />
+      </>
+    )
+  }
+
   if (isError) {
     return (
-      <Notice
-        title={error instanceof ApiError ? error.message : 'No se pudo cargar el panel.'}
-      />
+      <>
+        {header()}
+        <Notice
+          tone="error"
+          title={error instanceof ApiError ? error.message : 'No se pudo cargar el panel.'}
+        >
+          Vuelva a intentarlo en unos segundos. Si el problema sigue, avise al equipo técnico.
+        </Notice>
+      </>
     )
   }
 
@@ -43,23 +83,13 @@ export function AdminDashboardPage() {
   )
   const totalQuota = Object.values(data.totals).reduce((sum, row) => sum + row.quota, 0)
   const totalAvailable = totalQuota - data.participants_total
-  const overallBurnRate =
-    totalQuota === 0 ? 0 : Math.round((data.participants_total / totalQuota) * 100)
+  const burnRate = totalQuota === 0 ? 0 : Math.round((data.participants_total / totalQuota) * 100)
 
   return (
-    <div className="space-y-8">
-      <PageHeader
-        title="Panel general"
-        subtitle={`${data.event.name} · ${DATE.format(new Date(data.event.starts_on))} al ${DATE.format(new Date(data.event.ends_on))}`}
-        actions={
-          <div className="flex items-center gap-2">
-            <DownloadReportButton />
-            <Link to="/admin/expositores/nuevo">
-              <Button>Nuevo expositor</Button>
-            </Link>
-          </div>
-        }
-      />
+    <div className="space-y-7">
+      {header(
+        `${data.event.name} · ${DATE.format(new Date(data.event.starts_on))} al ${DATE.format(new Date(data.event.ends_on))}`,
+      )}
 
       {data.exhibitors_total === 0 ? (
         <EmptyState
@@ -73,42 +103,22 @@ export function AdminDashboardPage() {
         />
       ) : (
         <>
-          {/* Métricas clave */}
           <StatRow>
-            <Stat
-              label="Expositores"
-              value={data.exhibitors_total}
-              icon={Building2}
-              note="Empresas registradas"
-            />
-            <Stat
-              label="Metraje total"
-              value={`${data.total_m2} m²`}
-              icon={Maximize2}
-              note="Área de exposición"
-            />
+            <Stat label="Expositores" value={data.exhibitors_total} note="Empresas registradas" />
+            <Stat label="Metraje" value={`${data.total_m2} m²`} note="Área contratada" />
             <Stat
               label="Credenciales"
               value={data.participants_total}
-              icon={IdCard}
-              note={`de ${totalQuota} cupos (${overallBurnRate}%)`}
+              note={`de ${totalQuota} cupos`}
             />
-            <Stat
-              label="Disponibles"
-              value={totalAvailable}
-              icon={Ticket}
-              note="Cupos sin asignar"
-            />
+            <Stat label="Disponibles" value={totalAvailable} note={`${burnRate}% utilizado`} />
           </StatRow>
 
-          {/* Cuotas por categoría */}
           <section>
-            <div className="mb-3 flex items-center justify-between">
-              <h2 className="label-caps">Credenciales por categoría</h2>
-              <span className="text-[12px] text-ink-faint">
-                {data.participants_total} de {totalQuota} emitidas
-              </span>
-            </div>
+            <SectionHeading
+              title="Credenciales por categoría"
+              meta={`${data.participants_total} de ${totalQuota} emitidas`}
+            />
             <QuotaTable
               categories={categories}
               quota={quota}
@@ -117,55 +127,66 @@ export function AdminDashboardPage() {
             />
           </section>
 
-          {/* Stands por categoría de metraje */}
           <section>
-            <div className="mb-3 flex items-center justify-between">
-              <h2 className="label-caps">Stands por categoría de metraje</h2>
-              <Link
-                to="/admin/expositores"
-                className="text-[12px] text-ink-soft hover:text-ink underline underline-offset-2"
-              >
-                Ver listado de stands
-              </Link>
-            </div>
+            <SectionHeading
+              title="Stands por categoría de metraje"
+              meta={
+                <Link
+                  to="/admin/expositores"
+                  className="text-ink-soft underline decoration-line-strong underline-offset-2 transition-colors duration-[120ms] hover:text-ink hover:decoration-ink"
+                >
+                  Ver listado
+                </Link>
+              }
+            />
 
-            <div className="overflow-x-auto rounded-lg border border-line bg-surface">
-              <table className="w-full text-left text-[13px]">
-                <thead>
-                  <tr className="border-b border-line text-ink-faint">
-                    <th className="label-caps px-4 py-2.5 font-medium">Categoría</th>
-                    <th className="label-caps px-4 py-2.5 font-medium">Rango</th>
-                    <th className="label-caps px-4 py-2.5 text-right font-medium">Stands</th>
-                    <th className="label-caps px-4 py-2.5 text-right font-medium">Proporción</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-line">
-                  {data.stand_categories.map((row) => {
-                    const percentage =
-                      data.exhibitors_total === 0
-                        ? 0
-                        : Math.round((row.exhibitors / data.exhibitors_total) * 100)
+            <Table>
+              <thead>
+                <tr>
+                  <TH>Categoría</TH>
+                  <TH>Rango</TH>
+                  <TH className="text-right">Stands</TH>
+                  <TH className="w-40">Proporción</TH>
+                </tr>
+              </thead>
+              <TBody>
+                {data.stand_categories.map((row) => {
+                  const percentage =
+                    data.exhibitors_total === 0
+                      ? 0
+                      : Math.round((row.exhibitors / data.exhibitors_total) * 100)
 
-                    return (
-                      <tr key={row.label} className="hover:bg-fill/50 transition-colors">
-                        <td className="px-4 py-3 font-medium text-ink">{row.label}</td>
-                        <td className="tnum px-4 py-3 text-ink-soft">
-                          {row.min_m2} – {row.max_m2} m²
-                        </td>
-                        <td className="tnum px-4 py-3 text-right font-medium text-ink">
-                          {row.exhibitors}
-                        </td>
-                        <td className="tnum px-4 py-3 text-right text-ink-soft">
-                          {percentage}%
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            </div>
+                  return (
+                    <TR key={row.label}>
+                      <TD className="font-medium">{row.label}</TD>
+                      <TD label="Rango" className="tnum text-ink-soft">
+                        {row.min_m2} – {row.max_m2} m²
+                      </TD>
+                      <TD label="Stands" className="tnum text-right font-medium sm:text-right">
+                        {row.exhibitors}
+                      </TD>
+                      <TD label="Proporción" className="cell-wide">
+                        <div className="flex items-center gap-2">
+                          <Meter
+                            used={row.exhibitors}
+                            total={data.exhibitors_total}
+                            label={`Stands ${row.label}`}
+                            className="flex-1"
+                          />
+                          <span className="tnum w-8 text-right text-[11px] text-ink-faint">
+                            {percentage}%
+                          </span>
+                        </div>
+                      </TD>
+                    </TR>
+                  )
+                })}
+              </TBody>
+            </Table>
+
             <p className="mt-2 text-[11px] text-ink-faint">
-              Rangos y cuotas leídos de configuración (<code className="font-mono">stand_size_rules</code> y <code className="font-mono">credential_rules</code>).
+              Rangos y cuotas leídos de configuración (<code>stand_size_rules</code> y{' '}
+              <code>credential_rules</code>), no del código.
             </p>
           </section>
         </>

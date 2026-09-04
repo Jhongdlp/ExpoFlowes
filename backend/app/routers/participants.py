@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 from app.core.security import AdminUser
 from app.db.session import get_db
 from app.repositories.participant import ParticipantRepository
-from app.schemas.pagination import DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE, Page
+from app.schemas.pagination import DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE, SEARCH_MAX_LENGTH, Page
 from app.schemas.participant import Category, ParticipantRead, ParticipantWithExhibitor
 
 router = APIRouter(prefix="/participants", tags=["participantes"])
@@ -26,9 +26,10 @@ def list_participants(
     page_size: Annotated[int, Query(ge=1, le=MAX_PAGE_SIZE)] = DEFAULT_PAGE_SIZE,
     exhibitor_id: int | None = None,
     category: Category | None = None,
+    search: Annotated[str | None, Query(max_length=SEARCH_MAX_LENGTH)] = None,
 ) -> dict[str, Any]:
     rows, total = ParticipantRepository(db, auth.event_id).list_for_event(
-        page, page_size, exhibitor_id, category
+        page, page_size, exhibitor_id, category, search
     )
     items = [
         ParticipantWithExhibitor(

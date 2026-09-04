@@ -4,10 +4,12 @@ import { Link, useNavigate } from 'react-router-dom'
 
 import { api } from '../../api/client'
 import type { CredentialRule, MyQuota, Participant } from '../../api/types'
+import { CATEGORY_BAR } from '../../components/CategoryBadge'
 import { Loading } from '../../components/Loading'
 import { PageHeader } from '../../components/PageHeader'
 import { Button } from '../../components/ui/Button'
 import { Notice } from '../../components/ui/Notice'
+import { Status } from '../../components/ui/Status'
 import { ParticipantForm } from './ParticipantForm'
 import type { ParticipantFormValues } from './schema'
 
@@ -61,22 +63,41 @@ export function ParticipantCreatePage() {
         }
       />
 
-      <div className="mb-8 flex flex-wrap gap-x-8 gap-y-2 border-y border-line py-3 text-[13px]">
-        {categories.map((category) => (
-          <p key={category}>
-            <span className="label-caps">{category}</span>{' '}
-            <span className="tnum ml-1">{available[category] ?? 0} disponibles</span>
-          </p>
-        ))}
+      {/* Cupo restante a la vista mientras se escribe: evita descubrir el tope al guardar. */}
+      <div className="mb-4 grid grid-cols-1 gap-px overflow-hidden rounded-lg border border-line bg-line sm:grid-cols-3">
+        {categories.map((category) => {
+          const free = available[category] ?? 0
+          return (
+            <div key={category} className="bg-surface px-4 py-2.5">
+              <div className="flex items-center gap-1.5">
+                <span
+                  aria-hidden="true"
+                  className={`h-1.5 w-1.5 shrink-0 rounded-full ${CATEGORY_BAR[category] ?? 'bg-ink-faint'}`}
+                />
+                <p className="label-caps truncate">{category}</p>
+              </div>
+              <div className="mt-1">
+                <Status
+                  tone={free === 0 ? 'error' : 'ok'}
+                  label={free === 0 ? 'Sin cupo' : `${free} disponibles`}
+                />
+              </div>
+            </div>
+          )
+        })}
       </div>
 
       {lastCreated === null ? null : (
-        <Notice title={`Credencial registrada para ${lastCreated}`} onDismiss={() => setLastCreated(null)}>
+        <Notice
+          tone="success"
+          title={`Credencial registrada para ${lastCreated}`}
+          onDismiss={() => setLastCreated(null)}
+        >
           Puede registrar a la siguiente persona; el formulario ya está limpio.
         </Notice>
       )}
 
-      <div className="mt-8">
+      <div className="mt-6">
         <ParticipantForm
           categories={categories}
           onSubmit={async (values) => {

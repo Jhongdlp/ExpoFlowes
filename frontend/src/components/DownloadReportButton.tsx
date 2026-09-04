@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { FileSpreadsheet, Loader2 } from 'lucide-react'
 
 import { ApiError, download } from '../api/client'
 import { Button } from './ui/Button'
@@ -25,16 +24,16 @@ export function DownloadReportButton() {
   }
 
   return (
-    <div className="flex flex-col items-end gap-2">
-      <Button variant="secondary" onClick={onClick} disabled={busy} className="gap-2">
-        {busy ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          <FileSpreadsheet className="h-4 w-4" />
-        )}
-        <span>{busy ? 'Generando…' : 'Descargar Excel'}</span>
+    <div className="relative">
+      <Button variant="secondary" loading={busy} onClick={onClick}>
+        {busy ? 'Generando…' : 'Descargar Excel'}
       </Button>
-      {failure !== null ? <Notice title={failure} onDismiss={() => setFailure(null)} /> : null}
+      {/* El fallo cuelga del boton, no empuja la cabecera: la fila de acciones no se mueve. */}
+      {failure === null ? null : (
+        <div className="absolute top-full right-0 z-20 mt-2 w-72">
+          <Notice tone="error" title={failure} onDismiss={() => setFailure(null)} />
+        </div>
+      )}
     </div>
   )
 }

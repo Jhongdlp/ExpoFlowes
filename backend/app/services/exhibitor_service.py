@@ -99,9 +99,9 @@ def summarize(db: Session, event_id: int, rows: Sequence[Exhibitor]) -> list[dic
 
 
 def list_exhibitors(
-    db: Session, event_id: int, page: int, page_size: int
+    db: Session, event_id: int, page: int, page_size: int, search: str | None = None
 ) -> tuple[list[dict[str, Any]], int]:
-    rows, total = ExhibitorRepository(db, event_id).list(page, page_size)
+    rows, total = ExhibitorRepository(db, event_id).list(page, page_size, search)
     return summarize(db, event_id, rows), total
 
 

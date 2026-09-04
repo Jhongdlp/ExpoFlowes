@@ -3,7 +3,6 @@ import { useEffect, useRef } from 'react'
 import { useForm, type FieldPath } from 'react-hook-form'
 
 import { ApiError } from '../../api/client'
-import { CategorySelect } from '../../components/CategorySelect'
 import { FormSection } from '../../components/FormSection'
 import { ServerError, fieldErrors } from '../../components/ServerError'
 import { Button } from '../../components/ui/Button'
@@ -75,7 +74,7 @@ export function ParticipantForm({
       : null
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} noValidate className="max-w-3xl space-y-8">
+    <form onSubmit={form.handleSubmit(onSubmit)} noValidate className="max-w-3xl space-y-6">
       <div ref={alertRef}>
         {duplicate !== null ? (
           <DuplicateAlert error={duplicate} onDismiss={onDismissError} />
@@ -120,33 +119,31 @@ export function ParticipantForm({
       </FormSection>
 
       <FormSection title="Credencial">
-        <CategorySelect
+        <Select
           label="Categoría"
-          categories={categories}
           placeholder="Seleccionar categoría"
-          value={category}
-          onChange={(val) =>
-            form.setValue('category', val as ParticipantFormValues['category'], {
-              shouldValidate: true,
-            })
-          }
+          options={categories.map((item) => ({ value: item, label: item }))}
           error={errors.category?.message}
+          {...form.register('category')}
         />
+        {/* Campo condicional (§13): aparece con la categoria Service y se anuncia al llegar. */}
         {isService ? (
-          <Field
-            label="Empresa proveedora"
-            hint="Obligatoria para la categoría Service."
-            error={errors.provider_company?.message}
-            {...form.register('provider_company')}
-          />
+          <div className="animate-rise">
+            <Field
+              label="Empresa proveedora"
+              hint="Obligatoria para la categoría Service."
+              error={errors.provider_company?.message}
+              {...form.register('provider_company')}
+            />
+          </div>
         ) : null}
       </FormSection>
 
-      <div className="flex justify-end gap-2 border-t border-line pt-6">
-        <Button type="button" variant="secondary" onClick={onCancel} disabled={submitting}>
+      <div className="flex justify-end gap-2 border-t border-line pt-5">
+        <Button type="button" variant="ghost" onClick={onCancel} disabled={submitting}>
           Cancelar
         </Button>
-        <Button type="submit" disabled={submitting}>
+        <Button type="submit" loading={submitting}>
           {submitting ? 'Registrando…' : 'Registrar credencial'}
         </Button>
       </div>

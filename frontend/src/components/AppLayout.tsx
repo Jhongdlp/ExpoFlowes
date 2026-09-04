@@ -1,4 +1,5 @@
-import { useState, type ButtonHTMLAttributes, type ReactNode, type SVGProps } from 'react'
+import { useEffect, useRef, useState, type ButtonHTMLAttributes, type ReactNode, type SVGProps } from 'react'
+import { useIsFetching } from '@tanstack/react-query'
 import { NavLink, Outlet } from 'react-router-dom'
 
 import { useSession } from '../features/auth/session'
@@ -47,10 +48,45 @@ const ICONS = {
       <path d="M6 16c.6-1.3 1.7-2 3-2s2.4.7 3 2M15 10h3M15 13.5h3" />
     </Icon>
   ),
+  rules: (
+    <Icon>
+      <path d="M4 7h9M17 7h3M4 17h3M11 17h9" />
+      <circle cx="15" cy="7" r="2" />
+      <circle cx="9" cy="17" r="2" />
+    </Icon>
+  ),
   upload: (
     <Icon>
       <path d="M12 15V4m0 0L8.5 7.5M12 4l3.5 3.5" />
       <path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" />
+    </Icon>
+  ),
+  docs: (
+    <Icon>
+      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+      <path d="M9 7h6M9 11h6" />
+    </Icon>
+  ),
+  options: (
+    <Icon>
+      <circle cx="12" cy="12" r="3" />
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+    </Icon>
+  ),
+  accessibility: (
+    <Icon>
+      <circle cx="12" cy="4.5" r="2" />
+      <path d="M5 9.5l7 1.5 7-1.5" />
+      <path d="M12 11v5" />
+      <path d="M8 21l4-5 4 5" />
+    </Icon>
+  ),
+  language: (
+    <Icon>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M3.6 9h16.8M3.6 15h16.8" />
+      <path d="M11.5 3a17 17 0 0 0 0 18M12.5 3a17 17 0 0 1 0 18" />
     </Icon>
   ),
   signOut: (
@@ -91,6 +127,11 @@ const NAV: Record<Role, NavItem[]> = {
       label: 'Credenciales',
       icon: 'credentials',
     },
+    {
+      to: '/admin/reglas',
+      label: 'Reglas',
+      icon: 'rules',
+    },
   ],
   representative: [
     { to: '/stand', label: 'Panel', icon: 'panel' },
@@ -115,7 +156,7 @@ const ROLE_LABEL: Record<Role, string> = {
 /** Aviso permanente del demo (§14.5). Vive en el marco negro, nunca se cierra. */
 export function DemoBanner() {
   return (
-    <p className="shrink-0 py-1.5 text-center text-[10px] font-medium tracking-[0.1em] text-white/45 uppercase">
+    <p className="shrink-0 px-3 py-1.5 text-center text-[10px] font-medium tracking-[0.1em] text-balance text-white/45 uppercase">
       Demo técnico · datos ficticios · no afiliado a Expoflores
     </p>
   )
@@ -204,16 +245,64 @@ function RailCard({ label }: { label: string }) {
 
 const RAIL_KEY = 'expoflores.rail'
 
+/**
+ * Hilo de actividad: 2px en el borde superior del panel mientras hay alguna consulta en
+ * vuelo. Es el unico indicador global de la aplicacion; sustituye a cualquier spinner
+ * centrado que tape el contenido que el usuario ya esta leyendo.
+ */
+function ActivityLine() {
+  const fetching = useIsFetching()
+
+  return (
+    <div
+      aria-hidden="true"
+      className={cn(
+        'pointer-events-none sticky top-0 z-20 h-0.5 overflow-hidden transition-opacity duration-200',
+        fetching > 0 ? 'opacity-100' : 'opacity-0',
+      )}
+    >
+      <div className="animate-progress h-full w-1/4 rounded-full bg-ink/70" />
+    </div>
+  )
+}
+
 export function AppLayout() {
   const { user, signOut } = useSession()
   // Preferencia del usuario, no del dispositivo: se recuerda entre visitas.
   const [expanded, setExpanded] = useState(() => localStorage.getItem(RAIL_KEY) === '1')
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!menuOpen) return
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setMenuOpen(false)
+      }
+    }
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [menuOpen])
 
   const toggle = () => {
     setExpanded((open) => {
       localStorage.setItem(RAIL_KEY, open ? '0' : '1')
       return !open
     })
+  }
+
+  /** En movil el rail tapa el panel: navegar lo cierra, como haria cualquier cajon. */
+  const closeOnMobile = () => {
+    if (window.matchMedia('(width < 40rem)').matches) setExpanded(false)
   }
 
   if (user === null) return null
@@ -228,12 +317,14 @@ export function AppLayout() {
       <div className="flex min-h-0 flex-1">
         <div
           className={cn(
-            'relative z-10 flex shrink-0 flex-col px-2 pb-2 transition-[width] duration-200 ease-out',
-            expanded ? 'w-60' : 'w-14',
+            'relative z-30 flex shrink-0 flex-col px-2 pb-2 transition-[width] duration-200 ease-out',
+            // En una pantalla de 360px, un rail abierto de 240px no deja panel que mirar:
+            // ahi se superpone (y se cierra al navegar) en vez de empujar el contenido.
+            expanded ? 'w-60 max-sm:absolute max-sm:inset-y-0 max-sm:left-0 max-sm:bg-ink' : 'w-14',
           )}
         >
           <div className="flex h-10 w-full items-center gap-3 px-[11px] text-white">
-            <span className="grid h-[18px] w-[18px] shrink-0 place-items-center rounded-full bg-white text-[10px] font-semibold text-ink">
+            <span className="grid h-[18px] w-[18px] shrink-0 place-items-center rounded-full bg-brand text-[10px] font-semibold text-white">
               E
             </span>
             <RowLabel expanded={expanded} title="Expo Flor Ecuador" meta="Acreditaciones 2026" />
@@ -255,6 +346,7 @@ export function AppLayout() {
                 to={item.to}
                 end={item.to.split('/').length === 2}
                 aria-label={item.label}
+                onClick={closeOnMobile}
                 className={({ isActive }) =>
                   cn(ROW, isActive ? 'bg-white/12 text-white' : ROW_IDLE)
                 }
@@ -267,6 +359,93 @@ export function AppLayout() {
           </nav>
 
           <div className="mt-auto flex flex-col gap-1">
+            {/* Pop-up de Opciones: Documentación, Accesibilidad e Idioma */}
+            <div ref={menuRef} className="relative">
+              <RailButton
+                label="Opciones"
+                expanded={expanded}
+                icon={ICONS.options}
+                onClick={() => setMenuOpen((open) => !open)}
+                aria-haspopup="dialog"
+                aria-expanded={menuOpen}
+                className={cn(ROW_IDLE, menuOpen && 'bg-white/12 text-white')}
+              />
+
+              {menuOpen && (
+                <div
+                  role="region"
+                  aria-label="Opciones del sistema"
+                  className={cn(
+                    'animate-rise absolute z-50 rounded-xl border border-white/15 bg-[#142e26] p-1.5 text-white shadow-[0_12px_36px_-6px_rgba(0,0,0,0.6)] backdrop-blur-md',
+                    expanded
+                      ? 'bottom-full left-0 mb-1.5 w-full'
+                      : 'bottom-0 left-full ml-2.5 w-56',
+                  )}
+                >
+                  <div className="px-2.5 py-1 text-[10px] font-semibold tracking-wider text-white/40 uppercase">
+                    Opciones
+                  </div>
+
+                  <div className="flex flex-col gap-0.5">
+                    {/* Documentación (movida desde el navbar principal) */}
+                    <NavLink
+                      to={user.role === 'admin' ? '/admin/documentacion' : '/stand/documentacion'}
+                      onClick={() => {
+                        setMenuOpen(false)
+                        closeOnMobile()
+                      }}
+                      className={({ isActive }) =>
+                        cn(
+                          'group flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-[12px] font-medium transition-colors',
+                          isActive
+                            ? 'bg-white/15 text-white font-semibold'
+                            : 'text-white/80 hover:bg-white/10 hover:text-white',
+                        )
+                      }
+                    >
+                      <span className="shrink-0 text-white/70 group-hover:text-white">
+                        {ICONS.docs}
+                      </span>
+                      <span className="flex-1">Documentación</span>
+                    </NavLink>
+
+                    {/* Accesibilidad (únicamente el botón, sin lógica adicional) */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        // Accesibilidad: únicamente se genera el botón según lo solicitado
+                      }}
+                      className="group flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-[12px] font-medium text-white/80 transition-colors hover:bg-white/10 hover:text-white"
+                    >
+                      <span className="shrink-0 text-white/70 group-hover:text-white">
+                        {ICONS.accessibility}
+                      </span>
+                      <span className="flex-1">Accesibilidad</span>
+                    </button>
+
+                    {/* Idioma */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        // Idioma
+                      }}
+                      className="group flex w-full items-center justify-between gap-2.5 rounded-lg px-2.5 py-2 text-left text-[12px] font-medium text-white/80 transition-colors hover:bg-white/10 hover:text-white"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <span className="shrink-0 text-white/70 group-hover:text-white">
+                          {ICONS.language}
+                        </span>
+                        <span>Idioma</span>
+                      </div>
+                      <span className="rounded bg-white/10 px-1.5 py-0.5 text-[10px] font-semibold text-white/70">
+                        Español
+                      </span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
             <RailButton
               label="Cerrar sesión"
               expanded={expanded}
@@ -290,8 +469,9 @@ export function AppLayout() {
           </div>
         </div>
 
-        <main className="mr-1.5 mb-1.5 min-w-0 flex-1 overflow-y-auto rounded-xl bg-canvas text-ink">
-          <div className="mx-auto max-w-5xl px-5 py-8 md:px-10">
+        <main className="relative mr-1 mb-1 min-w-0 flex-1 overflow-y-auto rounded-xl bg-canvas text-ink sm:mr-1.5 sm:mb-1.5">
+          <ActivityLine />
+          <div className="mx-auto max-w-5xl px-4 py-6 sm:px-5 sm:py-8 md:px-10">
             <Outlet />
           </div>
         </main>

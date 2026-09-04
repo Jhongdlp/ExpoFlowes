@@ -33,7 +33,11 @@ Mail = tuple[str, str, str]
 def outbox(monkeypatch: pytest.MonkeyPatch) -> list[Mail]:
     """Buzon en memoria: (destinatario, asunto, cuerpo)."""
     sent: list[Mail] = []
-    monkeypatch.setattr(mailer, "send", lambda to, subject, body: sent.append((to, subject, body)))
+    monkeypatch.setattr(
+        mailer,
+        "send",
+        lambda to, subject, body, body_html=None: sent.append((to, subject, body)),
+    )
     return sent
 
 
@@ -291,5 +295,10 @@ def test_send_speaks_smtp_when_configured(monkeypatch: pytest.MonkeyPatch) -> No
     message = email.message_from_bytes(received[0], policy=email.policy.default)
     assert message["To"] == "rep@example.com"
     assert message["From"] == settings.mail_from
-    # El enlace sobrevive a la codificacion quoted-printable del cuerpo.
-    assert "token=XYZ" in message.get_content()
+    # El correo sale como multipart/alternative: texto plano de respaldo + HTML.
+    plain = message.get_body(preferencelist=("plain",))
+    rich = message.get_body(preferencelist=("html",))
+    assert plain is not None and rich is not None
+    # El enlace sobrevive a la codificacion quoted-printable en las dos partes.
+    assert "token=XYZ" in plain.get_content()
+    assert "token=XYZ" in rich.get_content()

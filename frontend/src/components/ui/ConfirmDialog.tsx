@@ -41,15 +41,18 @@ export function ConfirmDialog({
         event.preventDefault()
         onCancel()
       }}
-      className="m-auto w-[min(28rem,calc(100vw-2rem))] rounded-sm border border-line bg-surface p-6 text-ink backdrop:bg-ink/40"
+      className="animate-rise m-auto w-[min(26rem,calc(100vw-2rem))] rounded-lg border border-line bg-surface p-5 text-ink backdrop:bg-ink/35"
     >
       <h2 className="text-[15px] font-semibold">{title}</h2>
-      <p className="mt-2 text-[13px] text-ink-soft">{description}</p>
-      <div className="mt-6 flex justify-end gap-2">
-        <Button variant="secondary" onClick={onCancel} disabled={busy}>
+      <p className="mt-2 text-[12px] leading-relaxed text-ink-soft">{description}</p>
+      {/* En móvil la confirmación va primero y ambos botones son del ancho del diálogo:
+          un botón de 90px en la esquina de una pantalla táctil se falla. */}
+      <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+        <Button variant="ghost" size="sm" onClick={onCancel} disabled={busy}>
           Cancelar
         </Button>
-        <Button onClick={onConfirm} disabled={busy}>
+        {/* La acción destructiva se marca en el texto, no con un botón rojo entero. */}
+        <Button variant="danger" size="sm" loading={busy} onClick={onConfirm}>
           {busy ? 'Eliminando…' : confirmLabel}
         </Button>
       </div>

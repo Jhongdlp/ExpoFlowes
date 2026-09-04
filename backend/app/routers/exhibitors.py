@@ -14,7 +14,7 @@ from app.schemas.exhibitor import (
     ExhibitorRead,
     ExhibitorUpdate,
 )
-from app.schemas.pagination import DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE, Page
+from app.schemas.pagination import DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE, SEARCH_MAX_LENGTH, Page
 from app.services import exhibitor_service
 
 router = APIRouter(prefix="/exhibitors", tags=["expositores"])
@@ -28,8 +28,9 @@ def list_exhibitors(
     db: DbSession,
     page: Annotated[int, Query(ge=1)] = 1,
     page_size: Annotated[int, Query(ge=1, le=MAX_PAGE_SIZE)] = DEFAULT_PAGE_SIZE,
+    search: Annotated[str | None, Query(max_length=SEARCH_MAX_LENGTH)] = None,
 ) -> dict[str, Any]:
-    items, total = exhibitor_service.list_exhibitors(db, auth.event_id, page, page_size)
+    items, total = exhibitor_service.list_exhibitors(db, auth.event_id, page, page_size, search)
     return {"items": items, "total": total, "page": page, "page_size": page_size}
 
 

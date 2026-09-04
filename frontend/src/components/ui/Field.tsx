@@ -2,6 +2,8 @@ import type { InputHTMLAttributes, ReactNode } from 'react'
 import { useId } from 'react'
 
 import { cn } from '../../lib/cn'
+import { CONTROL, CONTROL_TONE, LABEL } from './control'
+import { FieldError } from './FieldError'
 
 interface FieldProps extends InputHTMLAttributes<HTMLInputElement> {
   label: string
@@ -22,21 +24,14 @@ export function Field({ label, error, hint, className, id, ...props }: FieldProp
 
   return (
     <div className="space-y-1.5">
-      <label htmlFor={inputId} className="block text-[13px] font-medium text-ink">
+      <label htmlFor={inputId} className={LABEL}>
         {label}
       </label>
       <input
         id={inputId}
         aria-invalid={error ? true : undefined}
         aria-describedby={describedBy === '' ? undefined : describedBy}
-        className={cn(
-          'block h-9 w-full rounded-sm border bg-surface px-3 text-sm text-ink',
-          'placeholder:text-ink-faint focus:outline-none focus:ring-1',
-          error
-            ? 'border-ink ring-1 ring-ink'
-            : 'border-line-strong focus:border-ink focus:ring-ink',
-          className,
-        )}
+        className={cn(CONTROL, CONTROL_TONE(error !== undefined), className)}
         {...props}
       />
       {hint ? (
@@ -44,11 +39,7 @@ export function Field({ label, error, hint, className, id, ...props }: FieldProp
           {hint}
         </p>
       ) : null}
-      {error ? (
-        <p id={errorId} role="alert" className="text-[12px] font-medium text-ink">
-          {error}
-        </p>
-      ) : null}
+      <FieldError id={errorId} message={error} />
     </div>
   )
 }

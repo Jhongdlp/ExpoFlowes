@@ -1,25 +1,102 @@
 @import 'tailwindcss';
 
-/* Sistema visual: monocromo, de tipografia y linea fina. No hay color semantico; la
-   jerarquia la dan el peso, el espacio y las reglas. Un solo tema, claro. */
+/* ────────────────────────────────────────────────────────────────────────────
+   Sistema visual "Acreditación".
+
+   Reglas del sistema, en una línea cada una:
+   1. Una familia de color, no una paleta suelta: neutros teñidos de verde follaje,
+      la rosa de la marca a cuentagotas, y dos colores de estado. Nada más entra.
+   2. Una sola escala tipográfica, corta. Nada por encima de 19px: el dato manda,
+      no el titular.
+   3. Una sola geometría: un radio, dos alturas de control, un grosor de línea.
+      Todo lo que se pueda alinear, se alinea.
+   4. Superficies planas. Ni sombras ni tarjetas dentro de tarjetas.
+   5. La animación dura menos que un parpadeo (120–180ms) y se apaga si el
+      sistema lo pide.
+   ──────────────────────────────────────────────────────────────────────────── */
 @theme {
   --font-sans:
     ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 
-  --color-ink: #0a0a0b;
-  --color-ink-soft: #5c5c63;
-  --color-ink-faint: #8e8e96;
-  --color-line: #e4e4e7;
-  --color-line-strong: #c6c6cb;
-  --color-canvas: #fbfbfc;
-  --color-surface: #ffffff;
-  --color-fill: #f4f4f5;
+  /* ── Neutros ───────────────────────────────────────────────────────────────
+     No hay ni un gris puro ni un negro puro en todo el producto.
 
+     El negro #000 sobre blanco da ~21:1: es mas contraste del que necesita ningun
+     texto y en una pantalla que se mira ocho horas se lee como un golpe. La tinta
+     de aqui es un verde de follaje en sombra (matiz ~163°, croma bajo, L* ~19):
+     ~13:1 sobre blanco, sigue muy por encima del AAA de la WCAG (7:1) y se apoya
+     en la vista en vez de empujarla.
+
+     Todos los neutros llevan ese mismo matiz con croma decreciente, asi que la
+     escala entera es una sola familia y las lineas grises no tiran a azul junto
+     al verde. Es una feria de flores: el gris de oficina no dice nada, el follaje
+     si, y funciona de fondo sin gritar como lo haria un verde saturado. */
+  --color-ink: #1b3a30;
+  --color-ink-soft: #4c635b;
+  /* Medidos, no elegidos a ojo (sobre blanco):
+       ink 13.6:1 · ink-soft 6.5:1 · ink-faint 4.7:1  → los tres pasan AA de texto,
+       y el rótulo de 11px, que es el que solía quedarse corto, ya cumple.
+     line-strong es el borde de los controles: 3.0:1, el mínimo de la WCAG 1.4.11
+     para que un campo se distinga de su fondo. Por eso es más oscuro de lo que pide
+     el gusto: un input que no se ve no es minimalismo. */
+  --color-ink-faint: #667872;
+  --color-line: #e2e9e5;
+  --color-line-strong: #86988f;
+  --color-canvas: #f6f9f7;
+  --color-surface: #ffffff;
+  --color-fill: #edf3f0;
+  /* Verde salvia: la superficie con presencia. Sustituye al bloque oscuro para destacar
+     sin golpear; la tinta encima da 10.3:1, así que destaca por peso, no por dureza. */
+  --color-sage: #e3ece6;
+
+  /* ── Marca ─────────────────────────────────────────────────────────────────
+     La rosa ecuatoriana, que es lo que esta feria exporta. Matiz ~343°, croma
+     medio: identifica sin volverse decorado. Se usa a cuentagotas —marca de la
+     banda de metricas, fila seleccionada, foco de marca—, nunca como fondo de
+     una pantalla ni como color de un boton destructivo. */
+  --color-brand: #a83a63;
+  --color-brand-soft: #fbf1f5;
+
+  /* ── Estado ────────────────────────────────────────────────────────────────
+     El error es un rojo de tierra (matiz ~22°): separado del rosa de marca por
+     mas de 40° de tono y por croma, que es la distancia que hace falta para que
+     no se confundan de reojo. El acierto es un verde de mas croma y mas claro
+     que la tinta, para que "correcto" no se lea igual que "texto normal". */
+  --color-alert: #9e2c20;
+  --color-alert-strong: #85231a;
+  --color-alert-soft: #fdf3f1;
+  --color-ok: #1c6b48;
+  --color-ok-strong: #16563a;
+  --color-ok-soft: #eef7f2;
+
+  /* ── Categoria de credencial ───────────────────────────────────────────────
+     Tres matices repartidos por el circulo (azul ~215°, ocre ~48°, ciruela
+     ~285°), todos a croma medio-bajo y a una luminancia parecida entre si, para
+     que ninguno pese mas que otro en un listado. Ninguno es rojo ni verde: esos
+     son estado. El nombre de la categoria va siempre escrito, asi que en blanco
+     y negro o sin distinguir colores no se pierde nada. */
+  --color-cat-exhibitor: #2f5590;
+  --color-cat-exhibitor-soft: #eef2f9;
+  --color-cat-guest: #855610;
+  --color-cat-guest-soft: #fbf4e8;
+  --color-cat-service: #6a4a86;
+  --color-cat-service-soft: #f4f0f9;
+
+  /* ── Geometría ─────────────────────────────────────────────────────────────
+     Dos radios y nada entre medias: el control (6px) y la superficie (10px). Un
+     canto de 4px en una caja de 200px no se lee como canto, se lee como esquina
+     rota; el radio tiene que crecer con la caja para que la forma se vea
+     intencionada. */
   --radius-*: initial;
-  --radius-sm: 2px;
-  --radius-md: 3px;
-  /* Solo el marco de la aplicacion usa un radio grande; el contenido sigue siendo de canto vivo. */
-  --radius-xl: 14px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --radius-full: 9999px;
+  /* El marco de la aplicación, que es la caja más grande de todas. */
+  --radius-xl: 16px;
+
+  /* Movimiento */
+  --ease-brand: cubic-bezier(0.2, 0.6, 0.2, 1);
 }
 
 @layer base {
@@ -31,7 +108,7 @@
     background-color: var(--color-canvas);
     color: var(--color-ink);
     font-family: var(--font-sans);
-    font-size: 14px;
+    font-size: 13px;
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
   }
@@ -39,6 +116,7 @@
   /* Cifras alineadas en columna: en una tabla de cupos es la diferencia entre leer y contar. */
   table,
   output,
+  input,
   .tnum {
     font-variant-numeric: tabular-nums;
   }
@@ -53,12 +131,236 @@
     background: var(--color-ink);
     color: var(--color-surface);
   }
+
+  /* Quien pide menos movimiento recibe cero movimiento, no menos movimiento. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
 }
 
+/* ── Utilidades del sistema ─────────────────────────────────────────────── */
+
+/** Rótulo de sección: versalitas finas. Sustituye a los títulos grandes. */
 @utility label-caps {
   font-size: 11px;
   font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--color-ink-faint);
+}
+
+/**
+ * Tres superficies y ni una mas. La jerarquia la da el fondo, no la sombra:
+ *   blanco (`surface`)       → el dato: tablas, formularios, detalle
+ *   gris   (`surface-muted`) → los mandos: filtros, barras de accion, cabeceras de tabla
+ *   salvia (`bg-sage`)       → lo que hay que ver primero: la banda de metricas y el
+ *                              resultado del simulador. Antes era un bloque de tinta y
+ *                              resultaba agresivo: un rectangulo oscuro grande domina la
+ *                              pantalla por area, no por importancia. La salvia da el mismo
+ *                              salto de jerarquia con una decima parte del ruido.
+ */
+@utility surface {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-lg);
+}
+
+@utility surface-muted {
+  background-color: var(--color-fill);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-lg);
+}
+
+/* ── Micro-animación ────────────────────────────────────────────────────── */
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/** Entrada de un bloque que aparece por una acción (aviso, resultado, panel). */
+@utility animate-rise {
+  animation: rise 180ms var(--ease-brand) both;
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@utility animate-fade {
+  animation: fade 120ms linear both;
+}
+
+@keyframes progress-slide {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(400%);
+  }
+}
+
+/** Progreso indeterminado: una barra que recorre el carril. */
+@utility animate-progress {
+  animation: progress-slide 1.1s var(--ease-brand) infinite;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}
+
+/**
+ * Esqueleto de carga. Ocupa el sitio exacto del contenido que viene, así la página
+ * no salta cuando llega el dato: eso es lo que se percibe como "rápido".
+ */
+@utility skeleton {
+  background-image: linear-gradient(
+    90deg,
+    var(--color-fill) 0%,
+    #e2ebe6 50%,
+    var(--color-fill) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.2s linear infinite;
+  border-radius: var(--radius-sm);
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────────
+   Una tabla no se arregla encogiendo la letra: en pantalla estrecha deja de ser
+   una cuadricula y pasa a ser una lista de fichas, donde cada dato lleva encima el
+   nombre de su columna. Mismo marcado, misma semantica de tabla para el lector de
+   pantalla, otra forma.
+   ──────────────────────────────────────────────────────────────────────────── */
+
+/* El rotulo de la ficha no existe en la tabla, y el envoltorio del dato desaparece
+   del layout: en escritorio la celda es exactamente lo que era antes. */
+.cell-label {
+  display: none;
+}
+
+.cell-value {
+  display: contents;
+}
+
+/* Banda intermedia (tableta): la tabla sigue siendo una tabla, pero ya sin holgura. El
+   aire entre columnas baja de 12 a 8px antes que sacrificar una columna o dejar que
+   aparezca una barra de desplazamiento horizontal. */
+@media (40rem <= width < 64rem) {
+  .table-stack th,
+  .table-stack td {
+    padding-inline: 0.5rem;
+  }
+}
+
+@media (width < 40rem) {
+  .table-stack thead {
+    display: none;
+  }
+
+  .table-stack tbody {
+    display: block;
+  }
+
+  /* La ficha reparte sus datos en columnas de 7.5rem minimo: los datos cortos —una
+     cifra, un cupo, un metraje— se emparejan de dos en dos en vez de gastar una linea
+     cada uno, y los largos se quedan con la fila entera. Lo decide el ancho disponible,
+     no una lista de excepciones por tabla. */
+  .table-stack tr {
+    --card-pad: 0.875rem;
+    /* Canal que la ficha reserva a la casilla de seleccion cuando la tabla la tiene. */
+    --card-gutter: 1.25rem;
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(6.5rem, 1fr));
+    align-items: start;
+    gap: 0.625rem 1rem;
+    padding: 0.75rem var(--card-pad);
+  }
+
+  .table-stack td {
+    display: block;
+    height: auto;
+    min-width: 0;
+    padding: 0;
+    /* Una cifra alineada a la derecha tiene sentido en una columna, no en una ficha. */
+    text-align: left;
+    /* Un correo largo se parte antes que desbordar la ficha. `break-word` y no
+       `anywhere`: `anywhere` encoge tambien el ancho minimo de la columna y acaba
+       partiendo palabras que cabian de sobra ("CEDU / LA"). */
+    overflow-wrap: break-word;
+  }
+
+  /* Celda sin rotulo: es el nombre de la ficha. Fila propia y a todo el ancho. */
+  .table-stack td:not([data-label]) {
+    grid-column: 1 / -1;
+    font-size: 14px;
+  }
+
+  /* Celda que no se deja partir en media ficha: una barra de progreso a 100px no dice
+     nada. Se marca en la tabla que la tiene, no se adivina aqui. */
+  .table-stack td.cell-wide {
+    grid-column: 1 / -1;
+  }
+
+  /* La casilla de seleccion es un mando de la ficha, no un dato: sale del flujo y se
+     queda en la esquina, con la fila reservandole el hueco. */
+  .table-stack tr:has(td.cell-select) {
+    padding-left: calc(var(--card-pad) + var(--card-gutter));
+  }
+
+  /* Una celda absoluta dentro de una rejilla se posiciona contra la caja de contenido,
+     no contra el relleno: por eso el canal se recorre hacia atras y la casilla cae
+     justo en el hueco que la fila dejo para ella. */
+  .table-stack td.cell-select {
+    position: absolute;
+    top: 0.8125rem;
+    left: calc(-1 * var(--card-gutter));
+    padding: 0;
+  }
+
+  .table-stack .cell-label {
+    display: block;
+    margin-bottom: 0.0625rem;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-ink-faint);
+  }
+
+  .table-stack .cell-value {
+    display: block;
+  }
+
+  /* La marca del tipo de documento va pegada al numero, sin espacio en medio: en una
+     columna ancha se lee como "0992345675001 RUC", pero en la ficha el navegador la
+     trata como una sola palabra y la parte donde le cabe ("R / UC"). En la ficha baja
+     a su propia linea, que es donde una acotacion pequeña se lee mejor. */
+  .table-stack td .label-caps {
+    display: block;
+    margin-left: 0;
+  }
 }

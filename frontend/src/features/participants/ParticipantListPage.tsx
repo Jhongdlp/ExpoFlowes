@@ -1,21 +1,21 @@
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
-import { Mail, MailX, Building2, X } from 'lucide-react'
 
 import { api, ApiError } from '../../api/client'
-import type { CredentialRule, ExhibitorPage, ParticipantPage } from '../../api/types'
-import { Avatar } from '../../components/Avatar'
+import type { ExhibitorPage, ParticipantPage } from '../../api/types'
 import { CategoryBadge } from '../../components/CategoryBadge'
-import { CategorySelect } from '../../components/CategorySelect'
 import { EmptyState } from '../../components/EmptyState'
-import { Loading } from '../../components/Loading'
+import { TableSkeleton } from '../../components/Loading'
 import { PageHeader } from '../../components/PageHeader'
 import { Pagination } from '../../components/Pagination'
-import { SearchInput, normalizeText } from '../../components/SearchInput'
+import { FilterBar, SearchInput } from '../../components/SearchInput'
 import { Button } from '../../components/ui/Button'
 import { Notice } from '../../components/ui/Notice'
 import { Select } from '../../components/ui/Select'
-import { Table, TBody, TD, TH } from '../../components/ui/Table'
+import { Status } from '../../components/ui/Status'
+import { Table, TBody, TD, TH, TR } from '../../components/ui/Table'
+import { useDebounced } from '../../hooks/use-debounced'
+import { useCredentialRules } from '../../hooks/use-rules'
 
 const PAGE_SIZE = 20
 
@@ -25,11 +25,11 @@ export function ParticipantListPage() {
   const [category, setCategory] = useState('')
   const [search, setSearch] = useState('')
 
-  const rules = useQuery({
-    queryKey: ['rules', 'credentials'],
-    queryFn: () => api.get<CredentialRule[]>('/rules/credentials'),
-    staleTime: Infinity,
-  })
+  // La busqueda la resuelve el servidor sobre TODO el evento, no sobre la pagina cargada:
+  // filtrar en el cliente solo encontraba a quien ya estaba a la vista.
+  const term = useDebounced(search)
+
+  const rules = useCredentialRules()
 
   const exhibitors = useQuery({
     queryKey: ['exhibitors', 'filter'],
@@ -40,6 +40,7 @@ export function ParticipantListPage() {
   const query = new URLSearchParams({ page: String(page), page_size: String(PAGE_SIZE) })
   if (exhibitorId !== '') query.set('exhibitor_id', exhibitorId)
   if (category !== '') query.set('category', category)
+  if (term !== '') query.set('search', term)
 
   const participants = useQuery({
     queryKey: ['participants', query.toString()],
@@ -47,7 +48,7 @@ export function ParticipantListPage() {
     placeholderData: (previous) => previous,
   })
 
-  const isFiltered = exhibitorId !== '' || category !== '' || search !== ''
+  const isFiltered = exhibitorId !== '' || category !== '' || term !== ''
 
   const onFilter = (apply: () => void) => {
     apply()
@@ -61,61 +62,37 @@ export function ParticipantListPage() {
     setPage(1)
   }
 
-  // Filtrado universal en tiempo real
-  const allItems = participants.data?.items ?? []
-  const q = normalizeText(search)
-  const visibleItems =
-    q === ''
-      ? allItems
-      : allItems.filter((person) => {
-          const fullName = normalizeText(`${person.first_name} ${person.last_name}`)
-          const id = normalizeText(person.identification)
-          const exhibitor = normalizeText(person.exhibitor_name)
-          const provider = normalizeText(person.provider_company)
-          const position = normalizeText(person.position)
-          const email = normalizeText(person.email)
-          const categoryName = normalizeText(person.category)
-
-          return (
-            fullName.includes(q) ||
-            id.includes(q) ||
-            exhibitor.includes(q) ||
-            provider.includes(q) ||
-            position.includes(q) ||
-            email.includes(q) ||
-            categoryName.includes(q)
-          )
-        })
+  const items = participants.data?.items ?? []
+  const refreshing = participants.isFetching && !participants.isPending
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <PageHeader
         title="Credenciales"
         subtitle={
           participants.data === undefined
             ? undefined
-            : isFiltered && visibleItems.length !== participants.data.total
-              ? `Mostrando ${visibleItems.length} de ${participants.data.total} acreditados`
+            : isFiltered
+              ? `${participants.data.total} resultado${participants.data.total === 1 ? '' : 's'} de la búsqueda`
               : `${participants.data.total} acreditado${participants.data.total === 1 ? '' : 's'} en la feria`
         }
       />
 
-      {/* Barra de busqueda y filtros */}
-      <div className="flex flex-col gap-3 rounded-lg border border-line bg-surface p-4">
-        {/* Buscador universal por teclado */}
+      <FilterBar className="flex-col sm:flex-col sm:items-stretch">
         <SearchInput
           value={search}
-          onChange={setSearch}
-          placeholder="Buscar por nombre, cédula/RUC, empresa, cargo o correo..."
+          busy={refreshing}
+          onChange={(value) => onFilter(() => setSearch(value))}
+          placeholder="Buscar por nombre, identificación, empresa, cargo o correo…"
+          aria-label="Buscar credenciales"
           autoFocus
         />
 
-        {/* Desplegables de filtro */}
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between border-t border-line/60 pt-3">
-          <div className="grid gap-3 sm:grid-cols-2 flex-1 max-w-xl">
+        <div className="flex flex-col gap-3 border-t border-line pt-3 sm:flex-row sm:items-end">
+          <div className="grid flex-1 gap-3 sm:max-w-xl sm:grid-cols-2">
             <Select
               label="Empresa / Stand"
-              placeholder="Todas las empresas"
+              placeholder="Todas"
               value={exhibitorId}
               onChange={(event) => onFilter(() => setExhibitorId(event.target.value))}
               options={(exhibitors.data?.items ?? []).map((item) => ({
@@ -123,33 +100,31 @@ export function ParticipantListPage() {
                 label: item.legal_name,
               }))}
             />
-            <CategorySelect
+            <Select
               label="Categoría"
-              placeholder="Todas las categorías"
+              placeholder="Todas"
               value={category}
-              onChange={(val) => onFilter(() => setCategory(val))}
-              categories={(rules.data ?? []).map((rule) => rule.category)}
+              onChange={(event) => onFilter(() => setCategory(event.target.value))}
+              options={(rules.data ?? []).map((rule) => ({
+                value: rule.category,
+                label: rule.category,
+              }))}
             />
           </div>
 
           {isFiltered ? (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={clearFilters}
-              className="gap-1.5 text-ink-faint hover:text-ink self-start sm:self-auto"
-            >
-              <X className="h-3.5 w-3.5" />
-              <span>Limpiar filtros</span>
+            <Button variant="ghost" size="sm" onClick={clearFilters}>
+              Limpiar filtros
             </Button>
           ) : null}
         </div>
-      </div>
+      </FilterBar>
 
       {participants.isPending ? (
-        <Loading label="Cargando credenciales…" />
+        <TableSkeleton columns={6} />
       ) : participants.isError ? (
         <Notice
+          tone="error"
           title={
             participants.error instanceof ApiError
               ? participants.error.message
@@ -163,7 +138,7 @@ export function ParticipantListPage() {
           title={isFiltered ? 'Ningún acreditado con esos filtros' : 'Todavía no hay acreditados'}
           description={
             isFiltered
-              ? 'Pruebe seleccionando otra empresa o categoría, o limpie los filtros para ver toda la feria.'
+              ? 'Pruebe con otro término de búsqueda, otra empresa o categoría, o limpie los filtros para ver toda la feria.'
               : 'Cada representante acredita a su propio personal desde su panel; aquí aparecerán todas las credenciales emitidas.'
           }
           action={
@@ -174,102 +149,63 @@ export function ParticipantListPage() {
             ) : null
           }
         />
-      ) : visibleItems.length === 0 ? (
-        <EmptyState
-          title="Sin resultados para la búsqueda"
-          description={`No encontramos ningún acreditado que coincida con "${search}".`}
-          action={
-            <Button variant="secondary" onClick={() => setSearch('')}>
-              Limpiar búsqueda
-            </Button>
-          }
-        />
       ) : (
         <>
-          <Table>
-            <thead>
-              <tr>
-                <TH>Persona</TH>
-                <TH>Identificación</TH>
-                <TH>Empresa / Stand</TH>
-                <TH>Cargo</TH>
-                <TH>Categoría</TH>
-                <TH>Contacto</TH>
-              </tr>
-            </thead>
-            <TBody>
-              {visibleItems.map((person) => (
-                <tr
-                  key={person.id}
-                  className="even:bg-fill/25 hover:bg-fill/60 transition-colors"
-                >
-                  {/* Persona con Avatar */}
-                  <TD>
-                    <div className="flex items-center gap-3">
-                      <Avatar
-                        firstName={person.first_name}
-                        lastName={person.last_name}
-                        identification={person.identification}
-                        email={person.email}
-                      />
-                      <div>
-                        <p className="font-semibold text-ink leading-tight">
-                          {person.first_name} {person.last_name}
-                        </p>
-                        <p className="text-[11px] text-ink-faint mt-0.5 sm:hidden">
-                          {person.position}
-                        </p>
-                      </div>
-                    </div>
-                  </TD>
-
-                  {/* Identificacion */}
-                  <TD className="tnum">
-                    <p className="font-medium text-ink">{person.identification}</p>
-                    <p className="label-caps mt-0.5 text-[10px]">{person.identification_type}</p>
-                  </TD>
-
-                  {/* Empresa */}
-                  <TD>
-                    <div className="flex items-start gap-1.5">
-                      <Building2 className="h-3.5 w-3.5 text-ink-faint shrink-0 mt-0.5" />
-                      <div>
-                        <p className="font-medium text-ink">{person.exhibitor_name}</p>
-                        {person.provider_company ? (
-                          <p className="text-[11px] text-ink-faint mt-0.5">
-                            Proveedor: {person.provider_company}
-                          </p>
-                        ) : null}
-                      </div>
-                    </div>
-                  </TD>
-
-                  {/* Cargo */}
-                  <TD className="text-ink-soft">{person.position}</TD>
-
-                  {/* Categoria */}
-                  <TD>
-                    <CategoryBadge category={person.category} />
-                  </TD>
-
-                  {/* Correo */}
-                  <TD>
-                    {person.email ? (
-                      <div className="flex items-center gap-1.5 text-ink-soft">
-                        <Mail className="h-3.5 w-3.5 text-ink-faint shrink-0" />
-                        <span className="truncate max-w-[200px]">{person.email}</span>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-1.5 text-ink-faint">
-                        <MailX className="h-3.5 w-3.5 text-ink-faint shrink-0" />
-                        <span className="text-[12px] italic">Sin correo</span>
-                      </div>
-                    )}
-                  </TD>
+          <div
+            className={
+              refreshing ? 'opacity-60 transition-opacity duration-[120ms]' : 'transition-opacity'
+            }
+          >
+            <Table>
+              <thead>
+                <tr>
+                  <TH>Persona</TH>
+                  <TH>Identificación</TH>
+                  <TH>Empresa / Stand</TH>
+                  <TH className="sm:max-lg:hidden">Cargo</TH>
+                  <TH>Categoría</TH>
+                  <TH className="sm:max-lg:hidden">Correo</TH>
                 </tr>
-              ))}
-            </TBody>
-          </Table>
+              </thead>
+              <TBody>
+                {items.map((person) => (
+                  <TR key={person.id}>
+                    <TD className="font-medium">
+                      {person.first_name} {person.last_name}
+                    </TD>
+                    <TD label="Identificación" className="tnum text-ink-soft">
+                      {person.identification}
+                      <span className="label-caps ml-2">{person.identification_type}</span>
+                    </TD>
+                    <TD label="Empresa">
+                      {person.exhibitor_name}
+                      {person.provider_company === null ||
+                      person.provider_company === undefined ? null : (
+                        <span className="mt-0.5 block text-[11px] text-ink-faint">
+                          Proveedor: {person.provider_company}
+                        </span>
+                      )}
+                    </TD>
+                    <TD label="Cargo" className="text-ink-soft sm:max-lg:hidden">
+                      {person.position}
+                    </TD>
+                    <TD label="Categoría">
+                      <CategoryBadge category={person.category} />
+                    </TD>
+                    <TD label="Correo" className="sm:max-lg:hidden">
+                      {person.email ? (
+                        <span className="block text-ink-soft sm:max-w-[16rem] sm:truncate">
+                          {person.email}
+                        </span>
+                      ) : (
+                        <Status tone="muted" label="Sin correo" />
+                      )}
+                    </TD>
+                  </TR>
+                ))}
+              </TBody>
+            </Table>
+          </div>
 
           <Pagination
             page={page}

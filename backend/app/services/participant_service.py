@@ -123,8 +123,9 @@ def list_participants(
     page: int,
     page_size: int,
     category: str | None = None,
+    search: str | None = None,
 ) -> tuple[list[Participant], int]:
-    return ParticipantRepository(db, event_id).list(exhibitor_id, page, page_size, category)
+    return ParticipantRepository(db, event_id).list(exhibitor_id, page, page_size, category, search)
 
 
 def get_participant(

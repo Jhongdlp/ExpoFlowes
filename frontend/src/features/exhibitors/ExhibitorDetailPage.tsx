@@ -15,6 +15,7 @@ import { Button } from '../../components/ui/Button'
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
 import { Field } from '../../components/ui/Field'
 import { Notice } from '../../components/ui/Notice'
+import { Status } from '../../components/ui/Status'
 import { QuotaTable } from '../dashboard/QuotaTable'
 import { standSchema, type StandFormValues } from './schema'
 
@@ -63,7 +64,7 @@ function StandEditForm({ exhibitor }: { exhibitor: ExhibitorDetail }) {
         <ServerError error={mutation.error} onDismiss={() => mutation.reset()} />
       )}
       {saved ? (
-        <Notice title="Cambios guardados" onDismiss={() => setSaved(false)}>
+        <Notice tone="success" title="Cambios guardados" onDismiss={() => setSaved(false)}>
           La cuota se recalculó con el metraje nuevo.
         </Notice>
       ) : null}
@@ -96,8 +97,16 @@ function StandEditForm({ exhibitor }: { exhibitor: ExhibitorDetail }) {
         />
       </FormSection>
 
-      <div className="flex justify-end">
-        <Button type="submit" disabled={mutation.isPending || !form.formState.isDirty}>
+      <div className="flex items-center justify-end gap-3 border-t border-line pt-5">
+        {/* Estado del formulario, siempre visible: se sabe si hay algo pendiente de guardar. */}
+        {form.formState.isDirty && !mutation.isPending ? (
+          <Status tone="pending" label="Cambios sin guardar" />
+        ) : null}
+        <Button
+          type="submit"
+          loading={mutation.isPending}
+          disabled={!form.formState.isDirty}
+        >
           {mutation.isPending ? 'Guardando…' : 'Guardar cambios'}
         </Button>
       </div>
@@ -111,19 +120,24 @@ function ResendAccessButton({ email }: { email: string }) {
   })
 
   return (
-    <div className="mt-4">
-      <Button variant="secondary" size="sm" onClick={() => mutation.mutate()} disabled={mutation.isPending}>
+    <div className="mt-4 flex flex-wrap items-center gap-3">
+      <Button
+        variant="secondary"
+        size="sm"
+        loading={mutation.isPending}
+        onClick={() => mutation.mutate()}
+      >
         {mutation.isPending ? 'Enviando…' : 'Reenviar enlace de acceso'}
       </Button>
       {mutation.isSuccess ? (
-        <p className="mt-2 text-[12px] text-ink-soft">
-          Si el correo corresponde a un representante, se le envió un enlace nuevo.
-        </p>
+        <Status
+          tone="ok"
+          label="Enviado, si el correo corresponde a un representante"
+          className="animate-fade"
+        />
       ) : null}
       {mutation.isError ? (
-        <p role="alert" className="mt-2 text-[12px] font-medium text-ink">
-          No se pudo enviar el enlace. Inténtelo nuevamente.
-        </p>
+        <Status tone="error" label="No se pudo enviar. Inténtelo nuevamente." />
       ) : null}
     </div>
   )
@@ -149,7 +163,14 @@ export function ExhibitorDetailPage() {
     },
   })
 
-  if (isPending) return <Loading label="Cargando el expositor" />
+  if (isPending) {
+    return (
+      <>
+        <PageHeader title="Expositor" />
+        <Loading label="Cargando el expositor" />
+      </>
+    )
+  }
   if (isError) {
     return (
       <>
@@ -177,7 +198,7 @@ export function ExhibitorDetailPage() {
             <Link to="/admin/expositores">
               <Button variant="secondary">Volver</Button>
             </Link>
-            <Button variant="secondary" onClick={() => setConfirming(true)}>
+            <Button variant="danger" onClick={() => setConfirming(true)}>
               Eliminar
             </Button>
           </>
@@ -185,7 +206,7 @@ export function ExhibitorDetailPage() {
       />
 
       {remove.error === null ? null : (
-        <div className="mb-6">
+        <div className="mb-4">
           <ServerError error={remove.error} onDismiss={() => remove.reset()} />
         </div>
       )}
@@ -197,9 +218,9 @@ export function ExhibitorDetailPage() {
         <Stat label="Disponibles" value={quota - assigned} />
       </StatRow>
 
-      <section className="mt-10">
+      <section className="mt-7">
         <h2 className="label-caps">Cupo por categoría</h2>
-        <div className="mt-3">
+        <div className="mt-2.5">
           <QuotaTable
             categories={Object.keys(data.quota)}
             quota={data.quota}
@@ -209,45 +230,48 @@ export function ExhibitorDetailPage() {
         </div>
       </section>
 
-      <div className="mt-10">
+      <div className="mt-7">
         <StandEditForm key={data.id} exhibitor={data} />
       </div>
 
-      <section className="mt-10 border-t border-line pt-6">
+      <section className="mt-7 border-t border-line pt-5">
         <h2 className="label-caps">Representante</h2>
-        <dl className="mt-4 grid gap-4 text-[13px] sm:grid-cols-2 lg:max-w-3xl">
+        <dl className="mt-3 grid gap-3 text-[13px] sm:grid-cols-2 lg:max-w-3xl">
           <div>
-            <dt className="text-ink-faint">Nombre</dt>
+            <dt className="label-caps">Nombre</dt>
             <dd className="font-medium">{data.representative.full_name}</dd>
           </div>
           <div>
-            <dt className="text-ink-faint">Cargo</dt>
+            <dt className="label-caps">Cargo</dt>
             <dd>{data.representative.position}</dd>
           </div>
           <div>
-            <dt className="text-ink-faint">Identificación</dt>
+            <dt className="label-caps">Identificación</dt>
             <dd className="tnum">
               {data.representative.identification}{' '}
               <span className="text-ink-faint">({data.representative.identification_type})</span>
             </dd>
           </div>
           <div>
-            <dt className="text-ink-faint">Teléfono</dt>
+            <dt className="label-caps">Teléfono</dt>
             <dd className="tnum">{data.representative.phone}</dd>
           </div>
           <div className="sm:col-span-2">
-            <dt className="text-ink-faint">Correo de acceso</dt>
+            <dt className="label-caps">Correo de acceso</dt>
             <dd>{data.representative.email}</dd>
           </div>
         </dl>
         <ResendAccessButton email={data.representative.email} />
       </section>
 
-      <section className="mt-10 border-t border-line pt-6">
+      <section className="mt-7 border-t border-line pt-5">
         <h2 className="label-caps">Contactos adicionales</h2>
-        <ul className="mt-4 divide-y divide-line border-y border-line">
+        <ul className="surface mt-3 divide-y divide-line">
           {data.contacts.map((contact) => (
-            <li key={contact.id} className="flex flex-wrap justify-between gap-2 py-3 text-[13px]">
+            <li
+              key={contact.id}
+              className="flex flex-wrap justify-between gap-2 px-4 py-2.5 text-[13px]"
+            >
               <span className="font-medium">{contact.name}</span>
               <span className="text-ink-soft">
                 {contact.email} · <span className="tnum">{contact.phone}</span>

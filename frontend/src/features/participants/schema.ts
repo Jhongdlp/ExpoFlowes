@@ -41,6 +41,15 @@ export const participantSchema = z
         message: 'La empresa proveedora es obligatoria para la categoría Service.',
       })
     }
+    // "Si y solo si": el backend rechaza igual una proveedora en otra categoria. El formulario
+    // limpia el campo al cambiar de categoria, pero eso es comodidad de la UI, no la regla.
+    if (values.category !== SERVICE_CATEGORY && values.provider_company) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['provider_company'],
+        message: 'La empresa proveedora solo aplica a la categoría Service.',
+      })
+    }
   })
 
 export type ParticipantFormValues = z.infer<typeof participantSchema>

@@ -23,3 +23,16 @@ class CredentialRuleRead(BaseModel):
     credentials_per_block: int
     block_m2: int
     rounding_mode: str
+
+
+class QuotaSimulation(BaseModel):
+    """Derivacion de un metraje cualquiera con las reglas VIGENTES en la base.
+
+    No persiste nada: es la misma funcion que deriva la cuota de un expositor real
+    (`exhibitor_service.quota_view`), expuesta para poder comprobar en pantalla que un UPDATE
+    sobre `stand_size_rules` / `credential_rules` cambia el resultado sin tocar codigo (E3).
+    """
+
+    requested_m2: int
+    stand_category: str
+    quota: dict[str, int]

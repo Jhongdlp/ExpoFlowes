@@ -5,6 +5,7 @@ from sqlalchemy.orm import selectinload
 
 from app.models import Exhibitor, Participant
 from app.repositories.base import EventScopedRepository
+from app.repositories.search import matches
 
 
 class ExhibitorRepository(EventScopedRepository):
@@ -37,13 +38,25 @@ class ExhibitorRepository(EventScopedRepository):
         stmt = select(Exhibitor).where(*self._alive()).order_by(Exhibitor.legal_name)
         return list(self.db.execute(stmt).scalars())
 
-    def list(self, page: int, page_size: int) -> tuple[list[Exhibitor], int]:
+    def list(
+        self, page: int, page_size: int, search: str | None = None
+    ) -> tuple[list[Exhibitor], int]:
+        filters = [
+            *self._alive(),
+            *matches(
+                search,
+                Exhibitor.legal_name,
+                Exhibitor.stand_name,
+                Exhibitor.tax_id,
+                Exhibitor.address,
+            ),
+        ]
         total = self.db.execute(
-            select(func.count()).select_from(Exhibitor).where(*self._alive())
+            select(func.count()).select_from(Exhibitor).where(*filters)
         ).scalar_one()
         stmt = (
             select(Exhibitor)
-            .where(*self._alive())
+            .where(*filters)
             .order_by(Exhibitor.legal_name)
             .offset((page - 1) * page_size)
             .limit(page_size)

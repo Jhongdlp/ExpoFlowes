@@ -19,7 +19,7 @@ from app.integrations.excel import (
 )
 from app.schemas.dashboard import MyQuota
 from app.schemas.exhibitor import ExhibitorDetail
-from app.schemas.pagination import DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE, Page
+from app.schemas.pagination import DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE, SEARCH_MAX_LENGTH, Page
 from app.schemas.participant import (
     BulkUploadReport,
     Category,
@@ -60,10 +60,11 @@ def list_participants(
     page: Annotated[int, Query(ge=1)] = 1,
     page_size: Annotated[int, Query(ge=1, le=MAX_PAGE_SIZE)] = DEFAULT_PAGE_SIZE,
     category: Category | None = None,
+    search: Annotated[str | None, Query(max_length=SEARCH_MAX_LENGTH)] = None,
 ) -> dict[str, Any]:
     event_id, exhibitor_id = scope(auth)
     items, total = participant_service.list_participants(
-        db, event_id, exhibitor_id, page, page_size, category
+        db, event_id, exhibitor_id, page, page_size, category, search
     )
     return {"items": items, "total": total, "page": page, "page_size": page_size}
 

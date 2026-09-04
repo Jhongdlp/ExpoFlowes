@@ -109,3 +109,52 @@ def test_changing_the_rounding_mode_changes_the_quota(
     db.flush()
 
     assert client.get(url, headers=headers).json()["quota"]["Guest"] == 6
+
+
+def test_quota_simulator_follows_the_rules_in_the_database(
+    client: TestClient, db: Session, admin_user: User
+) -> None:
+    """El simulador de `/rules/quota` deriva con las reglas vigentes, no con constantes.
+
+    Es la version interactiva de R7: la pantalla de reglas consulta este endpoint, asi que un
+    UPDATE se ve en pantalla sin redeploy.
+    """
+    headers = auth_headers(admin_user)
+
+    before = client.get("/api/v1/rules/quota", params={"m2": 25}, headers=headers)
+    assert before.status_code == 200
+    assert before.json() == {
+        "requested_m2": 25,
+        "stand_category": "Mediano",
+        "quota": {"Exhibitor": 10, "Guest": 4, "Service": 6},
+    }
+
+    db.execute(
+        update(CredentialRule)
+        .where(
+            CredentialRule.event_id == admin_user.event_id,
+            CredentialRule.category == "Exhibitor",
+        )
+        .values(credentials_per_block=5)
+    )
+    db.flush()
+
+    after = client.get("/api/v1/rules/quota", params={"m2": 25}, headers=headers)
+    assert after.json()["quota"]["Exhibitor"] == 25
+
+
+def test_quota_simulator_rejects_a_size_outside_every_range(
+    client: TestClient, admin_user: User
+) -> None:
+    """Fuera de rango responde igual que el alta (§6.2) y devuelve los rangos vigentes."""
+    response = client.get(
+        "/api/v1/rules/quota", params={"m2": 60}, headers=auth_headers(admin_user)
+    )
+    assert response.status_code == 422
+    body = response.json()
+    assert body["code"] == "STAND_SIZE_OUT_OF_RANGE"
+    assert [r["label"] for r in body["details"]["allowed_ranges"]] == [
+        "Pequeño",
+        "Mediano",
+        "Grande",
+    ]

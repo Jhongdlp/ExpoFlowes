@@ -4,6 +4,7 @@ from sqlalchemy import ColumnElement, func, select
 
 from app.models import Exhibitor, Participant
 from app.repositories.base import EventScopedRepository
+from app.repositories.search import matches
 
 
 class ParticipantRepository(EventScopedRepository):
@@ -28,6 +29,7 @@ class ParticipantRepository(EventScopedRepository):
         page_size: int,
         exhibitor_id: int | None = None,
         category: str | None = None,
+        search: str | None = None,
     ) -> tuple[list[tuple[Participant, str]], int]:
         """Listado del admin: todo el evento, opcionalmente acotado a un expositor.
 
@@ -39,6 +41,20 @@ class ParticipantRepository(EventScopedRepository):
             filters.append(Participant.exhibitor_id == exhibitor_id)
         if category is not None:
             filters.append(Participant.category == category)
+        filters.extend(
+            matches(
+                search,
+                Participant.first_name,
+                Participant.last_name,
+                Participant.identification,
+                Participant.position,
+                Participant.category,
+                Participant.email,
+                Participant.provider_company,
+                Exhibitor.legal_name,
+                Exhibitor.stand_name,
+            )
+        )
 
         join = select(Participant, Exhibitor.legal_name).join(
             Exhibitor, Exhibitor.id == Participant.exhibitor_id
@@ -58,11 +74,28 @@ class ParticipantRepository(EventScopedRepository):
         return [(row[0], row[1]) for row in self.db.execute(stmt)], total
 
     def list(
-        self, exhibitor_id: int, page: int, page_size: int, category: str | None = None
+        self,
+        exhibitor_id: int,
+        page: int,
+        page_size: int,
+        category: str | None = None,
+        search: str | None = None,
     ) -> tuple[list[Participant], int]:
         filters = list(self._scope(exhibitor_id))
         if category is not None:
             filters.append(Participant.category == category)
+        filters.extend(
+            matches(
+                search,
+                Participant.first_name,
+                Participant.last_name,
+                Participant.identification,
+                Participant.position,
+                Participant.category,
+                Participant.email,
+                Participant.provider_company,
+            )
+        )
 
         total = self.db.execute(
             select(func.count()).select_from(Participant).where(*filters)

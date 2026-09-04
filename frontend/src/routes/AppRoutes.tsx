@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 
 import { AppLayout } from '../components/AppLayout'
 import { BulkUploadPage } from '../features/bulk-upload/BulkUploadPage'
+import { DocumentationPage } from '../features/docs/DocumentationPage'
 import { HomeRedirect, RequireRole } from '../features/auth/guards'
 import { LoginPage } from '../features/auth/LoginPage'
 import { SetPasswordPage } from '../features/auth/SetPasswordPage'
@@ -12,6 +13,7 @@ import { ExhibitorListPage } from '../features/exhibitors/ExhibitorListPage'
 import { MyParticipantListPage } from '../features/participants/MyParticipantListPage'
 import { ParticipantCreatePage } from '../features/participants/ParticipantCreatePage'
 import { ParticipantListPage } from '../features/participants/ParticipantListPage'
+import { RulesPage } from '../features/rules/RulesPage'
 import { StandDashboardPage } from '../features/dashboard/StandDashboardPage'
 
 export function AppRoutes() {
@@ -19,6 +21,16 @@ export function AppRoutes() {
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/establecer-clave" element={<SetPasswordPage />} />
+      <Route
+        path="/documentacion"
+        element={
+          <div className="min-h-dvh bg-canvas text-ink">
+            <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 md:px-10">
+              <DocumentationPage />
+            </div>
+          </div>
+        }
+      />
 
       <Route
         element={
@@ -32,6 +44,8 @@ export function AppRoutes() {
         <Route path="/admin/expositores/nuevo" element={<ExhibitorCreatePage />} />
         <Route path="/admin/expositores/:id" element={<ExhibitorDetailPage />} />
         <Route path="/admin/credenciales" element={<ParticipantListPage />} />
+        <Route path="/admin/reglas" element={<RulesPage />} />
+        <Route path="/admin/documentacion" element={<DocumentationPage />} />
       </Route>
 
       <Route
@@ -45,6 +59,7 @@ export function AppRoutes() {
         <Route path="/stand/credenciales" element={<MyParticipantListPage />} />
         <Route path="/stand/credenciales/nueva" element={<ParticipantCreatePage />} />
         <Route path="/stand/credenciales/carga" element={<BulkUploadPage />} />
+        <Route path="/stand/documentacion" element={<DocumentationPage />} />
       </Route>
 
       <Route path="/" element={<HomeRedirect />} />
@@ -52,3 +67,4 @@ export function AppRoutes() {
     </Routes>
   )
 }
+

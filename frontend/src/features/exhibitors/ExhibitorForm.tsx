@@ -6,6 +6,7 @@ import { FormSection } from '../../components/FormSection'
 import { ServerError, fieldErrors } from '../../components/ServerError'
 import { Button } from '../../components/ui/Button'
 import { Field } from '../../components/ui/Field'
+import { FieldError } from '../../components/ui/FieldError'
 import { Select } from '../../components/ui/Select'
 import {
   EMPTY_EXHIBITOR,
@@ -59,7 +60,7 @@ export function ExhibitorForm({
     <form
       onSubmit={form.handleSubmit(onSubmit)}
       noValidate
-      className="max-w-3xl space-y-8 pb-4"
+      className="max-w-3xl space-y-6 pb-4"
     >
       <div ref={errorRef}>
         {serverError === null || serverError === undefined ? null : (
@@ -147,15 +148,32 @@ export function ExhibitorForm({
         />
       </FormSection>
 
-      <section className="border-t border-line pt-6">
+      <section className="border-t border-line pt-5">
         <h2 className="label-caps">Contactos adicionales</h2>
-        <p className="mt-1 text-[13px] text-ink-soft">
+        <p className="mt-1 text-[12px] text-ink-soft">
           Al menos uno. Son los contactos operativos de la empresa durante la feria.
         </p>
 
-        <div className="mt-4 space-y-4">
+        <div className="mt-4 space-y-3">
           {contacts.fields.map((contact, index) => (
-            <div key={contact.id} className="border border-line bg-surface p-4">
+            <div key={contact.id} className="surface animate-rise p-3">
+              {/* Numero del contacto: en una lista dinamica dice cual se esta editando. */}
+              <div className="mb-3 flex items-center justify-between">
+                <span className="label-caps">Contacto {index + 1}</span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => contacts.remove(index)}
+                  // Con un solo contacto no se puede quitar: el minimo es uno (§5.3).
+                  disabled={contacts.fields.length === 1}
+                  title={
+                    contacts.fields.length === 1 ? 'Debe quedar al menos un contacto' : undefined
+                  }
+                >
+                  Quitar
+                </Button>
+              </div>
               <div className="grid gap-4 sm:grid-cols-3">
                 <Field
                   label="Nombre"
@@ -174,32 +192,11 @@ export function ExhibitorForm({
                   {...form.register(`contacts.${index}.email`)}
                 />
               </div>
-              <div className="mt-3 flex justify-end">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => contacts.remove(index)}
-                  // Con un solo contacto no se puede quitar: el minimo es uno (§5.3).
-                  disabled={contacts.fields.length === 1}
-                  title={
-                    contacts.fields.length === 1
-                      ? 'Debe quedar al menos un contacto'
-                      : undefined
-                  }
-                >
-                  Quitar contacto
-                </Button>
-              </div>
             </div>
           ))}
         </div>
 
-        {errors.contacts?.root?.message ? (
-          <p role="alert" className="mt-2 text-[12px] font-medium text-ink">
-            {errors.contacts.root.message}
-          </p>
-        ) : null}
+        <FieldError message={errors.contacts?.root?.message} />
 
         <Button
           type="button"
@@ -212,11 +209,11 @@ export function ExhibitorForm({
         </Button>
       </section>
 
-      <div className="flex justify-end gap-2 border-t border-line pt-6">
-        <Button type="button" variant="secondary" onClick={onCancel} disabled={submitting}>
+      <div className="flex justify-end gap-2 border-t border-line pt-5">
+        <Button type="button" variant="ghost" onClick={onCancel} disabled={submitting}>
           Cancelar
         </Button>
-        <Button type="submit" disabled={submitting}>
+        <Button type="submit" loading={submitting}>
           {submitting ? 'Creando…' : 'Crear expositor'}
         </Button>
       </div>

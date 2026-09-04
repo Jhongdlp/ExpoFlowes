@@ -1,5 +1,7 @@
 # Plataforma de expositores y credenciales — Expo Flor Ecuador
 
+[![CI](https://github.com/Jhongdlp/ExpoFlowes/actions/workflows/ci.yml/badge.svg)](https://github.com/Jhongdlp/ExpoFlowes/actions/workflows/ci.yml)
+
 Gestión de las empresas que exponen en una feria y de las credenciales del personal que opera
 sus stands. El administrador registra expositores y ve, stand por stand, cuántas credenciales
 tiene asignadas y cuántas le quedan; el representante de cada empresa acredita a su gente —una
@@ -148,10 +150,15 @@ producción se queda en `false` y el enlace viaja solo por correo.
 ```bash
 docker compose exec backend pytest -q                 # toda la suite
 docker compose exec backend pytest tests/unit -q      # motor de reglas, sin base de datos
+cd frontend && npm test                               # lectura del Excel, esquemas y errores
 ```
 
 Los tests de integración crean su propia base (`<base>_test`) y cada test corre dentro de una
 transacción que se revierte al terminar. En la suite **no sale ni un correo**.
+
+Los del frontend cubren lo que tiene lógica propia —la lectura del Excel en el navegador, el
+campo condicional del formulario y el mapa de códigos de error—, no el renderizado de React:
+montar componentes sería probar la librería.
 
 No se persigue un porcentaje de cobertura: se persigue que **cada requisito evaluable del
 enunciado tenga un test que lo demuestre** ([tabla de trazabilidad](#trazabilidad-requisito--test)).
@@ -161,8 +168,14 @@ Calidad:
 ```bash
 docker compose exec backend ruff check . && docker compose exec backend ruff format --check .
 docker compose exec backend mypy app
-cd frontend && npm run typecheck && npm run build
+cd frontend && npm run lint && npm run typecheck && npm run build
 ```
+
+Estas mismas comprobaciones corren en cada push en `.github/workflows/ci.yml`: un job de
+backend con un Postgres 16 real como servicio (los tests usan índices parciales, `CHECK` y
+`SELECT ... FOR UPDATE`, así que probar contra SQLite probaría otra cosa) y otro de frontend.
+El `build` del frontend es `tsc -b && vite build`, de modo que si el backend cambia un campo y
+no se regeneró `schema.d.ts`, la CI lo detecta.
 
 ---
 
@@ -194,6 +207,13 @@ UPDATE credential_rules SET credentials_per_block = 3
 Recargue el panel del administrador: la categoría de los stands y las cuotas ya son otras.
 El test `test_changing_range_changes_classification` demuestra exactamente esto sin tocar una
 línea de código.
+
+**Compruébelo en pantalla.** El administrador tiene una sección **Reglas** (`/admin/reglas`)
+que muestra las dos tablas de configuración tal como están en la base, más un **simulador**:
+escriba un metraje y verá su categoría y su cuota por categoría de credencial. La derivación
+la hace el servidor (`GET /rules/quota?m2=…`) reusando la misma función que calcula la cuota de
+un expositor real, así que el simulador no puede discrepar del alta. Corra cualquiera de los
+`UPDATE` de arriba, recargue esa pantalla, y los números cambian sin recompilar ni reiniciar.
 
 Una feria nueva es una fila en `events` con su propio juego de reglas. Los datos de una edición
 no se ven desde otra.
@@ -287,12 +307,12 @@ detalle interno llega al cliente: eso va al log estructurado con su `request_id`
 | R14 | Carga masiva validada fila por fila | `integration/test_bulk_upload.py::test_invalid_rows_report_and_no_inserts` |
 | R15 | El error de login no filtra información | `integration/test_auth.py::test_login_generic_error` |
 | R16 | Cédula y RUC validados con el algoritmo real | `unit/test_identification.py::test_cedula_modulo10`, `::test_ruc_modulo11` |
-| R17 | "Empresa proveedora" obligatoria solo en `Service` | `integration/test_participants.py::test_provider_company_required_for_service` |
+| R17 | "Empresa proveedora" obligatoria solo en `Service` | `integration/test_participants.py::test_provider_company_required_for_service` · `frontend/src/features/participants/schema.test.ts` |
 | R18 | Al menos un contacto adicional | `integration/test_exhibitors.py::test_at_least_one_contact_required` |
 | E1 | Los dos correos del punto extra | `integration/test_emails.py::test_exhibitor_creation_sends_setup_link`, `::test_participant_with_email_is_notified`, `::test_participant_without_email_does_not_fail` |
 | E1b | Un fallo del mailer no aborta la operación | `integration/test_emails.py::test_mailer_failure_does_not_rollback` |
-| E2 | Carga masiva desde Excel | cubierto por R14 y `test_dry_run_inserts_nothing` |
-| E3 | Parametrización | cubierto por R7 |
+| E2 | Carga masiva desde Excel | cubierto por R14 y `test_dry_run_inserts_nothing`; la lectura en el navegador, `frontend/src/features/bulk-upload/preview.test.ts` |
+| E3 | Parametrización | cubierto por R7, más `test_quota_simulator_follows_the_rules_in_the_database` (la pantalla `/admin/reglas`) |
 
 ---
 
@@ -348,6 +368,7 @@ Prefijo `/api/v1`. El esquema completo está en <http://localhost:8000/docs>.
 | POST | `/me/participants/bulk?dry_run=` | representante | Carga masiva. `dry_run=true` valida sin insertar. |
 | GET | `/me/participants/template.xlsx` | representante | Plantilla de carga. |
 | GET | `/rules/stand-sizes` · `/rules/credentials` | ambos | Reglas vigentes del evento. |
+| GET | `/rules/quota?m2=` | ambos | Deriva categoría y cuota de un metraje con las reglas vigentes. No persiste nada. |
 | GET | `/health` | público | Verifica la base con `SELECT 1`. |
 
 `bulk` es **un solo endpoint**: el preview y la confirmación recorren exactamente el mismo

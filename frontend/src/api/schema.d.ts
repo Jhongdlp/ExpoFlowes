@@ -341,6 +341,31 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/rules/quota": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Simulate Quota
+         * @description Deriva categoria y cuota de un metraje sin crear nada.
+         *
+         *     Reusa `quota_view`, la MISMA funcion que deriva la cuota de un expositor real: si divergiera
+         *     de ella, el simulador mentiria. Un metraje fuera de todo rango devuelve 422
+         *     STAND_SIZE_OUT_OF_RANGE con los rangos vigentes en `details` (§6.2), que es exactamente lo
+         *     que el alta de expositor responde.
+         */
+        get: operations["simulate_quota_api_v1_rules_quota_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -764,6 +789,24 @@ export interface components {
              */
             email: string;
         };
+        /**
+         * QuotaSimulation
+         * @description Derivacion de un metraje cualquiera con las reglas VIGENTES en la base.
+         *
+         *     No persiste nada: es la misma funcion que deriva la cuota de un expositor real
+         *     (`exhibitor_service.quota_view`), expuesta para poder comprobar en pantalla que un UPDATE
+         *     sobre `stand_size_rules` / `credential_rules` cambia el resultado sin tocar codigo (E3).
+         */
+        QuotaSimulation: {
+            /** Requested M2 */
+            requested_m2: number;
+            /** Stand Category */
+            stand_category: string;
+            /** Quota */
+            quota: {
+                [key: string]: number;
+            };
+        };
         /** RepresentativeIn */
         RepresentativeIn: {
             /** Full Name */
@@ -1007,6 +1050,7 @@ export interface operations {
             query?: {
                 page?: number;
                 page_size?: number;
+                search?: string | null;
             };
             header?: never;
             path?: never;
@@ -1208,6 +1252,7 @@ export interface operations {
                 page?: number;
                 page_size?: number;
                 category?: ("Exhibitor" | "Guest" | "Service") | null;
+                search?: string | null;
             };
             header?: never;
             path?: never;
@@ -1425,6 +1470,7 @@ export interface operations {
                 page_size?: number;
                 exhibitor_id?: number | null;
                 category?: ("Exhibitor" | "Guest" | "Service") | null;
+                search?: string | null;
             };
             header?: never;
             path?: never;
@@ -1528,6 +1574,38 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CredentialRuleRead"][];
+                };
+            };
+        };
+    };
+    simulate_quota_api_v1_rules_quota_get: {
+        parameters: {
+            query: {
+                /** @description Metraje a derivar */
+                m2: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuotaSimulation"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

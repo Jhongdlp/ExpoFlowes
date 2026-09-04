@@ -50,15 +50,15 @@ export function SetPasswordPage() {
     <div className="flex min-h-dvh items-center justify-center bg-canvas px-6 py-12">
       <div className="w-full max-w-sm">
         <p className="label-caps">Expo Flor Ecuador 2026</p>
-        <h1 className="mt-2 text-lg font-semibold tracking-tight">Establecer contraseña</h1>
+        <h1 className="mt-2 text-[19px] font-semibold tracking-tight">Establecer contraseña</h1>
 
         {token === '' ? (
-          <Notice title="Falta el enlace de activación" className="mt-6">
+          <Notice tone="error" title="Falta el enlace de activación" className="mt-5">
             Abra el enlace que recibió por correo. Si caducó, el organizador puede reenviarlo.
           </Notice>
         ) : done ? (
           <div className="mt-6 space-y-4">
-            <Notice title="Contraseña establecida">
+            <Notice tone="success" title="Contraseña establecida">
               Ya puede acceder con su correo y la contraseña que acaba de definir.
             </Notice>
             <Link to="/login">
@@ -67,10 +67,10 @@ export function SetPasswordPage() {
           </div>
         ) : (
           <>
-            <p className="mt-1 text-[13px] text-ink-soft">
+            <p className="mt-1 text-[12px] text-ink-soft">
               El enlace sirve una sola vez. Elija una contraseña de al menos 8 caracteres.
             </p>
-            {failure !== null ? <Notice title={failure} className="mt-6" /> : null}
+            {failure !== null ? <Notice tone="error" title={failure} className="mt-5" /> : null}
             <form onSubmit={onSubmit} noValidate className="mt-6 space-y-4">
               <Field
                 label="Contraseña"
@@ -87,7 +87,7 @@ export function SetPasswordPage() {
                 error={form.formState.errors.confirmation?.message}
                 {...form.register('confirmation')}
               />
-              <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
+              <Button type="submit" className="w-full" loading={form.formState.isSubmitting}>
                 {form.formState.isSubmitting ? 'Guardando…' : 'Guardar contraseña'}
               </Button>
             </form>

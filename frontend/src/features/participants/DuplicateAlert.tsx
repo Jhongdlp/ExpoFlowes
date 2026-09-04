@@ -14,13 +14,22 @@ export function DuplicateAlert({ error, onDismiss }: { error: ApiError; onDismis
   const category = error.details.category
 
   return (
-    <div role="alert" className="border border-ink border-l-4 bg-surface px-5 py-4">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <p className="text-[14px] font-semibold">
+    <div
+      role="alert"
+      className="animate-rise rounded-lg border border-line border-l-2 border-l-alert bg-alert-soft px-4 py-3.5"
+    >
+      <div className="flex items-start gap-2.5">
+        <span
+          aria-hidden="true"
+          className="mt-px grid h-4 w-4 shrink-0 place-items-center rounded-full border border-alert text-[10px] leading-none font-bold text-alert"
+        >
+          !
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-[13px] font-semibold text-ink">
             Esa persona ya está acreditada en esta feria
           </p>
-          <p className="mt-1 text-[13px] text-ink-soft">
+          <p className="mt-1 text-[12px] text-ink-soft">
             Una misma identificación no puede aparecer en dos stands de la misma edición.
           </p>
         </div>
@@ -29,24 +38,26 @@ export function DuplicateAlert({ error, onDismiss }: { error: ApiError; onDismis
         </Button>
       </div>
 
-      <dl className="mt-4 grid gap-3 border-t border-line pt-4 text-[13px] sm:grid-cols-3">
+      <dl className="mt-3.5 grid gap-3 border-t border-alert/15 pt-3.5 text-[12px] sm:grid-cols-3">
         <div>
           <dt className="label-caps">Identificación</dt>
-          <dd className="tnum mt-0.5">{typeof identification === 'string' ? identification : '—'}</dd>
+          <dd className="tnum mt-0.5 text-ink">
+            {typeof identification === 'string' ? identification : '—'}
+          </dd>
         </div>
         <div>
           <dt className="label-caps">Registrada por</dt>
-          <dd className="mt-0.5 font-semibold">
+          <dd className="mt-0.5 font-semibold text-ink">
             {typeof registeredIn === 'string' ? registeredIn : 'Otra empresa de la feria'}
           </dd>
         </div>
         <div>
           <dt className="label-caps">Categoría</dt>
-          <dd className="mt-0.5">{typeof category === 'string' ? category : '—'}</dd>
+          <dd className="mt-0.5 text-ink">{typeof category === 'string' ? category : '—'}</dd>
         </div>
       </dl>
 
-      <p className="mt-4 text-[12px] text-ink-faint">
+      <p className="mt-3 text-[11px] text-ink-faint">
         Si la persona cambió de empresa, la compañía que la registró debe eliminar su
         credencial antes de que usted pueda acreditarla.
       </p>
