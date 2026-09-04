@@ -1,0 +1,34 @@
+from functools import lru_cache
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class Settings(BaseSettings):
+    """Configuracion por entorno. Ningun secreto tiene valor literal aqui (CLAUDE.md §8.6)."""
+
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
+    database_url: str
+    secret_key: str
+    access_token_expire_minutes: int = 60
+    cors_origins: str = ""
+    app_base_url: str = "http://localhost:5173"
+    log_level: str = "INFO"
+
+    seed_admin_email: str = "admin@expoflores.demo"
+    seed_admin_password: str = "Admin123!"
+
+    smtp_host: str = ""
+    smtp_port: int = 2525
+    smtp_user: str = ""
+    smtp_password: str = ""
+    mail_from: str = "no-reply@expoflores.demo"
+
+    @property
+    def cors_origin_list(self) -> list[str]:
+        return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
+
+
+@lru_cache
+def get_settings() -> Settings:
+    return Settings()  # type: ignore[call-arg]

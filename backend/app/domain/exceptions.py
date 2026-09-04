@@ -1,0 +1,60 @@
+"""Excepciones de dominio (CLAUDE.md §9.4). Sin dependencias de framework."""
+
+from typing import Any
+
+
+class DomainError(Exception):
+    """Base. `code` es estable y viaja al cliente; `message` es texto para el usuario final."""
+
+    code: str = "DOMAIN_ERROR"
+    status_code: int = 400
+
+    def __init__(self, message: str, details: dict[str, Any] | None = None) -> None:
+        super().__init__(message)
+        self.message = message
+        self.details: dict[str, Any] = details or {}
+
+
+class DuplicateParticipantError(DomainError):
+    code = "PARTICIPANT_ALREADY_REGISTERED"
+    status_code = 409
+
+
+class QuotaExceededError(DomainError):
+    code = "QUOTA_EXCEEDED"
+    status_code = 409
+
+
+class StandSizeOutOfRangeError(DomainError):
+    code = "STAND_SIZE_OUT_OF_RANGE"
+    status_code = 422
+
+
+class QuotaBelowAssignedError(DomainError):
+    code = "QUOTA_BELOW_ASSIGNED"
+    status_code = 409
+
+
+class InvalidIdentificationError(DomainError):
+    code = "INVALID_IDENTIFICATION"
+    status_code = 422
+
+
+class BulkUploadValidationError(DomainError):
+    code = "BULK_UPLOAD_INVALID_ROWS"
+    status_code = 422
+
+
+class InvalidOrExpiredTokenError(DomainError):
+    code = "TOKEN_INVALID_OR_EXPIRED"
+    status_code = 400
+
+
+class InvalidCredentialsError(DomainError):
+    code = "INVALID_CREDENTIALS"
+    status_code = 401
+
+
+class NotFoundError(DomainError):
+    code = "NOT_FOUND"
+    status_code = 404
