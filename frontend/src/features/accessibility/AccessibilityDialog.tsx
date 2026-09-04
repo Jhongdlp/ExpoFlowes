@@ -1,16 +1,11 @@
 import { useEffect, useRef } from 'react'
 import { Button } from '../../components/ui/Button'
 import { cn } from '../../lib/cn'
+import { useTranslation } from '../i18n/LanguageContext'
 import {
   useAccessibility,
   type TextSize,
 } from './AccessibilityContext'
-
-const TEXT_SIZES: { value: TextSize; label: string; sub: string }[] = [
-  { value: 'normal', label: 'Normal', sub: '100%' },
-  { value: 'large', label: 'Grande', sub: '115%' },
-  { value: 'xlarge', label: 'Muy grande', sub: '130%' },
-]
 
 function SwitchControl({
   id,
@@ -74,7 +69,14 @@ export function AccessibilityDialog() {
     closeDialog,
   } = useAccessibility()
 
+  const { t } = useTranslation()
   const dialogRef = useRef<HTMLDialogElement>(null)
+
+  const textSizes: { value: TextSize; label: string; sub: string }[] = [
+    { value: 'normal', label: t.a11y.normal, sub: '100%' },
+    { value: 'large', label: t.a11y.large, sub: '115%' },
+    { value: 'xlarge', label: t.a11y.xlarge, sub: '130%' },
+  ]
 
   useEffect(() => {
     const dialog = dialogRef.current
@@ -119,18 +121,18 @@ export function AccessibilityDialog() {
               </svg>
             </span>
             <h2 id="accessibility-dialog-title" className="text-[16px] font-semibold tracking-tight text-ink">
-              Accesibilidad y Visualización
+              {t.a11y.title}
             </h2>
           </div>
           <p className="mt-1 text-[12px] text-ink-soft">
-            Personalice la interfaz para adaptarse a sus preferencias visuales y de navegación.
+            {t.a11y.subtitle}
           </p>
         </div>
 
         <button
           type="button"
           onClick={closeDialog}
-          aria-label="Cerrar modal de accesibilidad"
+          aria-label={t.a11y.close}
           className="rounded-md p-1 text-ink-soft hover:bg-fill hover:text-ink transition-colors"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="h-4 w-4">
@@ -144,7 +146,7 @@ export function AccessibilityDialog() {
         {/* Tamaño del texto */}
         <div className="rounded-lg border border-line bg-surface p-3">
           <div className="flex items-center justify-between">
-            <span className="text-[13px] font-medium text-ink">Tamaño del texto</span>
+            <span className="text-[13px] font-medium text-ink">{t.a11y.textSize}</span>
             <span className="text-[11px] font-semibold text-ink-faint">
               {settings.textSize === 'normal'
                 ? '100%'
@@ -154,10 +156,10 @@ export function AccessibilityDialog() {
             </span>
           </div>
           <p className="mt-0.5 text-[11px] leading-relaxed text-ink-soft">
-            Escala el tamaño tipográfico en toda la aplicación de manera proporcional.
+            {t.a11y.textSizeDesc}
           </p>
           <div className="mt-2.5 grid grid-cols-3 gap-1.5 rounded-lg border border-line bg-fill/50 p-1">
-            {TEXT_SIZES.map((opt) => (
+            {textSizes.map((opt) => (
               <button
                 key={opt.value}
                 type="button"
@@ -179,8 +181,8 @@ export function AccessibilityDialog() {
         {/* Alto Contraste */}
         <SwitchControl
           id="acc-high-contrast"
-          label="Modo de Alto Contraste"
-          description="Aumenta el contraste de texto, inputs y el grosor de bordes en tablas."
+          label={t.a11y.highContrast}
+          description={t.a11y.highContrastDesc}
           checked={settings.highContrast}
           onChange={(checked) => updateSetting('highContrast', checked)}
         />
@@ -188,8 +190,8 @@ export function AccessibilityDialog() {
         {/* Reducción de Movimiento */}
         <SwitchControl
           id="acc-reduced-motion"
-          label="Reducción de Movimiento"
-          description="Desactiva animaciones de apertura y transiciones en toda la interfaz."
+          label={t.a11y.reducedMotion}
+          description={t.a11y.reducedMotionDesc}
           checked={settings.reducedMotion}
           onChange={(checked) => updateSetting('reducedMotion', checked)}
         />
@@ -197,8 +199,8 @@ export function AccessibilityDialog() {
         {/* Resaltado de Foco */}
         <SwitchControl
           id="acc-enhanced-focus"
-          label="Resaltar Foco de Navegación"
-          description="Añade un contorno de alto contraste al navegar por teclado (tecla Tab)."
+          label={t.a11y.enhancedFocus}
+          description={t.a11y.enhancedFocusDesc}
           checked={settings.enhancedFocus}
           onChange={(checked) => updateSetting('enhancedFocus', checked)}
         />
@@ -206,8 +208,8 @@ export function AccessibilityDialog() {
         {/* Espaciado de Lectura */}
         <SwitchControl
           id="acc-wide-spacing"
-          label="Espaciado de Lectura Amplio"
-          description="Incrementa el interlineado y la separación de párrafos para menor fatiga visual."
+          label={t.a11y.wideSpacing}
+          description={t.a11y.wideSpacingDesc}
           checked={settings.wideSpacing}
           onChange={(checked) => updateSetting('wideSpacing', checked)}
         />
@@ -215,8 +217,8 @@ export function AccessibilityDialog() {
         {/* Tipografía de Máxima Legibilidad */}
         <SwitchControl
           id="acc-readable-font"
-          label="Tipografía de Alta Legibilidad"
-          description="Aumenta el espaciado entre caracteres para facilitar la lectura de textos largos."
+          label={t.a11y.readableFont}
+          description={t.a11y.readableFontDesc}
           checked={settings.readableFont}
           onChange={(checked) => updateSetting('readableFont', checked)}
         />
@@ -230,7 +232,7 @@ export function AccessibilityDialog() {
           onClick={resetDefaults}
           className="text-[12px]"
         >
-          Restablecer valores por defecto
+          {t.a11y.resetDefaults}
         </Button>
 
         <Button
@@ -239,7 +241,7 @@ export function AccessibilityDialog() {
           onClick={closeDialog}
           className="text-[12px]"
         >
-          Listo
+          {t.a11y.done}
         </Button>
       </div>
     </dialog>

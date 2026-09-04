@@ -5,6 +5,7 @@ import { BrowserRouter } from 'react-router-dom'
 
 import { ApiError } from './api/client'
 import { AccessibilityProvider } from './features/accessibility/AccessibilityContext'
+import { LanguageProvider } from './features/i18n/LanguageContext'
 import { SessionProvider } from './features/auth/session'
 import { AppRoutes } from './routes/AppRoutes'
 import './index.css'
@@ -26,11 +27,13 @@ createRoot(container).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <AccessibilityProvider>
-        <SessionProvider>
-          <BrowserRouter>
-            <AppRoutes />
-          </BrowserRouter>
-        </SessionProvider>
+        <LanguageProvider>
+          <SessionProvider>
+            <BrowserRouter>
+              <AppRoutes />
+            </BrowserRouter>
+          </SessionProvider>
+        </LanguageProvider>
       </AccessibilityProvider>
     </QueryClientProvider>
   </StrictMode>,

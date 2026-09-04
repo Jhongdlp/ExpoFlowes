@@ -1,3 +1,4 @@
+import { useTranslation } from '../features/i18n/LanguageContext'
 import { cn } from '../lib/cn'
 
 /**
@@ -28,6 +29,9 @@ export const CATEGORY_BAR: Record<string, string> = {
 }
 
 export function CategoryBadge({ category, className }: { category: string; className?: string }) {
+  const { t } = useTranslation()
+  const displayLabel = (t.categories as Record<string, string>)[category] ?? category
+
   return (
     <span
       className={cn(
@@ -40,7 +44,7 @@ export function CategoryBadge({ category, className }: { category: string; class
         aria-hidden="true"
         className={cn('h-1.5 w-1.5 shrink-0 rounded-full', CATEGORY_BAR[category] ?? 'bg-ink-faint')}
       />
-      {category}
+      {displayLabel}
     </span>
   )
 }

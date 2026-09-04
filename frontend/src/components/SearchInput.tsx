@@ -1,5 +1,6 @@
 import type { InputHTMLAttributes } from 'react'
 
+import { useTranslation } from '../features/i18n/LanguageContext'
 import { cn } from '../lib/cn'
 import { CONTROL, CONTROL_TONE } from './ui/control'
 import { Spinner } from './ui/Spinner'
@@ -17,11 +18,12 @@ interface SearchInputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, '
 export function SearchInput({
   value,
   onChange,
-  placeholder = 'Buscar…',
+  placeholder,
   busy = false,
   className,
   ...props
 }: SearchInputProps) {
+  const { t } = useTranslation()
   return (
     <div className={cn('relative flex-1', className)}>
       <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-ink-faint">
@@ -46,7 +48,7 @@ export function SearchInput({
         type="search"
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        placeholder={placeholder}
+        placeholder={placeholder ?? t.common.search}
         className={cn(CONTROL, CONTROL_TONE(false), 'pr-8 pl-9 [&::-webkit-search-cancel-button]:hidden')}
         {...props}
       />

@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 
+import { useTranslation } from '../../features/i18n/LanguageContext'
 import { Button } from './Button'
 
 interface Props {
@@ -25,6 +26,7 @@ export function ConfirmDialog({
   onConfirm,
   onCancel,
 }: Props) {
+  const { t } = useTranslation()
   const ref = useRef<HTMLDialogElement>(null)
 
   useEffect(() => {
@@ -49,11 +51,11 @@ export function ConfirmDialog({
           un botón de 90px en la esquina de una pantalla táctil se falla. */}
       <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
         <Button variant="ghost" size="sm" onClick={onCancel} disabled={busy}>
-          Cancelar
+          {t.common.cancel}
         </Button>
         {/* La acción destructiva se marca en el texto, no con un botón rojo entero. */}
         <Button variant="danger" size="sm" loading={busy} onClick={onConfirm}>
-          {busy ? 'Eliminando…' : confirmLabel}
+          {busy ? t.common.deleting : confirmLabel}
         </Button>
       </div>
     </dialog>
