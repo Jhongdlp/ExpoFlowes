@@ -7,7 +7,10 @@ import { HomeRedirect, RequireRole } from '../features/auth/guards'
 import { LoginPage } from '../features/auth/LoginPage'
 import { SetPasswordPage } from '../features/auth/SetPasswordPage'
 import { AdminDashboardPage } from '../features/dashboard/AdminDashboardPage'
+import { ExhibitorCreatePage } from '../features/exhibitors/ExhibitorCreatePage'
+import { ExhibitorDetailPage } from '../features/exhibitors/ExhibitorDetailPage'
 import { ExhibitorListPage } from '../features/exhibitors/ExhibitorListPage'
+import { ParticipantListPage } from '../features/participants/ParticipantListPage'
 import { StandDashboardPage } from '../features/dashboard/StandDashboardPage'
 
 /** Secciones cuyo contenido llega en las fases siguientes. La navegacion no miente. */
@@ -38,7 +41,9 @@ export function AppRoutes() {
       >
         <Route path="/admin" element={<AdminDashboardPage />} />
         <Route path="/admin/expositores" element={<ExhibitorListPage />} />
-        <Route path="/admin/credenciales" element={<Pending title="Credenciales" />} />
+        <Route path="/admin/expositores/nuevo" element={<ExhibitorCreatePage />} />
+        <Route path="/admin/expositores/:id" element={<ExhibitorDetailPage />} />
+        <Route path="/admin/credenciales" element={<ParticipantListPage />} />
       </Route>
 
       <Route

@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 
 import { api, ApiError } from '../../api/client'
 import type { CredentialRule, ExhibitorPage } from '../../api/types'
@@ -8,6 +9,7 @@ import { EmptyState } from '../../components/EmptyState'
 import { Loading } from '../../components/Loading'
 import { PageHeader } from '../../components/PageHeader'
 import { Pagination } from '../../components/Pagination'
+import { Button } from '../../components/ui/Button'
 import { Notice } from '../../components/ui/Notice'
 import { Table, TBody, TD, TH } from '../../components/ui/Table'
 
@@ -37,7 +39,14 @@ export function ExhibitorListPage() {
           ? undefined
           : `${exhibitors.data.total} empresa${exhibitors.data.total === 1 ? '' : 's'} registrada${exhibitors.data.total === 1 ? '' : 's'} en la feria`
       }
-      actions={<DownloadReportButton />}
+      actions={
+        <>
+          <DownloadReportButton />
+          <Link to="/admin/expositores/nuevo">
+            <Button>Nuevo expositor</Button>
+          </Link>
+        </>
+      }
     />
   )
 
@@ -71,6 +80,11 @@ export function ExhibitorListPage() {
         <EmptyState
           title="Todavía no hay expositores"
           description="Registre la primera empresa: al crearla, su representante recibe el enlace de acceso y puede empezar a acreditar personal."
+          action={
+            <Link to="/admin/expositores/nuevo">
+              <Button>Registrar expositor</Button>
+            </Link>
+          }
         />
       </>
     )
@@ -103,7 +117,12 @@ export function ExhibitorListPage() {
             return (
               <tr key={exhibitor.id} className="hover:bg-fill">
                 <TD>
-                  <p className="font-medium">{exhibitor.legal_name}</p>
+                  <Link
+                    to={`/admin/expositores/${exhibitor.id}`}
+                    className="font-medium underline decoration-line-strong underline-offset-2 hover:decoration-ink"
+                  >
+                    {exhibitor.legal_name}
+                  </Link>
                   <p className="text-[12px] text-ink-faint">{exhibitor.stand_name}</p>
                 </TD>
                 <TD className="tnum text-ink-soft">
