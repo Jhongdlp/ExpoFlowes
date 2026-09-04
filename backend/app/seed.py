@@ -66,6 +66,8 @@ CREDENTIAL_RULES = [
 
 EXHIBITORS: list[dict[str, Any]] = [
     {
+        # Unico representante del seed con clave: es la cuenta de demostracion del rol.
+        "demo_login": True,
         "tax_id": "1791234561001",
         "tax_id_type": "RUC",
         "legal_name": "Rosas del Cotopaxi S.A.",
@@ -200,14 +202,17 @@ def seed(db: Session) -> None:
             {"event_id": event.id, **rep},
         )
 
-        # El usuario del representante nace sin password_hash: establece su clave
-        # con el token de un solo uso (§6.5). El seed no inventa una contraseña.
-        upsert(
-            db,
-            User,
-            {"event_id": event.id, "email": rep["email"]},
-            {"role": "representative", "exhibitor_id": exhibitor.id, "is_active": True},
-        )
+        # El usuario del representante nace sin password_hash: establece su clave con el
+        # token de un solo uso (§6.5). La unica excepcion es la cuenta de demostracion, y su
+        # clave se reescribe solo si el seed la declara: re-sembrar no pisa claves reales.
+        user_values: dict[str, Any] = {
+            "role": "representative",
+            "exhibitor_id": exhibitor.id,
+            "is_active": True,
+        }
+        if data.get("demo_login"):
+            user_values["password_hash"] = hash_password(settings.seed_rep_password)
+        upsert(db, User, {"event_id": event.id, "email": rep["email"]}, user_values)
 
         for contact in data["contacts"]:
             upsert(

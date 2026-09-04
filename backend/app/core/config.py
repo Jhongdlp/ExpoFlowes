@@ -18,6 +18,9 @@ class Settings(BaseSettings):
 
     seed_admin_email: str = "admin@expoflores.demo"
     seed_admin_password: str = "Admin123!"
+    # Solo el representante de la primera empresa del seed nace con clave, para que el
+    # demo se pueda probar con los dos roles. El resto la establece con su token (§6.5).
+    seed_rep_password: str = "Demo1234!"
 
     smtp_host: str = ""
     smtp_port: int = 2525

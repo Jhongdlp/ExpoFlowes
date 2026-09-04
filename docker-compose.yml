@@ -27,5 +27,13 @@ services:
       - ./backend:/app
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
+  frontend:
+    build: ./frontend
+    depends_on:
+      - backend
+    ports:
+      # El contrato documenta 5173; nginx sirve en el 80 dentro del contenedor.
+      - "5173:80"
+
 volumes:
   pgdata:
