@@ -43,7 +43,13 @@ def send(to: str, subject: str, body: str) -> None:
     message.set_content(body)
 
     with smtplib.SMTP(settings.smtp_host, settings.smtp_port, timeout=SMTP_TIMEOUT_SECONDS) as smtp:
-        smtp.starttls()
+        try:
+            smtp.starttls()
+        except smtplib.SMTPNotSupportedError:
+            # Mailtrap ofrece STARTTLS; un buzon de captura local, no. Se cifra cuando se
+            # puede en vez de exigirlo, para no atar el mailer a un unico proveedor.
+            logger.warning("smtp_without_starttls host=%s", settings.smtp_host)
+        # Sin usuario no se hace LOGIN: un servidor abierto rechaza el AUTH y tumba el envio.
         if settings.smtp_user:
             smtp.login(settings.smtp_user, settings.smtp_password)
         smtp.send_message(message)

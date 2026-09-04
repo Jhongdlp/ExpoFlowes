@@ -7,6 +7,10 @@ SMTP. Con `SMTP_HOST` vacio el mailer ya escribe al log en vez de enviar, asi qu
 segura incluso sin este parche.
 """
 
+import email
+import email.policy
+import socket
+import threading
 from typing import Any
 
 import pytest
@@ -218,3 +222,74 @@ def test_demo_flag_exposes_the_setup_link(
 
     link = response.json()["password_setup_link"]
     assert link is not None and "/establecer-clave?token=" in link
+
+
+# --- El camino SMTP real, sin depender de Mailtrap ---------------------------------------------
+
+
+def _smtp_stub(sock: socket.socket, received: list[bytes]) -> None:
+    """SMTP mínimo: acepta el sobre, guarda el cuerpo y no anuncia STARTTLS."""
+    conn, _ = sock.accept()
+    stream = conn.makefile("rwb")
+
+    def reply(line: bytes) -> None:
+        stream.write(line + b"\r\n")
+        stream.flush()
+
+    reply(b"220 stub")
+    body: list[bytes] = []
+    in_data = False
+    while True:
+        line = stream.readline()
+        if not line:
+            break
+        if in_data:
+            if line.strip() == b".":
+                in_data = False
+                received.append(b"".join(body))
+                reply(b"250 ok")
+            else:
+                body.append(line)
+            continue
+        command = line.strip().upper()
+        if command.startswith(b"EHLO"):
+            reply(b"250-stub\r\n250 SIZE 10240000")
+        elif command.startswith(b"DATA"):
+            in_data = True
+            reply(b"354 adelante")
+        elif command.startswith(b"QUIT"):
+            reply(b"221 chau")
+            break
+        else:
+            reply(b"250 ok")
+    conn.close()
+
+
+def test_send_speaks_smtp_when_configured(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Con SMTP_HOST configurado el correo sale de verdad por el socket.
+
+    Es el unico camino del mailer que los demas tests no recorren, porque sustituyen `send`.
+    El servidor de prueba no ofrece STARTTLS a proposito: cifrar es oportunista, no obligatorio,
+    para que el mailer sirva igual con Mailtrap que con un buzon de captura local.
+    """
+    from app.core.config import get_settings
+
+    with socket.socket() as server:
+        server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        server.bind(("127.0.0.1", 0))
+        server.listen(1)
+        received: list[bytes] = []
+        threading.Thread(target=_smtp_stub, args=(server, received), daemon=True).start()
+
+        settings = get_settings()
+        monkeypatch.setattr(settings, "smtp_host", "127.0.0.1")
+        monkeypatch.setattr(settings, "smtp_port", server.getsockname()[1])
+        monkeypatch.setattr(settings, "smtp_user", "")
+
+        assert mailer.notify_password_setup("rep@example.com", "Mariana", "http://x/?token=XYZ")
+
+    message = email.message_from_bytes(received[0], policy=email.policy.default)
+    assert message["To"] == "rep@example.com"
+    assert message["From"] == settings.mail_from
+    # El enlace sobrevive a la codificacion quoted-printable del cuerpo.
+    assert "token=XYZ" in message.get_content()

@@ -116,9 +116,21 @@ verlo:
 docker compose logs -f backend | grep mail_
 ```
 
-Para enviar de verdad, ponga en el `.env` las credenciales de un inbox sandbox de Mailtrap
-(`SMTP_HOST=sandbox.smtp.mailtrap.io`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`) y reinicie el
-backend. No hay código que cambiar.
+Para enviar de verdad, ponga en el `.env` las credenciales de un inbox sandbox de Mailtrap y
+reinicie el backend (`docker compose up -d backend`). No hay código que cambiar:
+
+```dotenv
+SMTP_HOST=sandbox.smtp.mailtrap.io
+SMTP_PORT=2525
+SMTP_USER=<usuario del inbox>
+SMTP_PASSWORD=<contraseña del inbox>
+```
+
+Los valores están en Mailtrap → *Email Testing* → *Inboxes* → su inbox → *Integrations* →
+*SMTP*. El cifrado es **oportunista**: se usa STARTTLS cuando el servidor lo ofrece —Mailtrap
+lo hace— y se sigue sin él cuando no, para que el mismo mailer sirva con un buzón de captura
+local. Para comprobar que llegan, cree un expositor desde la interfaz (correo al representante)
+y luego una credencial con correo (correo al participante).
 
 Para probar el alta de un representante sin acceso al inbox, `EXPOSE_SETUP_LINK=true` devuelve
 el enlace de establecer contraseña en la respuesta del alta. **Es un interruptor de demo**: en
