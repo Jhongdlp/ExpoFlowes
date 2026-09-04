@@ -1,0 +1,59 @@
+/*
+ * Casos de uso (CLAUDE.md §14.1). Dos actores y nada mas: el contrato prohibe roles extra.
+ * Genera el PNG con:  dot -Tpng docs/casos-de-uso.dot -o docs/casos-de-uso.png
+ */
+digraph CasosDeUso {
+  rankdir=LR;
+  graph [fontname="Helvetica", bgcolor="white", nodesep=0.25, ranksep=1.4, splines=spline];
+  node  [fontname="Helvetica", fontsize=10];
+  edge  [fontname="Helvetica", fontsize=9, color="#555555", arrowsize=0.7];
+
+  admin [shape=box, style="rounded,filled", fillcolor="#1f4e79", fontcolor="white",
+         label="Administrador\nde la feria", width=1.5, height=0.8];
+  rep   [shape=box, style="rounded,filled", fillcolor="#2e7d32", fontcolor="white",
+         label="Representante\ndel stand", width=1.5, height=0.8];
+
+  subgraph cluster_sistema {
+    label="Plataforma de acreditaciones — evento activo";
+    fontname="Helvetica"; fontsize=11; color="#999999"; style=dashed; margin=16;
+
+    node [shape=ellipse, style=filled, fillcolor="#f4f4f4", color="#bbbbbb"];
+
+    login   [label="Iniciar sesión"];
+    clave   [label="Establecer contraseña\ncon enlace de un solo uso"];
+    altaExp [label="Registrar expositor\n(crea la cuenta del representante)"];
+    editExp [label="Corregir metraje\ny datos del expositor"];
+    panelA  [label="Ver panel: asignadas\nvs. disponibles por stand"];
+    reporte [label="Descargar reporte\nde expositores (.xlsx)"];
+    reenvio [label="Reenviar enlace\nde acceso"];
+    reglas  [label="Consultar reglas\nvigentes de la feria"];
+
+    panelR  [label="Ver cupo del stand\npor categoría"];
+    altaCre [label="Registrar credencial\nde participante"];
+    bajaCre [label="Eliminar credencial\n(libera cupo)"];
+    carga   [label="Cargar credenciales\ndesde Excel"];
+    plant   [label="Descargar plantilla\nde carga"];
+  }
+
+  admin -> login;
+  admin -> altaExp;
+  admin -> editExp;
+  admin -> panelA;
+  admin -> reporte;
+  admin -> reenvio;
+  admin -> reglas;
+
+  rep -> login;
+  rep -> clave;
+  rep -> panelR;
+  rep -> altaCre;
+  rep -> bajaCre;
+  rep -> carga;
+  rep -> plant;
+  rep -> reglas;
+
+  // Relaciones entre casos de uso.
+  altaExp -> clave   [style=dashed, constraint=false, label="«include» correo"];
+  altaCre -> panelR  [style=dashed, constraint=false, label="«include» verifica cupo"];
+  carga   -> altaCre [style=dashed, constraint=false, label="«extend» lote todo o nada"];
+}

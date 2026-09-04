@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="es">
+<meta charset="utf-8">
+<title>Expo Flor Ecuador — Plataforma de expositores y credenciales</title>
+<style>
+  @page { size: A4; margin: 0; }
+  * { box-sizing: border-box; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body {
+    margin: 0;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    color: #16181d;
+    font-size: 9pt;
+    line-height: 1.45;
+  }
+  .page {
+    width: 210mm; height: 297mm; padding: 13mm 14mm 11mm;
+    page-break-after: always; position: relative; overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+  .page:last-child { page-break-after: auto; }
+  h1 { font-size: 19pt; margin: 0 0 2mm; letter-spacing: -0.3pt; }
+  h2 { font-size: 12pt; margin: 0 0 1.5mm; letter-spacing: -0.2pt; }
+  h3 { font-size: 9pt; margin: 4mm 0 1.5mm; text-transform: uppercase; letter-spacing: 0.9pt; color: #6b7078; }
+  p { margin: 0 0 2.5mm; }
+  ul { margin: 0 0 2.5mm; padding-left: 4.5mm; }
+  li { margin-bottom: 1mm; }
+  .lead { font-size: 10pt; color: #33373e; }
+  .rule { border: 0; border-top: 1px solid #16181d; margin: 3mm 0; }
+  .thin { border: 0; border-top: 1px solid #d9dbdf; margin: 3mm 0; }
+  .kicker { text-transform: uppercase; letter-spacing: 1.2pt; font-size: 7.5pt; color: #6b7078; }
+  table { width: 100%; border-collapse: collapse; font-size: 8.2pt; }
+  th { text-align: left; font-weight: 600; text-transform: uppercase; letter-spacing: 0.7pt;
+       font-size: 7pt; color: #6b7078; border-bottom: 1px solid #16181d; padding: 1.4mm 2mm 1.4mm 0; }
+  td { padding: 1.4mm 2mm 1.4mm 0; border-bottom: 1px solid #e6e8ea; vertical-align: top; }
+  td:last-child, th:last-child { padding-right: 0; }
+  code, .mono { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 7.6pt; }
+  pre { background: #f4f5f6; border-left: 2px solid #16181d; padding: 2.5mm 3mm; margin: 0 0 2.5mm;
+        font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 7.4pt; line-height: 1.5; white-space: pre-wrap; }
+  figure { margin: 0; }
+  figure img { width: 100%; border: 1px solid #d9dbdf; display: block; }
+  figcaption { font-size: 7pt; color: #6b7078; margin-top: 1mm; }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; }
+  .cols3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4mm; }
+  .foot { margin-top: auto; padding-top: 2.5mm; border-top: 1px solid #d9dbdf;
+          font-size: 7pt; color: #6b7078; display: flex; justify-content: space-between; }
+  .tag { display: inline-block; border: 1px solid #16181d; padding: 0.4mm 1.6mm; font-size: 7pt;
+         text-transform: uppercase; letter-spacing: 0.8pt; }
+  .note { border-left: 2px solid #16181d; padding-left: 3mm; color: #33373e; }
+  strong { font-weight: 600; }
+</style>
+
+<!-- ─────────────────────────────── PÁGINA 1 ─────────────────────────────── -->
+<section class="page">
+  <p class="kicker">Prueba técnica · Programador Junior Fullstack · Expo Flor Ecuador 2026</p>
+  <h1>Plataforma de expositores y credenciales</h1>
+  <p class="lead">
+    Gestiona las empresas que exponen en la feria y las credenciales del personal que opera sus
+    stands. El administrador registra expositores y ve, stand por stand, cuántas credenciales
+    hay asignadas y cuántas quedan; cada representante acredita a su gente —una a una o subiendo
+    un Excel— dentro del cupo que le corresponde por metraje.
+  </p>
+  <hr class="rule">
+
+  <div class="cols">
+    <div>
+      <h3>El eje del diseño</h3>
+      <p>
+        El enunciado pide que se puedan crear ferias futuras <strong>sin que los datos se
+        mezclen</strong>. Eso no es una nota al pie: es lo que ordena el modelo. Toda tabla
+        operativa lleva <code>event_id</code>, ningún repositorio se construye sin él, y ese
+        <code>event_id</code> sale siempre del token, nunca de la petición.
+      </p>
+      <p>
+        La segunda columna vertebral es la <strong>parametrización</strong>: rangos de metraje,
+        cuotas por categoría y hasta el criterio de redondeo viven en tablas. En el repositorio
+        no hay ningún <code>if m2 &gt; 12</code>.
+      </p>
+    </div>
+    <div>
+      <h3>Alcance entregado</h3>
+      <table>
+        <tr><td><strong>Administrador</strong></td><td>CRUD de expositores con alta atómica de
+          la cuenta del representante, panel de asignadas vs. disponibles, reporte en Excel,
+          reenvío del enlace de acceso.</td></tr>
+        <tr><td><strong>Representante</strong></td><td>Panel de cupo por categoría, alta y baja
+          de credenciales, carga masiva desde Excel con vista previa.</td></tr>
+        <tr><td><strong>Puntos extra</strong></td><td>Los tres: correos transaccionales, carga
+          masiva leída en el navegador y reglas parametrizadas en base de datos.</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <hr class="thin">
+  <div class="cols">
+    <figure>
+      <img src="capturas/admin-dashboard.png" alt="Panel del administrador">
+      <figcaption>Panel del administrador: cupo, asignadas y disponibles por stand, con la
+        categoría derivada del metraje.</figcaption>
+    </figure>
+    <figure>
+      <img src="capturas/rep-dashboard.png" alt="Panel del representante">
+      <figcaption>Panel del representante: cupo por categoría del propio stand, calculado en
+        cada lectura, nunca leído de una columna.</figcaption>
+    </figure>
+  </div>
+  <div class="cols" style="margin-top:4mm">
+    <figure>
+      <img src="capturas/exhibitor-form.png" alt="Alta de expositor">
+      <figcaption>Alta de expositor: crea en una sola transacción la empresa, su representante,
+        los contactos, la cuenta de acceso y el token de contraseña.</figcaption>
+    </figure>
+    <figure>
+      <img src="capturas/my-credentials.png" alt="Credenciales del stand">
+      <figcaption>Credenciales del stand. Eliminar una libera cupo y libera la identificación
+        para otro stand de la feria.</figcaption>
+    </figure>
+  </div>
+
+  <div class="foot">
+    <span>FastAPI · PostgreSQL 16 · SQLAlchemy 2.0 · React + TypeScript estricto · Docker Compose</span>
+    <span>Página 1 de 5</span>
+  </div>
+</section>
+
+<!-- ─────────────────────────────── PÁGINA 2 ─────────────────────────────── -->
+<section class="page">
+  <p class="kicker">Decisiones técnicas</p>
+  <h1>Modelo de datos</h1>
+  <p class="lead">
+    Doce tablas, dos de ellas de configuración. Ninguna cifra de negocio es una columna
+    calculada ni un valor congelado.
+  </p>
+  <hr class="rule">
+
+  <figure style="flex: 0 1 auto;">
+    <img src="der.png" alt="Diagrama entidad-relación" style="max-height: 118mm; object-fit: contain; border: 0;">
+  </figure>
+
+  <hr class="thin">
+  <h2>Por qué el scope por evento está en todas partes</h2>
+  <div class="cols">
+    <div>
+      <ul>
+        <li><strong>Toda tabla operativa lleva <code>event_id</code></strong>, incluso donde
+          sería deducible por la relación padre. Deducirlo obliga a un JOIN para no filtrar
+          datos; tenerlo permite que la condición esté siempre en el <code>WHERE</code>.</li>
+        <li><strong>Las claves únicas son compuestas, nunca simples.</strong>
+          <code>UNIQUE(event_id, identification)</code> implementa la validación crítica y a la
+          vez permite que la misma persona vuelva en la edición siguiente con otra empresa. Una
+          restricción global habría bloqueado registros legítimos.</li>
+        <li><strong>El repositorio no se puede construir sin <code>event_id</code>.</strong> No
+          es comodidad: es la barrera que impide que llegue a existir un método de listado sin
+          scope, que es por donde se cuelan las fugas entre ferias y los IDOR.</li>
+      </ul>
+    </div>
+    <div>
+      <ul>
+        <li><strong>No hay columna de cuota ni de categoría de stand.</strong> Ambas se derivan
+          del metraje y de las reglas vigentes en cada lectura. Una columna congelada se
+          desincroniza en cuanto alguien corrige un metraje.</li>
+        <li><strong>Borrado lógico solo en expositores.</strong> Borrar en duro una empresa con
+          credenciales emitidas es destructivo. Los participantes sí se borran de verdad:
+          borrar una credencial libera cupo y libera la identificación.</li>
+        <li><strong><code>password_hash</code> es nulable</strong> hasta que el representante
+          establece su clave con el token de un solo uso. Un usuario sin hash no puede
+          autenticarse: el estado "cuenta creada, aún no activada" es explícito.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span>Migraciones con Alembic · seed idempotente · <span class="mono">docs/adr/0001-scope-por-evento.md</span></span>
+    <span>Página 2 de 5</span>
+  </div>
+</section>
+
+<!-- ─────────────────────────────── PÁGINA 3 ─────────────────────────────── -->
+<section class="page">
+  <p class="kicker">Reglas de negocio</p>
+  <h1>Parametrización</h1>
+  <p class="lead">
+    El enunciado dice que se evaluará si los rangos son modificables o están quemados en el
+    código. Están en dos tablas, y el motor de reglas las recibe como parámetro.
+  </p>
+  <hr class="rule">
+
+  <div class="cols">
+    <div>
+      <h3>stand_size_rules · clasificación</h3>
+      <table>
+        <thead><tr><th>Categoría</th><th>min_m2</th><th>max_m2</th></tr></thead>
+        <tr><td>Pequeño</td><td>5</td><td>12</td></tr>
+        <tr><td>Mediano</td><td>13</td><td>30</td></tr>
+        <tr><td>Grande</td><td>31</td><td>50</td></tr>
+      </table>
+      <p style="margin-top:2mm">
+        Es <strong>informativa y de validación de rango</strong>: no interviene en el cálculo de
+        la cuota. Un metraje fuera de <code>[5, 50]</code> se rechaza con
+        <code>STAND_SIZE_OUT_OF_RANGE</code> en vez de clasificarse por aproximación.
+      </p>
+    </div>
+    <div>
+      <h3>credential_rules · cuota</h3>
+      <table>
+        <thead><tr><th>Categoría</th><th>per_block</th><th>block_m2</th><th>rounding</th></tr></thead>
+        <tr><td>Exhibitor</td><td>2</td><td>5</td><td>floor</td></tr>
+        <tr><td>Guest</td><td>2</td><td>10</td><td>floor</td></tr>
+        <tr><td>Service</td><td>3</td><td>10</td><td>floor</td></tr>
+      </table>
+      <pre>cuota = credentials_per_block × redondeo(m² / block_m2)
+
+25 m² → Exhibitor 10 · Guest 4 · Service 6
+ 8 m² → Exhibitor  2 · Guest 0 · Service 0</pre>
+    </div>
+  </div>
+
+  <h3>Cambiar una regla sin tocar código ni redesplegar</h3>
+  <pre>UPDATE stand_size_rules  SET max_m2 = 80        WHERE event_id = 1 AND label = 'Grande';
+UPDATE credential_rules  SET rounding_mode = 'ceil' WHERE event_id = 1 AND category = 'Guest';</pre>
+  <p class="note">
+    El motor de reglas es un módulo puro —sin SQLAlchemy, sin FastAPI— que recibe las filas como
+    parámetro y no las cachea: el cambio surte efecto en la siguiente petición. El test
+    <span class="mono">test_changing_range_changes_classification</span> modifica un rango por SQL
+    y comprueba que la clasificación cambia sola.
+  </p>
+
+  <hr class="thin">
+  <div class="cols">
+    <figure>
+      <img src="capturas/error-duplicado.png" alt="Bloque de error de duplicado">
+      <figcaption>Validación crítica: una identificación no puede estar en dos stands de la
+        misma feria. El bloque es persistente y nombra a la empresa que ya la registró.</figcaption>
+    </figure>
+    <figure>
+      <img src="capturas/carga-masiva.png" alt="Carga masiva con vista previa">
+      <figcaption>Carga masiva: el navegador lee el Excel, el servidor lo valida fila por fila
+        y nada se importa mientras haya un error.</figcaption>
+    </figure>
+  </div>
+
+  <div class="foot">
+    <span>Punto extra E3 · <span class="mono">docs/adr/0002-reglas-en-base-de-datos.md</span></span>
+    <span>Página 3 de 5</span>
+  </div>
+</section>
+
+<!-- ─────────────────────────────── PÁGINA 4 ─────────────────────────────── -->
+<section class="page">
+  <p class="kicker">Decisiones técnicas</p>
+  <h1>Ambigüedades detectadas</h1>
+  <p class="lead">
+    Ocho cuestiones que el enunciado deja abiertas y que no se pueden implementar sin decidir.
+    Criterio general: <strong>la opción que falla en voz alta gana a la que adivina en
+    silencio.</strong>
+  </p>
+  <hr class="rule">
+
+  <table>
+    <thead><tr><th style="width:29%">Ambigüedad</th><th style="width:24%">Decisión</th><th>Por qué</th></tr></thead>
+    <tr>
+      <td><strong>1. Redondeo.</strong> 13 m² con "2 por cada 5 m²": ¿4 o 6?</td>
+      <td><code>floor</code>, y el criterio es una columna (<code>rounding_mode</code>).</td>
+      <td>Es la lectura literal de "por cada N m²" y la conservadora para el organizador. Como
+        es un dato, otra feria decide distinto con un <code>UPDATE</code>.</td>
+    </tr>
+    <tr>
+      <td><strong>2. Metrajes fuera de rango.</strong> Los rangos cubren 5–50 m². ¿Y 60?</td>
+      <td>Rechazar con <code>STAND_SIZE_OUT_OF_RANGE</code>.</td>
+      <td>Clasificar por aproximación crea datos erróneos silenciosos en la columna que alimenta
+        el cupo de todo el stand. Un error explícito es recuperable.</td>
+    </tr>
+    <tr>
+      <td><strong>3. ¿El representante consume credencial?</strong></td>
+      <td>No. Si opera el stand, se registra además como participante.</td>
+      <td>Separa la identidad de acceso de la credencial física. Un descuento invisible de cupo
+        es imposible de explicar seis meses después.</td>
+    </tr>
+    <tr>
+      <td><strong>4. ¿La cuota se congela al crear el expositor?</strong></td>
+      <td>Cálculo derivado siempre. Si el metraje nuevo deja la cuota bajo lo asignado, se
+        bloquea el cambio.</td>
+      <td>Una columna congelada se desincroniza en cuanto alguien corrige un metraje. El bloqueo
+        convierte el único caso peligroso en un error legible.</td>
+    </tr>
+    <tr>
+      <td><strong>5. ¿Cómo recibe la contraseña el usuario auto-creado?</strong></td>
+      <td>No se envía ninguna: token de un solo uso, 72 h, guardado hasheado.</td>
+      <td>El correo es un canal persistente y sin cifrar en reposo. Una contraseña enviada por
+        correo sigue ahí dentro de dos años.</td>
+    </tr>
+    <tr>
+      <td><strong>6. ¿La unicidad de identificación es global o por evento?</strong></td>
+      <td>Por evento: <code>UNIQUE(event_id, identification)</code>.</td>
+      <td>Las ediciones son independientes y la gente cambia de empleador. Global bloquearía
+        registros legítimos y rompería el aislamiento entre ferias.</td>
+    </tr>
+    <tr>
+      <td><strong>7. ¿La categoría de stand influye en la cuota?</strong> <span class="tag">detectada</span></td>
+      <td>No. Es informativa y de validación de rango.</td>
+      <td>Las cuotas están expresadas en m², no por categoría. Cruzarlas haría que ampliar un
+        rango cambiara silenciosamente cuotas de stands que nadie tocó.</td>
+    </tr>
+    <tr>
+      <td><strong>8. Hay que notificar al participante, pero el correo no está entre sus datos
+        requeridos.</strong> <span class="tag">contradicción</span></td>
+      <td><code>email</code> opcional: si viene se notifica, si no, el alta no falla.</td>
+      <td>Exigirlo contradiría la lista de datos del propio enunciado y bloquearía altas
+        legítimas. Notificar al representante se descartó: el enunciado nombra al participante.</td>
+    </tr>
+  </table>
+
+  <hr class="thin">
+  <h3>Dónde vive cada decisión</h3>
+  <div class="cols3">
+    <div>
+      <p><strong>1, 2 y 7 — el motor de reglas.</strong><br>
+      <span class="mono">app/domain/rules.py</span> es un módulo puro: recibe las filas de
+      configuración como parámetro y se prueba sin base de datos, incluidos los bordes 12, 13,
+      30 y 31 m² y los tres modos de redondeo.</p>
+    </div>
+    <div>
+      <p><strong>4, 6 y 8 — el modelo.</strong><br>
+      Sin columna de cuota, <span class="mono">UNIQUE(event_id, identification)</span> y
+      <span class="mono">email</span> nulable. Lo que el esquema no permite no hace falta
+      recordarlo en el código.</p>
+    </div>
+    <div>
+      <p><strong>3 y 5 — el alta de expositor.</strong><br>
+      Una transacción crea empresa, representante, contactos, usuario sin contraseña y token;
+      el correo con el enlace sale después del <code>COMMIT</code>.</p>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span>Desarrollo completo en <span class="mono">docs/decisiones.md</span> y cuatro ADR en <span class="mono">docs/adr/</span></span>
+    <span>Página 4 de 5</span>
+  </div>
+</section>
+
+<!-- ─────────────────────────────── PÁGINA 5 ─────────────────────────────── -->
+<section class="page">
+  <p class="kicker">Cierre</p>
+  <h1>Trade-offs y producción</h1>
+  <hr class="rule">
+
+  <div class="cols">
+    <div>
+      <h2>Lo que sí se cuidó</h2>
+      <ul>
+        <li><strong>El cupo se verifica dentro de la transacción, con
+          <code>SELECT … FOR UPDATE</code></strong> sobre la fila del expositor. Sin el bloqueo,
+          dos altas simultáneas sobre la última credencial pasan ambas la verificación. La carga
+          masiva reutiliza ese servicio y comprueba el lote completo de una vez.</li>
+        <li><strong>Un recurso ajeno responde 404, no 403.</strong> No existe endpoint del
+          representante que acepte un id de empresa: el scope sale del token.</li>
+        <li><strong>Duplicado validado en dos capas</strong> —servicio y constraint— que
+          producen exactamente el mismo error estructurado. El cliente no puede distinguir cuál
+          disparó.</li>
+        <li><strong>Los correos salen después del <code>COMMIT</code>.</strong> Un SMTP caído
+          registra el fallo y no tumba el alta; hay un test que lo demuestra.</li>
+        <li><strong>Cédula y RUC con el algoritmo real</strong> (módulo 10 y módulo 11 según el
+          tercer dígito). Es la clave de deduplicación de todo el sistema.</li>
+      </ul>
+    </div>
+    <div>
+      <h2>Lo que se dejó fuera a propósito</h2>
+      <p>
+        Robustez es hacer bien las piezas necesarias, no agregar piezas. No hay colas, ni caché
+        distribuida, ni microservicios, ni un design system propio: nada de eso resolvía un
+        problema que este MVP tenga.
+      </p>
+      <h2>Qué cambiaría en producción</h2>
+      <ul>
+        <li><strong>Refresh tokens y revocación.</strong> Hoy el JWT dura 60 minutos y no se
+          puede invalidar antes de tiempo.</li>
+        <li><strong>Envío de correo fuera del ciclo de la petición.</strong> Ya está aislado
+          tras una función y no bloquea la transacción, pero un reintento con backoff necesita
+          un worker.</li>
+        <li><strong>Rate limiting con almacenamiento compartido.</strong> El contador vive en
+          memoria del proceso; con varias réplicas hay que centralizarlo.</li>
+        <li><strong>Row-level security en Postgres</strong> como segunda barrera del scope por
+          evento, además de la del repositorio.</li>
+        <li><strong>Observabilidad.</strong> Hay logs JSON con <code>request_id</code>; faltan
+          métricas y trazas.</li>
+        <li><strong>Selector multi-evento para el administrador.</strong> El esquema ya lo
+          soporta; la interfaz opera sobre el evento activo.</li>
+      </ul>
+    </div>
+  </div>
+
+  <hr class="thin">
+  <div class="cols3">
+    <div>
+      <h3>Pruebas</h3>
+      <p>Cada requisito evaluable tiene un test que lo demuestra, con su tabla de trazabilidad
+        en el README. El motor de reglas se prueba sin base de datos.</p>
+    </div>
+    <div>
+      <h3>Puesta en marcha</h3>
+      <p><code>docker compose up -d --build</code> levanta base, API y frontend, aplica las
+        migraciones y siembra datos ficticios. Credenciales de demo en el README y en la propia
+        pantalla de login.</p>
+    </div>
+    <div>
+      <h3>Calidad</h3>
+      <p><code>ruff</code> y <code>mypy --strict</code> limpios en el backend; TypeScript
+        estricto sin <code>any</code> en el frontend, con los tipos de la API generados desde el
+        esquema OpenAPI.</p>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span>Datos ficticios · ninguna cédula ni correo de persona real · demo no afiliado a Expoflores</span>
+    <span>Página 5 de 5</span>
+  </div>
+</section>
+</html>

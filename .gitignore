@@ -15,3 +15,6 @@ CLAUDE.md
 CONTEXTO/
 docs/PLAN.md
 .claude/
+
+# Artefacto de empaquetado (se regenera con scripts/empaquetar.sh)
+entrega.zip

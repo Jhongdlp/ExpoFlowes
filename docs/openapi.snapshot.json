@@ -604,6 +604,88 @@
         }
       }
     },
+    "/api/v1/me/participants/template.xlsx": {
+      "get": {
+        "tags": [
+          "representante"
+        ],
+        "summary": "Participants Template Xlsx",
+        "description": "Plantilla generada desde el MISMO diccionario de columnas que valida la carga (§13).",
+        "operationId": "participants_template_xlsx_api_v1_me_participants_template_xlsx_get",
+        "responses": {
+          "200": {
+            "description": "Plantilla de carga",
+            "content": {
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {}
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/me/participants/bulk": {
+      "post": {
+        "tags": [
+          "representante"
+        ],
+        "summary": "Bulk Upload",
+        "description": "Un solo endpoint para preview y confirmacion: con `dry_run=true` recorre exactamente\nel mismo codigo de validacion y no inserta nada (§11).",
+        "operationId": "bulk_upload_api_v1_me_participants_bulk_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "dry_run",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Dry Run"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_bulk_upload_api_v1_me_participants_bulk_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BulkUploadReport"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/me/participants/{participant_id}": {
       "get": {
         "tags": [
@@ -998,6 +1080,49 @@
         ],
         "title": "AdminDashboard"
       },
+      "Body_bulk_upload_api_v1_me_participants_bulk_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_bulk_upload_api_v1_me_participants_bulk_post"
+      },
+      "BulkUploadReport": {
+        "properties": {
+          "total_rows": {
+            "type": "integer",
+            "title": "Total Rows"
+          },
+          "valid_rows": {
+            "type": "integer",
+            "title": "Valid Rows"
+          },
+          "inserted": {
+            "type": "integer",
+            "title": "Inserted"
+          },
+          "dry_run": {
+            "type": "boolean",
+            "title": "Dry Run"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total_rows",
+          "valid_rows",
+          "inserted",
+          "dry_run"
+        ],
+        "title": "BulkUploadReport",
+        "description": "Informe de la carga masiva. Con `dry_run` es identico salvo `inserted` (§11)."
+      },
       "CategoryTotals": {
         "properties": {
           "quota": {
@@ -1274,6 +1399,17 @@
             },
             "type": "array",
             "title": "Contacts"
+          },
+          "password_setup_link": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Password Setup Link"
           }
         },
         "type": "object",
