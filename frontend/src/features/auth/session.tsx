@@ -1,10 +1,10 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { createContext, use, useCallback, useEffect, useState, type ReactNode } from 'react'
 
-import { api, clearToken, getToken, setToken, SESSION_EXPIRED_EVENT } from '../../api/client'
+import { api, ApiError, clearToken, getToken, setToken, SESSION_EXPIRED_EVENT } from '../../api/client'
 import type { Me, Token } from '../../api/types'
 
-type Status = 'loading' | 'anonymous' | 'authenticated'
+type Status = 'loading' | 'anonymous' | 'authenticated' | 'error'
 
 interface SessionValue {
   status: Status
@@ -32,11 +32,11 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener(SESSION_EXPIRED_EVENT, forget)
   }, [forget])
 
-  const { data, isPending, isError } = useQuery({
+  const { data, isPending, isError, error } = useQuery({
     queryKey: ['me', token],
     queryFn: () => api.get<Me>('/auth/me'),
     enabled: token !== null,
-    retry: false,
+    retry: (attempt, failure) => attempt < 1 && !(failure instanceof ApiError && failure.status === 401),
     staleTime: Infinity,
   })
 
@@ -49,8 +49,17 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     [],
   )
 
+  // Un backend caido NO es una sesion invalida: cerrar sesion por un 502 obligaria a volver
+  // a escribir la clave por un corte de red. Solo el 401 desautentica.
+  const rejected = error instanceof ApiError && error.status === 401
   const status: Status =
-    token === null || isError ? 'anonymous' : isPending ? 'loading' : 'authenticated'
+    token === null || (isError && rejected)
+      ? 'anonymous'
+      : isError
+        ? 'error'
+        : isPending
+          ? 'loading'
+          : 'authenticated'
 
   return (
     <SessionContext value={{ status, user: data ?? null, signIn, signOut: forget }}>

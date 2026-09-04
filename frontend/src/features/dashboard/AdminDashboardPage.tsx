@@ -1,8 +1,9 @@
 import { useQuery } from '@tanstack/react-query'
-import { useState } from 'react'
+import { Link } from 'react-router-dom'
 
-import { api, ApiError, download } from '../../api/client'
+import { api, ApiError } from '../../api/client'
 import type { AdminDashboard } from '../../api/types'
+import { DownloadReportButton } from '../../components/DownloadReportButton'
 import { EmptyState } from '../../components/EmptyState'
 import { Loading } from '../../components/Loading'
 import { PageHeader } from '../../components/PageHeader'
@@ -11,10 +12,9 @@ import { Button } from '../../components/ui/Button'
 import { Notice } from '../../components/ui/Notice'
 import { QuotaTable } from './QuotaTable'
 
-const DATE = new Intl.DateTimeFormat('es-EC', { day: 'numeric', month: 'long' })
+const DATE = new Intl.DateTimeFormat('es-EC', { day: 'numeric', month: 'long', timeZone: 'UTC' })
 
 export function AdminDashboardPage() {
-  const [reportError, setReportError] = useState<string | null>(null)
   const { data, isPending, isError, error } = useQuery({
     queryKey: ['dashboard', 'admin'],
     queryFn: () => api.get<AdminDashboard>('/dashboard/admin'),
@@ -35,35 +35,23 @@ export function AdminDashboardPage() {
   )
   const totalQuota = Object.values(data.totals).reduce((sum, row) => sum + row.quota, 0)
 
-  const onDownload = async () => {
-    setReportError(null)
-    try {
-      await download('/reports/exhibitors.xlsx', 'expositores.xlsx')
-    } catch (failure) {
-      setReportError(
-        failure instanceof ApiError ? failure.message : 'No se pudo generar el reporte.',
-      )
-    }
-  }
-
   return (
     <>
       <PageHeader
         title="Panel general"
         subtitle={`${data.event.name} · ${DATE.format(new Date(data.event.starts_on))} al ${DATE.format(new Date(data.event.ends_on))}`}
-        actions={
-          <Button variant="secondary" onClick={onDownload}>
-            Descargar reporte
-          </Button>
-        }
+        actions={<DownloadReportButton />}
       />
-
-      {reportError !== null ? <Notice title={reportError} className="mb-6" /> : null}
 
       {data.exhibitors_total === 0 ? (
         <EmptyState
           title="Todavía no hay expositores"
           description="Registre la primera empresa para que su representante reciba el acceso y pueda acreditar a su personal."
+          action={
+            <Link to="/admin/expositores">
+              <Button variant="secondary">Ir a expositores</Button>
+            </Link>
+          }
         />
       ) : (
         <>
@@ -115,6 +103,12 @@ export function AdminDashboardPage() {
             <p className="mt-2 text-[12px] text-ink-faint">
               Los rangos se leen de la configuración de la feria; no están fijados en el código.
             </p>
+
+            <div className="mt-6">
+              <Link to="/admin/expositores">
+                <Button variant="secondary">Ver el detalle por stand</Button>
+              </Link>
+            </div>
           </section>
         </>
       )}

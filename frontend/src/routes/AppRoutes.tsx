@@ -7,6 +7,7 @@ import { HomeRedirect, RequireRole } from '../features/auth/guards'
 import { LoginPage } from '../features/auth/LoginPage'
 import { SetPasswordPage } from '../features/auth/SetPasswordPage'
 import { AdminDashboardPage } from '../features/dashboard/AdminDashboardPage'
+import { ExhibitorListPage } from '../features/exhibitors/ExhibitorListPage'
 import { StandDashboardPage } from '../features/dashboard/StandDashboardPage'
 
 /** Secciones cuyo contenido llega en las fases siguientes. La navegacion no miente. */
@@ -36,7 +37,7 @@ export function AppRoutes() {
         }
       >
         <Route path="/admin" element={<AdminDashboardPage />} />
-        <Route path="/admin/expositores" element={<Pending title="Expositores" />} />
+        <Route path="/admin/expositores" element={<ExhibitorListPage />} />
         <Route path="/admin/credenciales" element={<Pending title="Credenciales" />} />
       </Route>
 
