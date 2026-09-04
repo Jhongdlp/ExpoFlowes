@@ -81,3 +81,6 @@ class ExhibitorRead(BaseModel):
 class ExhibitorDetail(ExhibitorRead):
     representative: RepresentativeRead
     contacts: list[ContactRead]
+    # Solo en el demo con EXPOSE_SETUP_LINK=true (§15). En produccion siempre es null: el
+    # enlace viaja unicamente por correo.
+    password_setup_link: str | None = None

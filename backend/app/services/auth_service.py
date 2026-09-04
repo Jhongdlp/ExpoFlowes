@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 from app.core.config import get_settings
 from app.core.security import AuthContext, Role, hash_password, verify_password
 from app.domain.exceptions import InvalidCredentialsError, InvalidOrExpiredTokenError
+from app.integrations import mailer
 from app.models import Event, PasswordSetupToken, User
 from app.repositories.user import UserRepository
 
@@ -80,10 +81,7 @@ def request_password_setup(db: Session, event_id: int, email: str) -> None:
 
     token = issue_password_setup_token(db, user)
     db.commit()
-    # F13 sustituye este log por el envio real con Mailtrap.
-    logger.info(
-        "password_setup_link_issued user_id=%s link=%s", user.id, setup_password_link(token)
-    )
+    mailer.notify_password_setup(user.email, user.email, setup_password_link(token))
 
 
 def consume_password_setup_token(db: Session, token: str, new_password: str) -> User:

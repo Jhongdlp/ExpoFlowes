@@ -27,6 +27,9 @@ class Settings(BaseSettings):
     smtp_user: str = ""
     smtp_password: str = ""
     mail_from: str = "no-reply@expoflores.demo"
+    # Fallback de demo (§15): expone el enlace de set-password en la respuesta del alta para
+    # poder activar cuentas sin inbox. Falso en produccion.
+    expose_setup_link: bool = False
 
     @property
     def cors_origin_list(self) -> list[str]:

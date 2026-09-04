@@ -11,6 +11,8 @@ Dos invariantes que este modulo protege y que no pueden vivir en el router:
 
 import logging
 from collections import Counter
+from collections.abc import Sequence
+from datetime import UTC, datetime
 from typing import Any
 
 from pydantic import ValidationError
@@ -27,13 +29,14 @@ from app.domain.exceptions import (
 )
 from app.domain.identification import validate_identification
 from app.domain.rules import quota_breakdown
+from app.integrations import mailer
 from app.integrations.excel import (
     PARTICIPANT_COLUMNS,
     InvalidWorkbookError,
     ensure_xlsx,
     read_participant_rows,
 )
-from app.models import Participant
+from app.models import Exhibitor, Participant
 from app.repositories.participant import ParticipantRepository
 from app.repositories.rules import RulesRepository
 from app.schemas.participant import ParticipantIn, ParticipantUpdate, check_provider_company
@@ -82,6 +85,37 @@ def _check_quota(
         )
 
 
+def _notify_credentials(
+    db: Session, exhibitor_id: int, participants: Sequence[Participant]
+) -> None:
+    """Correo 2 (§9.2): DESPUES del commit y fuera de la transaccion.
+
+    `credential_notified_at` marca al que ya recibio el aviso, asi que un alta corregida o un
+    segundo intento no reenvian. Sin correo no se envia nada y el alta sigue siendo valida
+    (§6.8). Un fallo del mailer no lanza: solo deja la marca sin poner.
+    """
+    pending = [p for p in participants if p.email and p.credential_notified_at is None]
+    if not pending:
+        return
+
+    exhibitor = db.get(Exhibitor, exhibitor_id)
+    name = exhibitor.legal_name if exhibitor else ""
+    now = datetime.now(UTC)
+    sent = False
+    for participant in pending:
+        assert participant.email is not None
+        if mailer.notify_credential(
+            participant.email,
+            f"{participant.first_name} {participant.last_name}",
+            name,
+            participant.category,
+        ):
+            participant.credential_notified_at = now
+            sent = True
+    if sent:
+        db.commit()
+
+
 def list_participants(
     db: Session,
     event_id: int,
@@ -126,6 +160,7 @@ def create_participant(
         raise _duplicate_error(repo, payload.identification) from exc
 
     db.commit()
+    _notify_credentials(db, exhibitor_id, [participant])
     return participant
 
 
@@ -170,6 +205,8 @@ def update_participant(
         raise _duplicate_error(repo, identification) from exc
 
     db.commit()
+    # Si el representante completo el correo despues, la credencial se notifica ahora.
+    _notify_credentials(db, exhibitor_id, [participant])
     return participant
 
 
@@ -301,14 +338,16 @@ def bulk_create_participants(
                 _check_quota(db, event_id, repo, exhibitor_id, category, requested)
             if dry_run:
                 return report
-            for payload in valid:
-                repo.add(
-                    Participant(
-                        event_id=event_id,
-                        exhibitor_id=exhibitor_id,
-                        **payload.model_dump(mode="json"),
-                    )
+            inserted = [
+                Participant(
+                    event_id=event_id,
+                    exhibitor_id=exhibitor_id,
+                    **payload.model_dump(mode="json"),
                 )
+                for payload in valid
+            ]
+            for participant in inserted:
+                repo.add(participant)
             db.flush()
     except IntegrityError as exc:
         # Otra transaccion registro una de estas identificaciones mientras validabamos.
@@ -331,4 +370,7 @@ def bulk_create_participants(
         ) from exc
 
     db.commit()
+    # Los correos del lote salen tras confirmar la insercion; un fallo individual se registra
+    # y no revierte nada (§9.2).
+    _notify_credentials(db, exhibitor_id, inserted)
     return report

@@ -13,6 +13,7 @@ from typing import Any, NamedTuple
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app.core.config import get_settings
 from app.domain.exceptions import (
     DuplicateEmailError,
     DuplicateExhibitorError,
@@ -21,6 +22,7 @@ from app.domain.exceptions import (
 )
 from app.domain.identification import validate_identification
 from app.domain.rules import classify_stand, quota_breakdown
+from app.integrations import mailer
 from app.models import (
     CredentialRule,
     Exhibitor,
@@ -182,13 +184,18 @@ def create_exhibitor(db: Session, event_id: int, payload: ExhibitorCreate) -> di
 
     db.commit()
 
-    # F13 sustituye este log por el envio real. Un fallo aqui no revierte el alta (§9.2).
-    logger.info(
-        "exhibitor_created id=%s password_setup_link=%s",
-        exhibitor.id,
-        auth_service.setup_password_link(token),
-    )
-    return get_exhibitor(db, event_id, exhibitor.id)
+    # Correo DESPUES del commit y fuera de la transaccion (§9.2). `notify_*` no lanza: si el
+    # SMTP falla, el alta ya esta confirmada y el admin reenvia el enlace desde la UI.
+    link = auth_service.setup_password_link(token)
+    representative = payload.representative
+    mailer.notify_password_setup(str(representative.email), representative.full_name, link)
+
+    detail = get_exhibitor(db, event_id, exhibitor.id)
+    if get_settings().expose_setup_link:
+        # Solo en el demo: el enunciado admite el correo simulado, y asi el evaluador puede
+        # activar la cuenta recien creada sin acceso al inbox. Nunca en produccion.
+        detail["password_setup_link"] = link
+    return detail
 
 
 def update_exhibitor(
