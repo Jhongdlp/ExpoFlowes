@@ -11,10 +11,11 @@ from sqlalchemy.orm import Session
 
 from app.core.security import AuthContext, RepresentativeUser
 from app.db.session import get_db
+from app.schemas.dashboard import MyQuota
 from app.schemas.exhibitor import ExhibitorDetail
 from app.schemas.pagination import DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE, Page
 from app.schemas.participant import Category, ParticipantIn, ParticipantRead, ParticipantUpdate
-from app.services import exhibitor_service, participant_service
+from app.services import dashboard_service, exhibitor_service, participant_service
 
 router = APIRouter(prefix="/me", tags=["representante"])
 
@@ -31,6 +32,13 @@ def scope(auth: AuthContext) -> tuple[int, int]:
 def my_exhibitor(auth: RepresentativeUser, db: DbSession) -> dict[str, Any]:
     event_id, exhibitor_id = scope(auth)
     return exhibitor_service.get_exhibitor(db, event_id, exhibitor_id)
+
+
+@router.get("/quota", response_model=MyQuota)
+def my_quota(auth: RepresentativeUser, db: DbSession) -> dict[str, Any]:
+    """Cupo total vs. usado, desglosado por categoria. Calculado, nunca leido de una columna."""
+    event_id, exhibitor_id = scope(auth)
+    return dashboard_service.my_quota(db, event_id, exhibitor_id)
 
 
 @router.get("/participants", response_model=Page[ParticipantRead])

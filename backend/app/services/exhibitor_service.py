@@ -6,8 +6,9 @@ peticion, sin reiniciar el proceso (punto extra E3, test R7).
 """
 
 import logging
+from collections.abc import Sequence
 from datetime import UTC, datetime
-from typing import Any
+from typing import Any, NamedTuple
 
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -20,7 +21,14 @@ from app.domain.exceptions import (
 )
 from app.domain.identification import validate_identification
 from app.domain.rules import classify_stand, quota_breakdown
-from app.models import Exhibitor, ExhibitorContact, Representative, User
+from app.models import (
+    CredentialRule,
+    Exhibitor,
+    ExhibitorContact,
+    Representative,
+    StandSizeRule,
+    User,
+)
 from app.repositories.exhibitor import ExhibitorRepository
 from app.repositories.rules import RulesRepository
 from app.schemas.exhibitor import ExhibitorCreate, ExhibitorUpdate
@@ -41,11 +49,25 @@ def _translate(exc: IntegrityError) -> Exception:
     return exc
 
 
-def quota_view(db: Session, event_id: int, m2: int, assigned: dict[str, int]) -> dict[str, Any]:
-    """Categoria de stand y cuota, siempre derivadas del metraje y de las reglas vigentes."""
-    rules = RulesRepository(db, event_id)
-    category = classify_stand(m2, rules.stand_sizes())
-    quota = quota_breakdown(m2, rules.credentials())
+class Rules(NamedTuple):
+    """Las dos tablas de reglas leidas una sola vez por peticion (§7.1.3)."""
+
+    stand_sizes: list[StandSizeRule]
+    credentials: list[CredentialRule]
+
+
+def load_rules(db: Session, event_id: int) -> Rules:
+    repo = RulesRepository(db, event_id)
+    return Rules(repo.stand_sizes(), repo.credentials())
+
+
+def quota_view(m2: int, assigned: dict[str, int], rules: Rules) -> dict[str, Any]:
+    """Categoria de stand y cuota, siempre derivadas del metraje y de las reglas vigentes.
+
+    Nunca se lee de una columna: si el admin corrige el metraje, esto cambia solo (§6.4).
+    """
+    category = classify_stand(m2, rules.stand_sizes)
+    quota = quota_breakdown(m2, rules.credentials)
     return {
         "stand_category": category.label,
         "quota": quota,
@@ -54,9 +76,7 @@ def quota_view(db: Session, event_id: int, m2: int, assigned: dict[str, int]) ->
     }
 
 
-def _as_read(
-    db: Session, event_id: int, exhibitor: Exhibitor, assigned: dict[str, int]
-) -> dict[str, Any]:
+def _as_read(exhibitor: Exhibitor, assigned: dict[str, int], rules: Rules) -> dict[str, Any]:
     return {
         "id": exhibitor.id,
         "tax_id": exhibitor.tax_id,
@@ -65,17 +85,22 @@ def _as_read(
         "stand_name": exhibitor.stand_name,
         "address": exhibitor.address,
         "requested_m2": exhibitor.requested_m2,
-        **quota_view(db, event_id, exhibitor.requested_m2, assigned),
+        **quota_view(exhibitor.requested_m2, assigned, rules),
     }
+
+
+def summarize(db: Session, event_id: int, rows: Sequence[Exhibitor]) -> list[dict[str, Any]]:
+    """Filas de listado con cuota derivada. Dos consultas para N expositores, no 2N."""
+    counts = ExhibitorRepository(db, event_id).assigned_counts([r.id for r in rows])
+    rules = load_rules(db, event_id)
+    return [_as_read(r, counts.get(r.id, {}), rules) for r in rows]
 
 
 def list_exhibitors(
     db: Session, event_id: int, page: int, page_size: int
 ) -> tuple[list[dict[str, Any]], int]:
-    repo = ExhibitorRepository(db, event_id)
-    rows, total = repo.list(page, page_size)
-    counts = repo.assigned_counts([r.id for r in rows])
-    return [_as_read(db, event_id, r, counts.get(r.id, {})) for r in rows], total
+    rows, total = ExhibitorRepository(db, event_id).list(page, page_size)
+    return summarize(db, event_id, rows), total
 
 
 def get_exhibitor(db: Session, event_id: int, exhibitor_id: int) -> dict[str, Any]:
@@ -85,7 +110,7 @@ def get_exhibitor(db: Session, event_id: int, exhibitor_id: int) -> dict[str, An
         raise NotFoundError("El expositor solicitado no existe.")
     counts = repo.assigned_counts([exhibitor.id])
     return {
-        **_as_read(db, event_id, exhibitor, counts.get(exhibitor.id, {})),
+        **_as_read(exhibitor, counts.get(exhibitor.id, {}), load_rules(db, event_id)),
         "representative": exhibitor.representative,
         "contacts": exhibitor.contacts,
     }
@@ -216,6 +241,8 @@ __all__ = [
     "delete_exhibitor",
     "get_exhibitor",
     "list_exhibitors",
+    "load_rules",
     "quota_view",
+    "summarize",
     "update_exhibitor",
 ]

@@ -20,6 +20,41 @@ class ParticipantRepository(EventScopedRepository):
         )
         return self.db.execute(stmt).scalar_one_or_none()
 
+    def list_for_event(
+        self,
+        page: int,
+        page_size: int,
+        exhibitor_id: int | None = None,
+        category: str | None = None,
+    ) -> tuple[list[tuple[Participant, str]], int]:
+        """Listado del admin: todo el evento, opcionalmente acotado a un expositor.
+
+        Es el unico listado que acepta un `exhibitor_id` de la query, y solo porque el admin
+        ya tiene alcance sobre el evento entero. El `event_id` sigue saliendo del token.
+        """
+        filters = [Participant.event_id == self.event_id, Exhibitor.deleted_at.is_(None)]
+        if exhibitor_id is not None:
+            filters.append(Participant.exhibitor_id == exhibitor_id)
+        if category is not None:
+            filters.append(Participant.category == category)
+
+        join = select(Participant, Exhibitor.legal_name).join(
+            Exhibitor, Exhibitor.id == Participant.exhibitor_id
+        )
+        total = self.db.execute(
+            select(func.count())
+            .select_from(Participant)
+            .join(Exhibitor, Exhibitor.id == Participant.exhibitor_id)
+            .where(*filters)
+        ).scalar_one()
+        stmt = (
+            join.where(*filters)
+            .order_by(Exhibitor.legal_name, Participant.last_name, Participant.first_name)
+            .offset((page - 1) * page_size)
+            .limit(page_size)
+        )
+        return [(row[0], row[1]) for row in self.db.execute(stmt)], total
+
     def list(
         self, exhibitor_id: int, page: int, page_size: int, category: str | None = None
     ) -> tuple[list[Participant], int]:
@@ -46,6 +81,16 @@ class ParticipantRepository(EventScopedRepository):
             .group_by(Participant.category)
         )
         return {category: total for category, total in self.db.execute(stmt)}
+
+    def count_without_email(self, exhibitor_id: int) -> int:
+        """Participantes que no recibiran la notificacion de credencial por no tener correo
+        (§6.8). El dashboard del representante lo muestra para que pueda completarlos."""
+        stmt = (
+            select(func.count())
+            .select_from(Participant)
+            .where(*self._scope(exhibitor_id), Participant.email.is_(None))
+        )
+        return int(self.db.execute(stmt).scalar_one())
 
     def find_owner(self, identification: str) -> tuple[Participant, Exhibitor] | None:
         """Quien ya registro esa identificacion en este evento. Da el `registered_in` del

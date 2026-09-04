@@ -31,6 +31,12 @@ class ExhibitorRepository(EventScopedRepository):
         stmt = select(Exhibitor).where(*self._alive(), Exhibitor.tax_id == tax_id)
         return self.db.execute(stmt).scalar_one_or_none()
 
+    def all(self) -> list[Exhibitor]:
+        """Todos los vivos del evento. Solo para agregados y reportes, nunca para un listado
+        de API: los listados paginan (§9.5)."""
+        stmt = select(Exhibitor).where(*self._alive()).order_by(Exhibitor.legal_name)
+        return list(self.db.execute(stmt).scalars())
+
     def list(self, page: int, page_size: int) -> tuple[list[Exhibitor], int]:
         total = self.db.execute(
             select(func.count()).select_from(Exhibitor).where(*self._alive())

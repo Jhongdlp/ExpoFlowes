@@ -71,3 +71,10 @@ class ParticipantRead(BaseModel):
     provider_company: str | None
     email: str | None
     credential_notified_at: datetime | None = None
+
+
+class ParticipantWithExhibitor(ParticipantRead):
+    """Fila del listado global del admin: la misma credencial, mas de que stand es."""
+
+    exhibitor_id: int
+    exhibitor_name: str

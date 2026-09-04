@@ -37,7 +37,7 @@ strict = true
 plugins = []
 
 [[tool.mypy.overrides]]
-module = ["jose.*", "passlib.*", "slowapi.*"]
+module = ["jose.*", "openpyxl.*", "passlib.*", "slowapi.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
