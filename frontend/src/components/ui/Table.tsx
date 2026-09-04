@@ -1,12 +1,21 @@
-import type { ReactNode, ThHTMLAttributes, TdHTMLAttributes } from 'react'
-
+import type { ReactNode, ThHTMLAttributes, TdHTMLAttributes, TableHTMLAttributes } from 'react'
 import { cn } from '../../lib/cn'
 
-/** Tabla de datos: reglas finas, sin cebra y sin bordes verticales. La lee la tipografia. */
-export function Table({ children }: { children: ReactNode }) {
+interface TableProps extends TableHTMLAttributes<HTMLTableElement> {
+  children: ReactNode
+  className?: string
+}
+
+/**
+ * Tabla de datos de alta legibilidad: contenedor con borde sutil,
+ * encabezado destacado y filas con separacion clara.
+ */
+export function Table({ children, className, ...props }: TableProps) {
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full border-y border-line text-[13px]">{children}</table>
+    <div className="overflow-x-auto rounded-lg border border-line bg-surface">
+      <table className={cn('w-full text-left text-[13px]', className)} {...props}>
+        {children}
+      </table>
     </div>
   )
 }
@@ -14,7 +23,10 @@ export function Table({ children }: { children: ReactNode }) {
 export function TH({ className, children, ...props }: ThHTMLAttributes<HTMLTableCellElement>) {
   return (
     <th
-      className={cn('label-caps border-b border-line px-3 py-2 text-left font-medium first:pl-0 last:pr-0', className)}
+      className={cn(
+        'label-caps border-b border-line bg-fill/40 px-4 py-3 font-semibold text-ink-faint',
+        className,
+      )}
       {...props}
     >
       {children}
@@ -24,7 +36,7 @@ export function TH({ className, children, ...props }: ThHTMLAttributes<HTMLTable
 
 export function TD({ className, children, ...props }: TdHTMLAttributes<HTMLTableCellElement>) {
   return (
-    <td className={cn('px-3 py-3 align-top first:pl-0 last:pr-0', className)} {...props}>
+    <td className={cn('px-4 py-3.5 align-middle text-ink', className)} {...props}>
       {children}
     </td>
   )

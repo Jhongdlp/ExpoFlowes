@@ -3,9 +3,10 @@ import { useId } from 'react'
 
 import { cn } from '../../lib/cn'
 
-interface Option {
+export interface Option {
   value: string
   label: string
+  className?: string
 }
 
 interface Props extends SelectHTMLAttributes<HTMLSelectElement> {
@@ -18,7 +19,7 @@ interface Props extends SelectHTMLAttributes<HTMLSelectElement> {
 
 /**
  * `<select>` nativo: teclado, busqueda por letra y accesibilidad los da el navegador
- * mejor que cualquier lista propia. Solo se le cambia la piel.
+ * mejor que cualquier lista propia.
  */
 export function Select({ label, options, placeholder, error, className, id, ...props }: Props) {
   const generated = useId()
@@ -35,16 +36,16 @@ export function Select({ label, options, placeholder, error, className, id, ...p
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? errorId : undefined}
         className={cn(
-          'block h-9 w-full rounded-sm border bg-surface px-3 text-sm text-ink',
+          'block h-9 w-full rounded border bg-surface px-3 text-sm text-ink transition-colors',
           'focus:border-ink focus:ring-1 focus:ring-ink focus:outline-none',
-          error ? 'border-ink ring-1 ring-ink' : 'border-line-strong',
+          error ? 'border-ink ring-1 ring-ink' : 'border-line hover:border-line-strong',
           className,
         )}
         {...props}
       >
         {placeholder === undefined ? null : <option value="">{placeholder}</option>}
         {options.map((option) => (
-          <option key={option.value} value={option.value}>
+          <option key={option.value} value={option.value} className={option.className}>
             {option.label}
           </option>
         ))}

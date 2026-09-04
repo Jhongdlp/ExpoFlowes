@@ -3,6 +3,7 @@ import { useEffect, useRef } from 'react'
 import { useForm, type FieldPath } from 'react-hook-form'
 
 import { ApiError } from '../../api/client'
+import { CategorySelect } from '../../components/CategorySelect'
 import { FormSection } from '../../components/FormSection'
 import { ServerError, fieldErrors } from '../../components/ServerError'
 import { Button } from '../../components/ui/Button'
@@ -119,11 +120,17 @@ export function ParticipantForm({
       </FormSection>
 
       <FormSection title="Credencial">
-        <Select
+        <CategorySelect
           label="Categoría"
-          options={categories.map((item) => ({ value: item, label: item }))}
+          categories={categories}
+          placeholder="Seleccionar categoría"
+          value={category}
+          onChange={(val) =>
+            form.setValue('category', val as ParticipantFormValues['category'], {
+              shouldValidate: true,
+            })
+          }
           error={errors.category?.message}
-          {...form.register('category')}
         />
         {isService ? (
           <Field
