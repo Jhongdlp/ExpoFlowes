@@ -13,13 +13,7 @@ import { Table, TBody, TD, TH, TR } from '../../components/ui/Table'
 import { useDebounced } from '../../hooks/use-debounced'
 import { cn } from '../../lib/cn'
 import { ruleLabel, useCredentialRules, useStandSizeRules } from '../../hooks/use-rules'
-
-/** Traducción del enum de `rounding_mode`, igual que `errors.ts` traduce los códigos. */
-const ROUNDING_LABEL: Record<string, string> = {
-  floor: 'hacia abajo — solo cuentan los bloques completos',
-  ceil: 'hacia arriba — un bloque empezado se paga entero',
-  round: 'al bloque más cercano',
-}
+import { useTranslation } from '../i18n/LanguageContext'
 
 const MIN_M2 = 1
 const MAX_M2 = 10_000
@@ -27,12 +21,9 @@ const MAX_M2 = 10_000
 /**
  * Simulador: escribe un metraje y el SERVIDOR deriva categoría y cuota con las reglas que
  * tenga la base en ese instante.
- *
- * La fórmula no se replica aquí a propósito: `/rules/quota` reusa la misma función que deriva
- * la cuota de un expositor real. Un simulador con su propia aritmética acabaría discrepando
- * del alta, que es justo lo que esta pantalla existe para demostrar que no pasa.
  */
 function QuotaSimulator({ standSizes }: { standSizes: StandSizeRule[] }) {
+  const { t, lang } = useTranslation()
   const [input, setInput] = useState('25')
   const settled = useDebounced(input)
   const m2 = Number(settled)
@@ -53,47 +44,54 @@ function QuotaSimulator({ standSizes }: { standSizes: StandSizeRule[] }) {
     <section className="surface p-4">
       <div className="grid gap-4 sm:grid-cols-[10rem_minmax(0,1fr)] sm:items-start">
         <Field
-          label="Metraje del stand"
+          label={t.rules.standSizeLabel}
           type="number"
           inputMode="numeric"
           min={MIN_M2}
           max={MAX_M2}
           value={input}
           onChange={(event) => setInput(event.target.value)}
-          hint="m² a derivar"
+          hint={t.rules.standSizeHint}
         />
 
         <div className="min-h-[5.5rem]">
           {!valid ? (
             <p className="text-[12px] text-ink-faint">
-              Escriba un metraje entre {MIN_M2} y {MAX_M2} m² para ver su clasificación y su
-              cuota.
+              {t.rules.simulatorPrompt
+                .replace('{min}', String(MIN_M2))
+                .replace('{max}', String(MAX_M2))}
             </p>
           ) : outOfRange ? (
-            <Notice tone="error" title={`${m2} m² no cae en ningún rango configurado`}>
-              Los rangos vigentes son{' '}
+            <Notice
+              tone="error"
+              title={
+                lang === 'en'
+                  ? `${m2} m² does not match any configured range`
+                  : `${m2} m² no cae en ningún rango configurado`
+              }
+            >
+              {lang === 'en' ? 'Active ranges are ' : 'Los rangos vigentes son '}
               {standSizes.map((rule, index) => (
                 <span key={rule.id}>
-                  {index === 0 ? '' : index === standSizes.length - 1 ? ' y ' : ', '}
+                  {index === 0 ? '' : index === standSizes.length - 1 ? (lang === 'en' ? ' and ' : ' y ') : ', '}
                   <span className="tnum font-medium text-ink">
                     {rule.min_m2}–{rule.max_m2} m²
                   </span>{' '}
                   ({rule.label})
                 </span>
               ))}
-              . El alta de expositor rechaza este metraje con el mismo error, en vez de
-              clasificarlo por defecto (decisión §6.2).
+              .
             </Notice>
           ) : simulation.isError ? (
-            <Notice tone="error" title="No se pudo calcular la cuota.">
+            <Notice tone="error" title={lang === 'en' ? 'Could not calculate quota.' : 'No se pudo calcular la cuota.'}>
               {simulation.error instanceof ApiError ? simulation.error.message : null}
             </Notice>
           ) : simulation.isPending ? (
-            <Loading label="Calculando la cuota" />
+            <Loading label={t.rules.calculating} />
           ) : (
             <div className="animate-fade">
               <div className="flex items-baseline gap-2">
-                <span className="label-caps">Categoría de stand</span>
+                <span className="label-caps">{t.rules.standCategory}</span>
                 <span className="text-[15px] font-semibold text-ink">
                   {simulation.data.stand_category}
                 </span>
@@ -111,12 +109,12 @@ function QuotaSimulator({ standSizes }: { standSizes: StandSizeRule[] }) {
                           CATEGORY_BAR[category] ?? 'bg-ink-faint',
                         )}
                       />
-                      <span className="truncate">{category}</span>
+                      <span className="truncate">{t.categories[category as keyof typeof t.categories] ?? category}</span>
                     </dt>
                     <dd className="tnum mt-1.5 text-[19px] leading-none font-semibold text-ink">
                       {credentials}
                       <span className="ml-1.5 text-[11px] font-normal text-ink-soft">
-                        {credentials === 1 ? 'credencial' : 'credenciales'}
+                        {credentials === 1 ? t.rules.credentialUnit : t.rules.credentialsUnit}
                       </span>
                     </dd>
                   </div>
@@ -130,19 +128,13 @@ function QuotaSimulator({ standSizes }: { standSizes: StandSizeRule[] }) {
   )
 }
 
-/**
- * Reglas parametrizadas, en pantalla (punto extra E3).
- *
- * Todo lo que se ve aquí sale de `stand_size_rules` y `credential_rules`. La pantalla no
- * conoce un solo número de negocio: cambie una fila con un UPDATE, recargue, y esto cambia
- * sin recompilar ni reiniciar nada.
- */
 export function RulesPage() {
+  const { t, lang } = useTranslation()
   const standSizes = useStandSizeRules()
   const credentials = useCredentialRules()
 
   if (standSizes.isPending || credentials.isPending) {
-    return <Loading label="Cargando las reglas de la feria" />
+    return <Loading label={lang === 'en' ? 'Loading expo rules…' : 'Cargando las reglas de la feria'} />
   }
 
   if (standSizes.isError || credentials.isError) {
@@ -150,47 +142,46 @@ export function RulesPage() {
     return (
       <Notice
         tone="error"
-        title={error instanceof ApiError ? error.message : 'No se pudieron cargar las reglas.'}
+        title={error instanceof ApiError ? error.message : t.common.tryAgain}
       />
     )
   }
 
-  // El ejemplo de SQL se escribe con una fila real, no con un rótulo inventado.
   const example = standSizes.data.at(-1)
 
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Reglas y parametrización"
-        subtitle="Rangos de metraje y cuotas de credenciales, leídos de la base de datos en cada petición."
+        title={t.rules.title}
+        subtitle={t.rules.subtitle}
       />
 
       <section>
-        <h2 className="label-caps mb-3">Simulador de cuota</h2>
+        <h2 className="label-caps mb-3">{t.rules.simulatorTitle}</h2>
         <QuotaSimulator standSizes={standSizes.data} />
       </section>
 
       <section>
         <div className="mb-3 flex items-baseline justify-between gap-3">
-          <h2 className="label-caps">Rangos de metraje</h2>
+          <h2 className="label-caps">{t.rules.standSizeRanges}</h2>
           <code className="font-mono text-[11px] text-ink-faint">stand_size_rules</code>
         </div>
         <Table>
           <thead>
             <tr>
-              <TH>Categoría</TH>
-              <TH className="text-right">Mínimo</TH>
-              <TH className="text-right">Máximo</TH>
+              <TH>{t.tables.category}</TH>
+              <TH className="text-right">{t.tables.min}</TH>
+              <TH className="text-right">{t.tables.max}</TH>
             </tr>
           </thead>
           <TBody>
             {standSizes.data.map((rule) => (
               <TR key={rule.id}>
                 <TD className="font-medium">{rule.label}</TD>
-                <TD label="Mínimo" className="tnum text-right">
+                <TD label={t.tables.min} className="tnum text-right">
                   {rule.min_m2} m²
                 </TD>
-                <TD label="Máximo" className="tnum text-right">
+                <TD label={t.tables.max} className="tnum text-right">
                   {rule.max_m2} m²
                 </TD>
               </TR>
@@ -198,24 +189,21 @@ export function RulesPage() {
           </TBody>
         </Table>
         <p className="mt-2 text-[11px] text-ink-faint">
-          Un metraje fuera de todos los rangos se rechaza con{' '}
-          <code className="font-mono">STAND_SIZE_OUT_OF_RANGE</code>; nunca se clasifica por
-          defecto. La categoría es informativa: no interviene en el cálculo de la cuota
-          (decisión §6.7).
+          {t.rules.standSizesFootnote}
         </p>
       </section>
 
       <section>
         <div className="mb-3 flex items-baseline justify-between gap-3">
-          <h2 className="label-caps">Cuota de credenciales</h2>
+          <h2 className="label-caps">{t.rules.credentialQuotas}</h2>
           <code className="font-mono text-[11px] text-ink-faint">credential_rules</code>
         </div>
         <Table>
           <thead>
             <tr>
-              <TH>Categoría</TH>
-              <TH>Fórmula</TH>
-              <TH>Redondeo</TH>
+              <TH>{t.tables.category}</TH>
+              <TH>{t.tables.formula}</TH>
+              <TH>{t.tables.rounding}</TH>
             </tr>
           </thead>
           <TBody>
@@ -230,16 +218,16 @@ export function RulesPage() {
                         CATEGORY_BAR[rule.category] ?? 'bg-ink-faint',
                       )}
                     />
-                    {rule.category}
+                    {t.categories[rule.category as keyof typeof t.categories] ?? rule.category}
                   </span>
                 </TD>
-                <TD label="Fórmula" className="tnum">
+                <TD label={t.tables.formula} className="tnum">
                   {ruleLabel(rule)}
                 </TD>
-                <TD label="Redondeo" className="text-ink-soft">
+                <TD label={t.tables.rounding} className="text-ink-soft">
                   <Status
                     tone="muted"
-                    label={ROUNDING_LABEL[rule.rounding_mode] ?? rule.rounding_mode}
+                    label={t.rules.roundingModes[rule.rounding_mode as keyof typeof t.rules.roundingModes] ?? rule.rounding_mode}
                   />
                 </TD>
               </TR>
@@ -249,21 +237,18 @@ export function RulesPage() {
       </section>
 
       <section>
-        <h2 className="label-caps mb-3">Cambiar una regla sin tocar código</h2>
+        <h2 className="label-caps mb-3">{t.rules.liveChangeTitle}</h2>
         <div className="surface p-4">
           <p className="text-[12px] text-ink-soft">
-            Las reglas se leen de la base en cada operación: no hay caché ni constantes en el
-            código. Un <code className="font-mono">UPDATE</code> surte efecto en la siguiente
-            petición, sin recompilar ni reiniciar.
+            {t.rules.liveChangeDesc}
           </p>
           <pre className="mt-3 overflow-x-auto rounded-lg bg-fill px-3 py-2.5 font-mono text-[11px] leading-relaxed text-ink max-sm:whitespace-pre-wrap">
             {example === undefined
-              ? '-- No hay rangos configurados para esta feria.'
-              : `-- Ampliar "${example.label}" hasta ${example.max_m2 + 30} m²\nUPDATE stand_size_rules SET max_m2 = ${example.max_m2 + 30}\n WHERE label = '${example.label}';`}
+              ? (lang === 'en' ? '-- No ranges configured for this expo.' : '-- No hay rangos configurados para esta feria.')
+              : `-- ${lang === 'en' ? `Expand "${example.label}" up to` : `Ampliar "${example.label}" hasta`} ${example.max_m2 + 30} m²\nUPDATE stand_size_rules SET max_m2 = ${example.max_m2 + 30}\n WHERE label = '${example.label}';`}
           </pre>
           <p className="mt-3 text-[11px] text-ink-faint">
-            Vuelva a este simulador después del UPDATE: la clasificación y la cuota cambian
-            solas.
+            {t.rules.liveChangeFootnote}
           </p>
         </div>
       </section>

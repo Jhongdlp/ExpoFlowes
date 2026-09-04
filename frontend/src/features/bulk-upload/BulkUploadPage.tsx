@@ -13,6 +13,7 @@ import { Status } from '../../components/ui/Status'
 import { Table, TBody, TD, TH, TR } from '../../components/ui/Table'
 import { cn } from '../../lib/cn'
 import { readWorkbook, type Preview } from './preview'
+import { useTranslation } from '../i18n/LanguageContext'
 
 const BULK = '/me/participants/bulk'
 const TEMPLATE = '/me/participants/template.xlsx'
@@ -44,6 +45,7 @@ function rowErrors(error: unknown): RowError[] {
 }
 
 export function BulkUploadPage() {
+  const { t, lang } = useTranslation()
   const queryClient = useQueryClient()
   const inputRef = useRef<HTMLInputElement>(null)
   const [file, setFile] = useState<File | null>(null)
@@ -86,7 +88,9 @@ export function BulkUploadPage() {
     } catch {
       setPreview(null)
       setReadFailure(
-        'No se pudo leer el archivo. Debe ser un libro .xlsx generado desde la plantilla.',
+        lang === 'en'
+          ? 'Could not read the file. It must be a valid .xlsx workbook created from the template.'
+          : 'No se pudo leer el archivo. Debe ser un libro .xlsx generado desde la plantilla.',
       )
     }
     // La validacion autoritativa es la del servidor (dry_run=true).
@@ -103,18 +107,18 @@ export function BulkUploadPage() {
   return (
     <div className="space-y-4">
       <PageHeader
-        title="Carga masiva de credenciales"
-        subtitle="Suba el Excel, revise fila por fila lo que entra y confirme. Nada se importa hasta que usted lo confirme."
+        title={t.bulk.title}
+        subtitle={t.bulk.subtitle}
         actions={
           <>
             <Button
               variant="secondary"
               onClick={() => download(TEMPLATE, 'plantilla-credenciales.xlsx')}
             >
-              Descargar plantilla
+              {t.bulk.downloadTemplate}
             </Button>
             <Link to="/stand/credenciales">
-              <Button variant="ghost">Ver credenciales</Button>
+              <Button variant="ghost">{t.bulk.viewCredentials}</Button>
             </Link>
           </>
         }
@@ -141,19 +145,19 @@ export function BulkUploadPage() {
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div className="min-w-0">
             <label htmlFor="archivo" className="block cursor-pointer text-[13px] font-medium text-ink">
-              {file === null ? 'Archivo de credenciales (.xlsx)' : file.name}
+              {file === null ? t.bulk.fileLabel : file.name}
             </label>
             <p id="archivo-ayuda" className="mt-0.5 text-[12px] text-ink-soft">
               {file === null
-                ? 'Arrastre el archivo aquí o examine. Máximo 2 MB y 500 filas.'
-                : `${formatFileSize(file.size)} · listo para validar`}
+                ? t.bulk.dragDropHelp
+                : `${formatFileSize(file.size)} · ${t.bulk.readyToValidate}`}
             </p>
           </div>
 
           <div className="flex shrink-0 items-center gap-2 max-sm:w-full max-sm:[&>*]:flex-1">
             {file === null ? null : (
               <Button variant="ghost" size="sm" onClick={reset} disabled={busy} className="w-full sm:w-auto">
-                Quitar archivo
+                {t.bulk.removeFile}
               </Button>
             )}
             <label
@@ -164,7 +168,7 @@ export function BulkUploadPage() {
                 busy ? 'pointer-events-none opacity-45' : '',
               )}
             >
-              {file === null ? 'Examinar archivo' : 'Cambiar archivo'}
+              {file === null ? t.bulk.browseFile : t.bulk.changeFile}
             </label>
             <input
               id="archivo"
@@ -185,8 +189,8 @@ export function BulkUploadPage() {
         {validate.isPending ? (
           <div className="mt-3.5 border-t border-line pt-3.5">
             <ProgressBar
-              label="Validando en el servidor…"
-              sublabel="Columnas, identificaciones y cupo disponible"
+              label={t.bulk.validatingProgress}
+              sublabel={t.bulk.validatingSublabel}
             />
           </div>
         ) : null}
@@ -195,10 +199,14 @@ export function BulkUploadPage() {
       {imported === null ? null : (
         <Notice
           tone="success"
-          title={`Se importaron ${imported} credencial${imported === 1 ? '' : 'es'}`}
+          title={
+            t.bulk.importSuccessTitle
+              .replace('{count}', String(imported))
+              .replace('{plural}', lang === 'en' ? (imported === 1 ? '' : 's') : (imported === 1 ? '' : 'es'))
+          }
           onDismiss={() => setImported(null)}
         >
-          Quedaron registradas en su stand. Quienes indicaron correo recibieron la confirmación.
+          {t.bulk.importSuccessDesc}
         </Notice>
       )}
 
@@ -214,10 +222,13 @@ export function BulkUploadPage() {
       {errors.length === 0 ? null : (
         <Notice
           tone="error"
-          title={`${errors.length} fila${errors.length === 1 ? '' : 's'} con errores`}
+          title={
+            t.bulk.errorsNoticeTitle
+              .replace('{count}', String(errors.length))
+              .replace('{plural}', lang === 'en' ? (errors.length === 1 ? '' : 's') : (errors.length === 1 ? '' : 's'))
+          }
         >
-          No se importó ninguna credencial: la carga es todo o nada. Corrija las filas marcadas
-          abajo en su archivo y vuelva a subirlo.
+          {t.bulk.errorsNoticeDesc}
         </Notice>
       )}
 
@@ -229,25 +240,26 @@ export function BulkUploadPage() {
         <section className="space-y-3">
           <div className="surface flex flex-wrap items-center justify-between gap-3 px-4 py-3">
             <div className="min-w-0">
-              <h2 className="text-[13px] font-semibold text-ink">Vista previa</h2>
+              <h2 className="text-[13px] font-semibold text-ink">{t.bulk.previewTitle}</h2>
               <p className="tnum mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-ink-faint">
                 <span>
-                  {preview.rows.length} fila{preview.rows.length === 1 ? '' : 's'} leída
-                  {preview.rows.length === 1 ? '' : 's'}
+                  {t.bulk.rowsRead
+                    .replace('{count}', String(preview.rows.length))
+                    .replace('{plural}', lang === 'en' ? (preview.rows.length === 1 ? '' : 's') : (preview.rows.length === 1 ? '' : 's'))}
                 </span>
                 {validate.isPending ? (
-                  <Status tone="pending" label="Validando" />
+                  <Status tone="pending" label={t.bulk.validatingStatus} />
                 ) : report === undefined ? null : (
-                  <Status tone="ok" label={`${report.valid_rows} válidas`} />
+                  <Status tone="ok" label={t.bulk.validRows.replace('{count}', String(report.valid_rows))} />
                 )}
                 {errors.length > 0 ? (
-                  <Status tone="error" label={`${errors.length} con error`} />
+                  <Status tone="error" label={t.bulk.errorRows.replace('{count}', String(errors.length))} />
                 ) : null}
               </p>
             </div>
             <div className="flex w-full items-center gap-2 sm:w-auto [&>*]:flex-1 sm:[&>*]:flex-none">
               <Button variant="ghost" onClick={reset} disabled={busy}>
-                Descartar
+                {t.bulk.discard}
               </Button>
               <Button
                 loading={confirm.isPending}
@@ -257,20 +269,20 @@ export function BulkUploadPage() {
                 }}
               >
                 {confirm.isPending
-                  ? 'Importando…'
+                  ? t.bulk.importing
                   : validate.isPending
-                    ? 'Validando…'
+                    ? t.common.loading
                     : errors.length > 0
-                      ? 'Corrija los errores'
-                      : `Importar ${report?.valid_rows ?? 0} credenciales`}
+                      ? t.bulk.fixErrors
+                      : t.bulk.importButton.replace('{count}', String(report?.valid_rows ?? 0))}
               </Button>
             </div>
           </div>
 
           {confirm.isPending ? (
             <ProgressBar
-              label="Importando credenciales…"
-              sublabel="Inserción atómica y envío de correos"
+              label={t.bulk.importingProgress}
+              sublabel={t.bulk.importingSublabel}
             />
           ) : null}
 
@@ -284,8 +296,8 @@ export function BulkUploadPage() {
             <Table stack={false}>
               <thead>
                 <tr>
-                  <TH className="w-12 text-right">Fila</TH>
-                  <TH className="w-64">Estado</TH>
+                  <TH className="w-12 text-right">{t.tables.row}</TH>
+                  <TH className="w-64">{t.tables.status}</TH>
                   {preview.headers.map((header, index) => (
                     <TH key={`${header}-${index}`} className="whitespace-nowrap">
                       {header}
@@ -306,10 +318,10 @@ export function BulkUploadPage() {
                       <TD className="tnum text-right text-ink-faint">{row.number}</TD>
                       <TD className="py-2">
                         {validate.isPending ? (
-                          <Status tone="pending" label="Validando" />
+                          <Status tone="pending" label={t.bulk.validatingStatus} />
                         ) : hasError ? (
                           <div className="space-y-1">
-                            <Status tone="error" label="No se puede importar" />
+                            <Status tone="error" label={t.bulk.cannotImport} />
                             <ul className="space-y-0.5 border-l border-alert/40 pl-2 text-[11px] text-ink-soft">
                               {failures.map((failure, index) => (
                                 <li key={index}>
@@ -320,9 +332,9 @@ export function BulkUploadPage() {
                             </ul>
                           </div>
                         ) : report === undefined ? (
-                          <Status tone="muted" label="Sin validar" />
+                          <Status tone="muted" label={lang === 'en' ? 'Unvalidated' : 'Sin validar'} />
                         ) : (
-                          <Status tone="ok" label="Lista para importar" />
+                          <Status tone="ok" label={lang === 'en' ? 'Ready to import' : 'Lista para importar'} />
                         )}
                       </TD>
                       {row.cells.map((cell, index) => (
@@ -336,8 +348,9 @@ export function BulkUploadPage() {
               </TBody>
             </Table>
             <p className="mt-1.5 text-[11px] text-ink-faint sm:hidden">
-              La vista previa conserva las columnas del archivo: deslice la tabla en horizontal
-              para verlas todas.
+              {lang === 'en'
+                ? 'The preview preserves the columns from the file: scroll the table horizontally to see all.'
+                : 'La vista previa conserva las columnas del archivo: deslice la tabla en horizontal para verlas todas.'}
             </p>
           </div>
         </section>

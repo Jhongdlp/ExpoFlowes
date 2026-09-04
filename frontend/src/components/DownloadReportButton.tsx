@@ -3,11 +3,13 @@ import { useState } from 'react'
 import { ApiError, download } from '../api/client'
 import { Button } from './ui/Button'
 import { Notice } from './ui/Notice'
+import { useTranslation } from '../features/i18n/LanguageContext'
 
 /**
  * La descarga va por fetch, no por un <a href>: el .xlsx exige la cabecera Authorization.
  */
 export function DownloadReportButton() {
+  const { t, lang } = useTranslation()
   const [failure, setFailure] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
 
@@ -17,7 +19,13 @@ export function DownloadReportButton() {
     try {
       await download('/reports/exhibitors.xlsx', 'expositores_expoflores_2026.xlsx')
     } catch (error) {
-      setFailure(error instanceof ApiError ? error.message : 'No se pudo generar el reporte.')
+      setFailure(
+        error instanceof ApiError
+          ? error.message
+          : lang === 'en'
+            ? 'Could not generate report.'
+            : 'No se pudo generar el reporte.',
+      )
     } finally {
       setBusy(false)
     }
@@ -26,7 +34,7 @@ export function DownloadReportButton() {
   return (
     <div className="relative">
       <Button variant="secondary" loading={busy} onClick={onClick}>
-        {busy ? 'Generando…' : 'Descargar Excel'}
+        {busy ? t.dashboard.generating : t.dashboard.downloadExcel}
       </Button>
       {/* El fallo cuelga del boton, no empuja la cabecera: la fila de acciones no se mueve. */}
       {failure === null ? null : (

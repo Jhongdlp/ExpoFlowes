@@ -2,6 +2,7 @@ import type { InputHTMLAttributes } from 'react'
 
 import { cn } from '../lib/cn'
 import { Button } from './ui/Button'
+import { useTranslation } from '../features/i18n/LanguageContext'
 
 interface BulkBarProps {
   count: number
@@ -17,7 +18,12 @@ interface BulkBarProps {
  * no cargue con una accion destructiva permanente encima.
  */
 export function BulkBar({ count, actionLabel, onAction, onClear, busy = false }: BulkBarProps) {
+  const { t, lang } = useTranslation()
   if (count === 0) return null
+
+  const selectedText = lang === 'en'
+    ? `${count} ${count === 1 ? t.common.selectedSingle : t.common.selected}`
+    : `${count} seleccionad${count === 1 ? 'o' : 'os'}`
 
   return (
     <div
@@ -25,14 +31,14 @@ export function BulkBar({ count, actionLabel, onAction, onClear, busy = false }:
       className="animate-rise flex flex-wrap items-center justify-between gap-2 rounded-lg border border-brand/25 bg-brand-soft px-3 py-2"
     >
       <p className="tnum text-[12px] font-medium text-ink">
-        {count} seleccionad{count === 1 ? 'o' : 'os'}
+        {selectedText}
       </p>
       <div className="flex items-center gap-2">
         <Button variant="ghost" size="sm" onClick={onClear} disabled={busy}>
-          Quitar selección
+          {t.common.clearSelection}
         </Button>
         <Button variant="danger" size="sm" loading={busy} onClick={onAction}>
-          {busy ? 'Eliminando…' : actionLabel}
+          {busy ? t.common.deleting : actionLabel}
         </Button>
       </div>
     </div>

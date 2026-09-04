@@ -19,10 +19,12 @@ import { Table, TBody, TD, TH, TR } from '../../components/ui/Table'
 import { useDebounced } from '../../hooks/use-debounced'
 import { useCredentialRules } from '../../hooks/use-rules'
 import { useSelection } from '../../hooks/use-selection'
+import { useTranslation } from '../i18n/LanguageContext'
 
 const PAGE_SIZE = 20
 
 export function ExhibitorListPage() {
+  const { t, lang } = useTranslation()
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
   const [confirming, setConfirming] = useState(false)
@@ -59,21 +61,28 @@ export function ExhibitorListPage() {
     },
   })
 
+  const getSubtitle = () => {
+    if (exhibitors.data === undefined) return undefined
+    const total = exhibitors.data.total
+    if (term !== '') {
+      return lang === 'en'
+        ? `${total} search result${total === 1 ? '' : 's'}`
+        : `${total} resultado${total === 1 ? '' : 's'} de la búsqueda`
+    }
+    return lang === 'en'
+      ? `${total} company${total === 1 ? '' : 'ies'} registered in the expo`
+      : `${total} empresa${total === 1 ? '' : 's'} registrada${total === 1 ? '' : 's'} en la feria`
+  }
+
   const header = (
     <PageHeader
-      title="Expositores"
-      subtitle={
-        exhibitors.data === undefined
-          ? undefined
-          : term !== ''
-            ? `${exhibitors.data.total} resultado${exhibitors.data.total === 1 ? '' : 's'} de la búsqueda`
-            : `${exhibitors.data.total} empresa${exhibitors.data.total === 1 ? '' : 's'} registrada${exhibitors.data.total === 1 ? '' : 's'} en la feria`
-      }
+      title={t.exhibitors.title}
+      subtitle={getSubtitle()}
       actions={
         <>
           <DownloadReportButton />
           <Link to="/admin/expositores/nuevo">
-            <Button>Nuevo expositor</Button>
+            <Button>{t.dashboard.newExhibitor}</Button>
           </Link>
         </>
       }
@@ -91,8 +100,8 @@ export function ExhibitorListPage() {
           setSearch(value)
           setPage(1)
         }}
-        placeholder="Buscar por razón social, stand, RUC o dirección…"
-        aria-label="Buscar expositores"
+        placeholder={t.exhibitors.searchPlaceholder}
+        aria-label={t.exhibitors.searchAriaLabel}
       />
     </FilterBar>
   )
@@ -114,9 +123,9 @@ export function ExhibitorListPage() {
         {header}
         <Notice
           tone="error"
-          title={error instanceof ApiError ? error.message : 'No se pudo cargar el listado.'}
+          title={error instanceof ApiError ? error.message : t.common.tryAgain}
         >
-          Vuelva a intentarlo en unos segundos. Si el problema sigue, avise al equipo técnico.
+          {t.common.tryAgain}
         </Notice>
       </>
     )
@@ -128,11 +137,15 @@ export function ExhibitorListPage() {
         {header}
         {searchBar}
         <EmptyState
-          title="Sin resultados"
-          description={`Ninguna empresa de la feria coincide con "${term}".`}
+          title={t.exhibitors.emptyFilteredTitle}
+          description={
+            lang === 'en'
+              ? `No expo company matches "${term}".`
+              : `Ninguna empresa de la feria coincide con "${term}".`
+          }
           action={
             <Button variant="secondary" onClick={() => setSearch('')}>
-              Ver todos los expositores
+              {t.exhibitors.viewAllExhibitors}
             </Button>
           }
         />
@@ -145,11 +158,11 @@ export function ExhibitorListPage() {
       <>
         {header}
         <EmptyState
-          title="Todavía no hay expositores"
-          description="Registre la primera empresa: al crearla, su representante recibe el enlace de acceso y puede empezar a acreditar personal."
+          title={t.exhibitors.emptyInitialTitle}
+          description={t.exhibitors.emptyInitialDesc}
           action={
             <Link to="/admin/expositores/nuevo">
-              <Button>Registrar expositor</Button>
+              <Button>{t.exhibitors.registerExhibitor}</Button>
             </Link>
           }
         />
@@ -158,6 +171,18 @@ export function ExhibitorListPage() {
   }
 
   const categories = rules.data.map((rule) => rule.category)
+
+  const bulkLabel = lang === 'en'
+    ? `Delete ${selection.count} exhibitor${selection.count === 1 ? '' : 's'}`
+    : `Eliminar ${selection.count} expositor${selection.count === 1 ? '' : 'es'}`
+
+  const confirmDescription = selection.count === 1
+    ? lang === 'en'
+      ? 'The stand will no longer appear in listings or reports. Already issued credentials are preserved.'
+      : 'El stand deja de aparecer en los listados y en el reporte. Sus credenciales ya emitidas se conservan, así que las identificaciones siguen reservadas en esta feria.'
+    : lang === 'en'
+      ? `The ${selection.count} stands will no longer appear in listings or reports. Already issued credentials are preserved.`
+      : `Los ${selection.count} stands dejan de aparecer en los listados y en el reporte. Sus credenciales ya emitidas se conservan, así que las identificaciones siguen reservadas en esta feria.`
 
   return (
     <>
@@ -173,7 +198,7 @@ export function ExhibitorListPage() {
       <div className="mb-4 empty:mb-0">
         <BulkBar
           count={selection.count}
-          actionLabel={`Eliminar ${selection.count} expositor${selection.count === 1 ? '' : 'es'}`}
+          actionLabel={bulkLabel}
           onAction={() => setConfirming(true)}
           onClear={selection.clear}
           busy={remove.isPending}
@@ -187,19 +212,19 @@ export function ExhibitorListPage() {
               <SelectCheckbox
                 checked={selection.allSelected}
                 onChange={selection.toggleAll}
-                aria-label="Seleccionar todos los expositores de esta página"
+                aria-label={lang === 'en' ? 'Select all exhibitors on this page' : 'Seleccionar todos los expositores de esta página'}
               />
             </TH>
-            <TH>Empresa</TH>
-            <TH className="sm:max-lg:hidden">Identificación</TH>
-            <TH className="text-right">Metraje</TH>
-            <TH className="sm:max-lg:hidden">Categoría</TH>
+            <TH>{t.tables.company}</TH>
+            <TH className="sm:max-lg:hidden">{t.tables.identification}</TH>
+            <TH className="text-right">{t.tables.standSize}</TH>
+            <TH className="sm:max-lg:hidden">{t.tables.category}</TH>
             {categories.map((category) => (
               <TH key={category} className="text-right">
-                {category}
+                {t.categories[category as keyof typeof t.categories] ?? category}
               </TH>
             ))}
-            <TH className="text-right">Total</TH>
+            <TH className="text-right">{t.tables.total}</TH>
           </tr>
         </thead>
         <TBody>
@@ -224,23 +249,23 @@ export function ExhibitorListPage() {
                   </Link>
                   <span className="block text-[11px] text-ink-faint">{exhibitor.stand_name}</span>
                 </TD>
-                <TD label="Identificación" className="tnum text-ink-soft sm:max-lg:hidden">
+                <TD label={t.tables.identification} className="tnum text-ink-soft sm:max-lg:hidden">
                   {exhibitor.tax_id}
                   <span className="label-caps ml-2">{exhibitor.tax_id_type}</span>
                 </TD>
-                <TD label="Metraje" className="tnum text-right sm:text-right">
+                <TD label={t.tables.standSize} className="tnum text-right sm:text-right">
                   {exhibitor.requested_m2} m²
                 </TD>
-                <TD label="Categoría" className="text-ink-soft sm:max-lg:hidden">
+                <TD label={t.tables.category} className="text-ink-soft sm:max-lg:hidden">
                   {exhibitor.stand_category}
                 </TD>
                 {categories.map((category) => (
-                  <TD key={category} label={category} className="tnum text-right">
+                  <TD key={category} label={t.categories[category as keyof typeof t.categories] ?? category} className="tnum text-right">
                     {exhibitor.assigned[category] ?? 0}
                     <span className="text-ink-faint"> / {exhibitor.quota[category] ?? 0}</span>
                   </TD>
                 ))}
-                <TD label="Total" className="tnum text-right font-medium">
+                <TD label={t.tables.total} className="tnum text-right font-medium">
                   {assigned}
                   <span className="font-normal text-ink-faint"> / {quota}</span>
                 </TD>
@@ -251,8 +276,7 @@ export function ExhibitorListPage() {
       </Table>
 
       <p className="mt-2 text-[11px] text-ink-faint">
-        Por categoría de credencial: asignadas / cuota. La cuota se recalcula con el metraje y
-        las reglas vigentes de la feria.
+        {t.exhibitors.quotaFootnote}
       </p>
 
       <Pagination
@@ -267,9 +291,9 @@ export function ExhibitorListPage() {
 
       <ConfirmDialog
         open={confirming}
-        title={selection.count === 1 ? 'Eliminar este expositor' : 'Eliminar expositores'}
-        description={`${selection.count === 1 ? 'El stand deja' : `Los ${selection.count} stands dejan`} de aparecer en los listados y en el reporte. Sus credenciales ya emitidas se conservan, así que las identificaciones siguen reservadas en esta feria.`}
-        confirmLabel={selection.count === 1 ? 'Eliminar expositor' : 'Eliminar expositores'}
+        title={selection.count === 1 ? t.exhibitors.deleteSingleTitle : t.exhibitors.deleteConfirmTitle}
+        description={confirmDescription}
+        confirmLabel={selection.count === 1 ? t.exhibitors.deleteSingleButton : t.exhibitors.deleteConfirmButton}
         busy={remove.isPending}
         onConfirm={() => {
           setConfirming(false)

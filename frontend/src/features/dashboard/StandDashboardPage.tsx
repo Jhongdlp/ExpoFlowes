@@ -9,8 +9,10 @@ import { Stat, StatRow } from '../../components/Stat'
 import { Button } from '../../components/ui/Button'
 import { Notice } from '../../components/ui/Notice'
 import { QuotaTable } from './QuotaTable'
+import { useTranslation } from '../i18n/LanguageContext'
 
 export function StandDashboardPage() {
+  const { t, lang } = useTranslation()
   const { data, isPending, isError, error } = useQuery({
     queryKey: ['me', 'quota'],
     queryFn: () => api.get<MyQuota>('/me/quota'),
@@ -19,8 +21,8 @@ export function StandDashboardPage() {
   if (isPending) {
     return (
       <>
-        <PageHeader title="Su stand" />
-        <Loading label="Cargando su stand" />
+        <PageHeader title={t.dashboard.standTitle} />
+        <Loading label={lang === 'en' ? 'Loading stand…' : 'Cargando su stand'} />
       </>
     )
   }
@@ -28,12 +30,12 @@ export function StandDashboardPage() {
   if (isError) {
     return (
       <>
-        <PageHeader title="Su stand" />
+        <PageHeader title={t.dashboard.standTitle} />
         <Notice
           tone="error"
-          title={error instanceof ApiError ? error.message : 'No se pudo cargar su stand.'}
+          title={error instanceof ApiError ? error.message : t.common.tryAgain}
         >
-          Vuelva a intentarlo en unos segundos. Si el problema sigue, avise al organizador.
+          {t.common.tryAgain}
         </Notice>
       </>
     )
@@ -51,31 +53,30 @@ export function StandDashboardPage() {
         actions={
           <>
             <Link to="/stand/credenciales/carga">
-              <Button variant="secondary">Carga masiva</Button>
+              <Button variant="secondary">{t.dashboard.bulkUpload}</Button>
             </Link>
             <Link to="/stand/credenciales/nueva">
-              <Button>Nueva credencial</Button>
+              <Button>{t.dashboard.newCredential}</Button>
             </Link>
           </>
         }
       />
 
       <StatRow>
-        <Stat label="Metraje" value={`${data.requested_m2} m²`} note={`Stand ${data.stand_category}`} />
-        <Stat label="Cupo total" value={totalQuota} note="Todas las categorías" />
-        <Stat label="Asignadas" value={data.participants_total} note={`${burnRate}% utilizado`} />
-        <Stat label="Disponibles" value={totalAvailable} note="Cupos libres" />
+        <Stat label={t.tables.standSize} value={`${data.requested_m2} m²`} note={`Stand ${data.stand_category}`} />
+        <Stat label={t.common.totalQuota} value={totalQuota} note={t.dashboard.allCategories} />
+        <Stat label={t.common.assigned} value={data.participants_total} note={t.dashboard.usedRate.replace('{percent}', String(burnRate))} />
+        <Stat label={t.common.available} value={totalAvailable} note={t.dashboard.freeQuotas} />
       </StatRow>
 
       {data.participants_without_email > 0 ? (
-        <Notice title="Credenciales sin correo registrado">
-          {data.participants_without_email} de sus {data.participants_total} acreditados no tienen
-          correo, así que no recibirán la confirmación de su credencial.{' '}
+        <Notice title={t.dashboard.noEmailTitle}>
+          {data.participants_without_email} {t.dashboard.ofQuota.replace('{total}', String(data.participants_total))} {t.dashboard.noEmailNotice}{' '}
           <Link
             to="/stand/credenciales"
             className="font-medium text-ink underline underline-offset-2"
           >
-            Completar en el listado
+            {t.dashboard.completeInList}
           </Link>
           .
         </Notice>
@@ -83,9 +84,9 @@ export function StandDashboardPage() {
 
       <section>
         <div className="mb-2.5 flex items-baseline justify-between gap-3">
-          <h2 className="label-caps">Cupo por categoría</h2>
+          <h2 className="label-caps">{t.dashboard.quotaByCategory}</h2>
           <span className="tnum text-[11px] text-ink-faint">
-            {data.participants_total} de {totalQuota} asignadas
+            {data.participants_total} {t.common.of} {totalQuota} {t.common.assigned}
           </span>
         </div>
         <QuotaTable

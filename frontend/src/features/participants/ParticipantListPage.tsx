@@ -16,10 +16,12 @@ import { Status } from '../../components/ui/Status'
 import { Table, TBody, TD, TH, TR } from '../../components/ui/Table'
 import { useDebounced } from '../../hooks/use-debounced'
 import { useCredentialRules } from '../../hooks/use-rules'
+import { useTranslation } from '../i18n/LanguageContext'
 
 const PAGE_SIZE = 20
 
 export function ParticipantListPage() {
+  const { t, lang } = useTranslation()
   const [page, setPage] = useState(1)
   const [exhibitorId, setExhibitorId] = useState('')
   const [category, setCategory] = useState('')
@@ -65,17 +67,24 @@ export function ParticipantListPage() {
   const items = participants.data?.items ?? []
   const refreshing = participants.isFetching && !participants.isPending
 
+  const getSubtitle = () => {
+    if (participants.data === undefined) return undefined
+    const total = participants.data.total
+    if (isFiltered) {
+      return lang === 'en'
+        ? `${total} search result${total === 1 ? '' : 's'}`
+        : `${total} resultado${total === 1 ? '' : 's'} de la búsqueda`
+    }
+    return lang === 'en'
+      ? `${total} registered credential${total === 1 ? '' : 's'} in the expo`
+      : `${total} acreditado${total === 1 ? '' : 's'} en la feria`
+  }
+
   return (
     <div className="space-y-4">
       <PageHeader
-        title="Credenciales"
-        subtitle={
-          participants.data === undefined
-            ? undefined
-            : isFiltered
-              ? `${participants.data.total} resultado${participants.data.total === 1 ? '' : 's'} de la búsqueda`
-              : `${participants.data.total} acreditado${participants.data.total === 1 ? '' : 's'} en la feria`
-        }
+        title={t.participants.title}
+        subtitle={getSubtitle()}
       />
 
       <FilterBar className="flex-col sm:flex-col sm:items-stretch">
@@ -83,16 +92,16 @@ export function ParticipantListPage() {
           value={search}
           busy={refreshing}
           onChange={(value) => onFilter(() => setSearch(value))}
-          placeholder="Buscar por nombre, identificación, empresa, cargo o correo…"
-          aria-label="Buscar credenciales"
+          placeholder={t.participants.searchPlaceholder}
+          aria-label={t.participants.searchAriaLabel}
           autoFocus
         />
 
         <div className="flex flex-col gap-3 border-t border-line pt-3 sm:flex-row sm:items-end">
           <div className="grid flex-1 gap-3 sm:max-w-xl sm:grid-cols-2">
             <Select
-              label="Empresa / Stand"
-              placeholder="Todas"
+              label={t.participants.companyFilter}
+              placeholder={t.participants.all}
               value={exhibitorId}
               onChange={(event) => onFilter(() => setExhibitorId(event.target.value))}
               options={(exhibitors.data?.items ?? []).map((item) => ({
@@ -101,8 +110,8 @@ export function ParticipantListPage() {
               }))}
             />
             <Select
-              label="Categoría"
-              placeholder="Todas"
+              label={t.participants.categoryFilter}
+              placeholder={t.participants.all}
               value={category}
               onChange={(event) => onFilter(() => setCategory(event.target.value))}
               options={(rules.data ?? []).map((rule) => ({
@@ -114,7 +123,7 @@ export function ParticipantListPage() {
 
           {isFiltered ? (
             <Button variant="ghost" size="sm" onClick={clearFilters}>
-              Limpiar filtros
+              {t.participants.clearFilters}
             </Button>
           ) : null}
         </div>
@@ -128,23 +137,23 @@ export function ParticipantListPage() {
           title={
             participants.error instanceof ApiError
               ? participants.error.message
-              : 'No se pudo cargar el listado de credenciales.'
+              : t.common.tryAgain
           }
         >
-          Vuelva a intentarlo en unos momentos o verifique la conexión con el servidor.
+          {t.common.tryAgain}
         </Notice>
       ) : participants.data.total === 0 ? (
         <EmptyState
-          title={isFiltered ? 'Ningún acreditado con esos filtros' : 'Todavía no hay acreditados'}
+          title={isFiltered ? t.participants.emptyFilteredTitle : t.participants.emptyInitialTitle}
           description={
             isFiltered
-              ? 'Pruebe con otro término de búsqueda, otra empresa o categoría, o limpie los filtros para ver toda la feria.'
-              : 'Cada representante acredita a su propio personal desde su panel; aquí aparecerán todas las credenciales emitidas.'
+              ? t.participants.emptyFilteredDesc
+              : t.participants.emptyInitialDesc
           }
           action={
             isFiltered ? (
               <Button variant="secondary" onClick={clearFilters}>
-                Ver todas las credenciales
+                {t.participants.viewAllCredentials}
               </Button>
             ) : null
           }
@@ -159,12 +168,12 @@ export function ParticipantListPage() {
             <Table>
               <thead>
                 <tr>
-                  <TH>Persona</TH>
-                  <TH>Identificación</TH>
-                  <TH>Empresa / Stand</TH>
-                  <TH className="sm:max-lg:hidden">Cargo</TH>
-                  <TH>Categoría</TH>
-                  <TH className="sm:max-lg:hidden">Correo</TH>
+                  <TH>{t.tables.person}</TH>
+                  <TH>{t.tables.identification}</TH>
+                  <TH>{t.tables.companyStand}</TH>
+                  <TH className="sm:max-lg:hidden">{t.tables.position}</TH>
+                  <TH>{t.tables.category}</TH>
+                  <TH className="sm:max-lg:hidden">{t.tables.email}</TH>
                 </tr>
               </thead>
               <TBody>
@@ -173,32 +182,32 @@ export function ParticipantListPage() {
                     <TD className="font-medium">
                       {person.first_name} {person.last_name}
                     </TD>
-                    <TD label="Identificación" className="tnum text-ink-soft">
+                    <TD label={t.tables.identification} className="tnum text-ink-soft">
                       {person.identification}
                       <span className="label-caps ml-2">{person.identification_type}</span>
                     </TD>
-                    <TD label="Empresa">
+                    <TD label={t.tables.company}>
                       {person.exhibitor_name}
                       {person.provider_company === null ||
                       person.provider_company === undefined ? null : (
                         <span className="mt-0.5 block text-[11px] text-ink-faint">
-                          Proveedor: {person.provider_company}
+                          {t.tables.provider}: {person.provider_company}
                         </span>
                       )}
                     </TD>
-                    <TD label="Cargo" className="text-ink-soft sm:max-lg:hidden">
+                    <TD label={t.tables.position} className="text-ink-soft sm:max-lg:hidden">
                       {person.position}
                     </TD>
-                    <TD label="Categoría">
+                    <TD label={t.tables.category}>
                       <CategoryBadge category={person.category} />
                     </TD>
-                    <TD label="Correo" className="sm:max-lg:hidden">
+                    <TD label={t.tables.email} className="sm:max-lg:hidden">
                       {person.email ? (
                         <span className="block text-ink-soft sm:max-w-[16rem] sm:truncate">
                           {person.email}
                         </span>
                       ) : (
-                        <Status tone="muted" label="Sin correo" />
+                        <Status tone="muted" label={t.tables.noEmail} />
                       )}
                     </TD>
                   </TR>

@@ -20,10 +20,12 @@ import { Table, TBody, TD, TH, TR } from '../../components/ui/Table'
 import { useDebounced } from '../../hooks/use-debounced'
 import { useCredentialRules } from '../../hooks/use-rules'
 import { useSelection } from '../../hooks/use-selection'
+import { useTranslation } from '../i18n/LanguageContext'
 
 const PAGE_SIZE = 20
 
 export function MyParticipantListPage() {
+  const { t, lang } = useTranslation()
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('')
@@ -77,10 +79,10 @@ export function MyParticipantListPage() {
   const actions = (
     <>
       <Link to="/stand/credenciales/carga">
-        <Button variant="secondary">Carga masiva</Button>
+        <Button variant="secondary">{t.dashboard.bulkUpload}</Button>
       </Link>
       <Link to="/stand/credenciales/nueva">
-        <Button>Nueva credencial</Button>
+        <Button>{t.dashboard.newCredential}</Button>
       </Link>
     </>
   )
@@ -88,17 +90,36 @@ export function MyParticipantListPage() {
   const selectedPeople = items.filter((person) => selection.isSelected(person.id))
   const only = selectedPeople.length === 1 ? selectedPeople[0] : undefined
 
+  const getSubtitle = () => {
+    if (participants.data === undefined) return undefined
+    const total = participants.data.total
+    if (isFiltered) {
+      return lang === 'en'
+        ? `${total} search result${total === 1 ? '' : 's'}`
+        : `${total} resultado${total === 1 ? '' : 's'} de la búsqueda`
+    }
+    return lang === 'en'
+      ? `${total} registered person${total === 1 ? '' : 's'}`
+      : `${total} persona${total === 1 ? '' : 's'} acreditada${total === 1 ? '' : 's'}`
+  }
+
+  const bulkActionLabel = lang === 'en'
+    ? `Delete ${selection.count} credential${selection.count === 1 ? '' : 's'}`
+    : `Eliminar ${selection.count} credencial${selection.count === 1 ? '' : 'es'}`
+
+  const confirmDescription = only !== undefined
+    ? lang === 'en'
+      ? `The credential for ${only.first_name} ${only.last_name} will be deleted. The quota for category (${only.category}) will be released and the ID will be available again.`
+      : `Se eliminará la credencial de ${only.first_name} ${only.last_name}. Se liberará el cupo de su categoría (${only.category}) y su identificación quedará disponible para otro registro.`
+    : lang === 'en'
+      ? `${selection.count} credentials will be deleted. Category quotas will be released and IDs will become available again.`
+      : `Se eliminarán ${selection.count} credenciales. Se liberará el cupo de sus categorías y sus identificaciones quedarán disponibles para otro registro.`
+
   return (
     <div className="space-y-4">
       <PageHeader
-        title="Credenciales del stand"
-        subtitle={
-          participants.data === undefined
-            ? undefined
-            : isFiltered
-              ? `${participants.data.total} resultado${participants.data.total === 1 ? '' : 's'} de la búsqueda`
-              : `${participants.data.total} persona${participants.data.total === 1 ? '' : 's'} acreditada${participants.data.total === 1 ? '' : 's'}`
-        }
+        title={lang === 'en' ? 'Stand Credentials' : 'Credenciales del stand'}
+        subtitle={getSubtitle()}
         actions={actions}
       />
 
@@ -111,13 +132,13 @@ export function MyParticipantListPage() {
           value={search}
           busy={refreshing}
           onChange={(value) => filter(() => setSearch(value))}
-          placeholder="Buscar por nombre, identificación, cargo o correo…"
-          aria-label="Buscar credenciales"
+          placeholder={lang === 'en' ? 'Search by name, ID, position or email…' : 'Buscar por nombre, identificación, cargo o correo…'}
+          aria-label={t.participants.searchAriaLabel}
         />
         <div className="sm:w-48">
           <Select
-            label="Categoría"
-            placeholder="Todas"
+            label={t.participants.categoryFilter}
+            placeholder={t.participants.all}
             value={category}
             onChange={(event) => filter(() => setCategory(event.target.value))}
             options={(rules.data ?? []).map((rule) => ({
@@ -128,14 +149,14 @@ export function MyParticipantListPage() {
         </div>
         {isFiltered ? (
           <Button variant="ghost" size="sm" onClick={clearFilters}>
-            Limpiar
+            {t.participants.clearFilters}
           </Button>
         ) : null}
       </FilterBar>
 
       <BulkBar
         count={selection.count}
-        actionLabel={`Eliminar ${selection.count} credencial${selection.count === 1 ? '' : 'es'}`}
+        actionLabel={bulkActionLabel}
         onAction={() => setConfirming(true)}
         onClear={selection.clear}
         busy={remove.isPending}
@@ -147,18 +168,18 @@ export function MyParticipantListPage() {
         <ServerError error={participants.error} />
       ) : participants.data.total === 0 && isFiltered ? (
         <EmptyState
-          title="Sin resultados"
-          description="Ningún acreditado de su stand coincide con esa búsqueda o categoría."
+          title={t.participants.emptyStandFilteredTitle}
+          description={t.participants.emptyStandFilteredDesc}
           action={
             <Button variant="secondary" onClick={clearFilters}>
-              Ver todas las credenciales
+              {t.participants.viewAllCredentials}
             </Button>
           }
         />
       ) : participants.data.total === 0 ? (
         <EmptyState
-          title="Todavía no ha acreditado a nadie"
-          description="Registre al personal que operará su stand. Cada persona consume una credencial de su categoría."
+          title={t.participants.emptyStandInitialTitle}
+          description={t.participants.emptyStandInitialDesc}
           action={actions}
         />
       ) : (
@@ -176,14 +197,14 @@ export function MyParticipantListPage() {
                     <SelectCheckbox
                       checked={selection.allSelected}
                       onChange={selection.toggleAll}
-                      aria-label="Seleccionar todas las credenciales de esta página"
+                      aria-label={t.participants.selectAllAria}
                     />
                   </TH>
-                  <TH>Persona</TH>
-                  <TH>Identificación</TH>
-                  <TH className="sm:max-lg:hidden">Cargo</TH>
-                  <TH>Categoría</TH>
-                  <TH>Correo</TH>
+                  <TH>{t.tables.person}</TH>
+                  <TH>{t.tables.identification}</TH>
+                  <TH className="sm:max-lg:hidden">{t.tables.position}</TH>
+                  <TH>{t.tables.category}</TH>
+                  <TH>{t.tables.email}</TH>
                 </tr>
               </thead>
               <TBody>
@@ -193,24 +214,22 @@ export function MyParticipantListPage() {
                       <SelectCheckbox
                         checked={selection.isSelected(person.id)}
                         onChange={() => selection.toggle(person.id)}
-                        aria-label={`Seleccionar a ${person.first_name} ${person.last_name}`}
+                        aria-label={t.participants.selectRowAria.replace('{name}', `${person.first_name} ${person.last_name}`)}
                       />
                     </TD>
                     <TD className="font-medium">
                       {person.first_name} {person.last_name}
                     </TD>
-                    <TD label="Identificación" className="tnum text-ink-soft">
+                    <TD label={t.tables.identification} className="tnum text-ink-soft">
                       {person.identification}
-                      {/* El tipo de documento cede el sitio en la banda donde la tabla no
-                          cabe: el numero es la clave, el tipo es la acotacion. */}
                       <span className="label-caps ml-2 sm:max-lg:hidden">
                         {person.identification_type}
                       </span>
                     </TD>
-                    <TD label="Cargo" className="text-ink-soft sm:max-lg:hidden">
+                    <TD label={t.tables.position} className="text-ink-soft sm:max-lg:hidden">
                       {person.position}
                     </TD>
-                    <TD label="Categoría">
+                    <TD label={t.tables.category}>
                       <CategoryBadge category={person.category} />
                       {person.provider_company === null ||
                       person.provider_company === undefined ? null : (
@@ -219,13 +238,13 @@ export function MyParticipantListPage() {
                         </span>
                       )}
                     </TD>
-                    <TD label="Correo">
+                    <TD label={t.tables.email}>
                       {person.email ? (
                         <span className="block text-ink-soft sm:max-w-[12rem] sm:truncate lg:max-w-[16rem]">
                           {person.email}
                         </span>
                       ) : (
-                        <Status tone="muted" label="Sin correo" />
+                        <Status tone="muted" label={t.tables.noEmail} />
                       )}
                     </TD>
                   </TR>
@@ -248,13 +267,9 @@ export function MyParticipantListPage() {
 
       <ConfirmDialog
         open={confirming}
-        title={selection.count === 1 ? 'Eliminar esta credencial' : 'Eliminar credenciales'}
-        description={
-          only !== undefined
-            ? `Se eliminará la credencial de ${only.first_name} ${only.last_name}. Se liberará el cupo de su categoría (${only.category}) y su identificación quedará disponible para otro registro.`
-            : `Se eliminarán ${selection.count} credenciales. Se liberará el cupo de sus categorías y sus identificaciones quedarán disponibles para otro registro.`
-        }
-        confirmLabel={selection.count === 1 ? 'Eliminar credencial' : 'Eliminar credenciales'}
+        title={selection.count === 1 ? (lang === 'en' ? 'Delete this credential' : 'Eliminar esta credencial') : t.participants.deleteConfirmTitle}
+        description={confirmDescription}
+        confirmLabel={selection.count === 1 ? (lang === 'en' ? 'Delete credential' : 'Eliminar credencial') : t.participants.deleteConfirmButton}
         busy={remove.isPending}
         onConfirm={() => {
           remove.mutate(selection.selected)

@@ -13,13 +13,7 @@ import { Notice } from '../../components/ui/Notice'
 import { Meter } from '../../components/ui/Meter'
 import { Table, TBody, TD, TH, TR } from '../../components/ui/Table'
 import { QuotaTable } from './QuotaTable'
-
-const DATE = new Intl.DateTimeFormat('es-EC', {
-  day: 'numeric',
-  month: 'long',
-  year: 'numeric',
-  timeZone: 'UTC',
-})
+import { useTranslation } from '../i18n/LanguageContext'
 
 /** Rotulo de seccion: mismo peso en todas las paginas, con su dato a la derecha. */
 function SectionHeading({ title, meta }: { title: string; meta?: React.ReactNode }) {
@@ -32,6 +26,15 @@ function SectionHeading({ title, meta }: { title: string; meta?: React.ReactNode
 }
 
 export function AdminDashboardPage() {
+  const { t, lang } = useTranslation()
+
+  const dateFormatter = new Intl.DateTimeFormat(lang === 'en' ? 'en-US' : 'es-EC', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC',
+  })
+
   const { data, isPending, isError, error } = useQuery({
     queryKey: ['dashboard', 'admin'],
     queryFn: () => api.get<AdminDashboard>('/dashboard/admin'),
@@ -39,13 +42,13 @@ export function AdminDashboardPage() {
 
   const header = (subtitle?: string) => (
     <PageHeader
-      title="Panel general"
+      title={t.dashboard.adminTitle}
       subtitle={subtitle}
       actions={
         <>
           <DownloadReportButton />
           <Link to="/admin/expositores/nuevo">
-            <Button>Nuevo expositor</Button>
+            <Button>{t.dashboard.newExhibitor}</Button>
           </Link>
         </>
       }
@@ -56,7 +59,7 @@ export function AdminDashboardPage() {
     return (
       <>
         {header()}
-        <Loading label="Cargando el panel" />
+        <Loading label={lang === 'en' ? 'Loading dashboard…' : 'Cargando el panel'} />
       </>
     )
   }
@@ -67,9 +70,9 @@ export function AdminDashboardPage() {
         {header()}
         <Notice
           tone="error"
-          title={error instanceof ApiError ? error.message : 'No se pudo cargar el panel.'}
+          title={error instanceof ApiError ? error.message : t.common.tryAgain}
         >
-          Vuelva a intentarlo en unos segundos. Si el problema sigue, avise al equipo técnico.
+          {t.common.tryAgain}
         </Notice>
       </>
     )
@@ -85,39 +88,39 @@ export function AdminDashboardPage() {
   const totalAvailable = totalQuota - data.participants_total
   const burnRate = totalQuota === 0 ? 0 : Math.round((data.participants_total / totalQuota) * 100)
 
+  const dateRangeSubtitle = `${data.event.name} · ${dateFormatter.format(new Date(data.event.starts_on))} ${t.common.to} ${dateFormatter.format(new Date(data.event.ends_on))}`
+
   return (
     <div className="space-y-7">
-      {header(
-        `${data.event.name} · ${DATE.format(new Date(data.event.starts_on))} al ${DATE.format(new Date(data.event.ends_on))}`,
-      )}
+      {header(dateRangeSubtitle)}
 
       {data.exhibitors_total === 0 ? (
         <EmptyState
-          title="Todavía no hay expositores"
-          description="Registre la primera empresa para que su representante reciba el acceso y pueda acreditar a su personal."
+          title={t.dashboard.emptyExhibitorsTitle}
+          description={t.dashboard.emptyExhibitorsDesc}
           action={
             <Link to="/admin/expositores/nuevo">
-              <Button>Registrar expositor</Button>
+              <Button>{t.dashboard.registerExhibitor}</Button>
             </Link>
           }
         />
       ) : (
         <>
           <StatRow>
-            <Stat label="Expositores" value={data.exhibitors_total} note="Empresas registradas" />
-            <Stat label="Metraje" value={`${data.total_m2} m²`} note="Área contratada" />
+            <Stat label={t.dashboard.exhibitors} value={data.exhibitors_total} note={t.dashboard.registeredCompanies} />
+            <Stat label={t.tables.standSize} value={`${data.total_m2} m²`} note={t.dashboard.standArea} />
             <Stat
-              label="Credenciales"
+              label={t.participants.title}
               value={data.participants_total}
-              note={`de ${totalQuota} cupos`}
+              note={t.dashboard.ofQuota.replace('{total}', String(totalQuota))}
             />
-            <Stat label="Disponibles" value={totalAvailable} note={`${burnRate}% utilizado`} />
+            <Stat label={t.common.available} value={totalAvailable} note={t.dashboard.usedRate.replace('{percent}', String(burnRate))} />
           </StatRow>
 
           <section>
             <SectionHeading
-              title="Credenciales por categoría"
-              meta={`${data.participants_total} de ${totalQuota} emitidas`}
+              title={t.dashboard.quotaByCategory}
+              meta={`${data.participants_total} ${t.common.of} ${totalQuota} ${t.dashboard.credentialsIssued}`}
             />
             <QuotaTable
               categories={categories}
@@ -129,13 +132,13 @@ export function AdminDashboardPage() {
 
           <section>
             <SectionHeading
-              title="Stands por categoría de metraje"
+              title={t.dashboard.standsBySize}
               meta={
                 <Link
                   to="/admin/expositores"
                   className="text-ink-soft underline decoration-line-strong underline-offset-2 transition-colors duration-[120ms] hover:text-ink hover:decoration-ink"
                 >
-                  Ver listado
+                  {t.dashboard.viewList}
                 </Link>
               }
             />
@@ -143,10 +146,10 @@ export function AdminDashboardPage() {
             <Table>
               <thead>
                 <tr>
-                  <TH>Categoría</TH>
-                  <TH>Rango</TH>
-                  <TH className="text-right">Stands</TH>
-                  <TH className="w-40">Proporción</TH>
+                  <TH>{t.tables.category}</TH>
+                  <TH>{t.tables.range}</TH>
+                  <TH className="text-right">{t.tables.stands}</TH>
+                  <TH className="w-40">{t.tables.proportion}</TH>
                 </tr>
               </thead>
               <TBody>
@@ -159,18 +162,18 @@ export function AdminDashboardPage() {
                   return (
                     <TR key={row.label}>
                       <TD className="font-medium">{row.label}</TD>
-                      <TD label="Rango" className="tnum text-ink-soft">
+                      <TD label={t.tables.range} className="tnum text-ink-soft">
                         {row.min_m2} – {row.max_m2} m²
                       </TD>
-                      <TD label="Stands" className="tnum text-right font-medium sm:text-right">
+                      <TD label={t.tables.stands} className="tnum text-right font-medium sm:text-right">
                         {row.exhibitors}
                       </TD>
-                      <TD label="Proporción" className="cell-wide">
+                      <TD label={t.tables.proportion} className="cell-wide">
                         <div className="flex items-center gap-2">
                           <Meter
                             used={row.exhibitors}
                             total={data.exhibitors_total}
-                            label={`Stands ${row.label}`}
+                            label={`${t.tables.stands} ${row.label}`}
                             className="flex-1"
                           />
                           <span className="tnum w-8 text-right text-[11px] text-ink-faint">
@@ -185,8 +188,7 @@ export function AdminDashboardPage() {
             </Table>
 
             <p className="mt-2 text-[11px] text-ink-faint">
-              Rangos y cuotas leídos de configuración (<code>stand_size_rules</code> y{' '}
-              <code>credential_rules</code>), no del código.
+              {t.dashboard.rulesFootnote}
             </p>
           </section>
         </>

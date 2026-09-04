@@ -18,8 +18,10 @@ import { Notice } from '../../components/ui/Notice'
 import { Status } from '../../components/ui/Status'
 import { QuotaTable } from '../dashboard/QuotaTable'
 import { standSchema, type StandFormValues } from './schema'
+import { useTranslation } from '../i18n/LanguageContext'
 
 function StandEditForm({ exhibitor }: { exhibitor: ExhibitorDetail }) {
+  const { t, lang } = useTranslation()
   const queryClient = useQueryClient()
   const [saved, setSaved] = useState(false)
 
@@ -64,33 +66,39 @@ function StandEditForm({ exhibitor }: { exhibitor: ExhibitorDetail }) {
         <ServerError error={mutation.error} onDismiss={() => mutation.reset()} />
       )}
       {saved ? (
-        <Notice tone="success" title="Cambios guardados" onDismiss={() => setSaved(false)}>
-          La cuota se recalculó con el metraje nuevo.
+        <Notice
+          tone="success"
+          title={lang === 'en' ? 'Changes saved' : 'Cambios guardados'}
+          onDismiss={() => setSaved(false)}
+        >
+          {lang === 'en'
+            ? 'The quota was recalculated with the updated stand size.'
+            : 'La cuota se recalculó con el metraje nuevo.'}
         </Notice>
       ) : null}
 
-      <FormSection title="Datos del stand">
+      <FormSection title={lang === 'en' ? 'Stand Information' : 'Datos del stand'}>
         <Field
-          label="Razón social"
+          label={lang === 'en' ? 'Legal name' : 'Razón social'}
           className="sm:col-span-2"
           error={errors.legal_name?.message}
           {...form.register('legal_name')}
         />
         <Field
-          label="Nombre comercial"
+          label={lang === 'en' ? 'Trade name' : 'Nombre comercial'}
           error={errors.stand_name?.message}
           {...form.register('stand_name')}
         />
         <Field
-          label="Metraje (m²)"
+          label={lang === 'en' ? 'Stand size (m²)' : 'Metraje (m²)'}
           type="number"
           inputMode="numeric"
-          hint="Cambiarlo recalcula el cupo. No se permite dejarlo por debajo de lo ya asignado."
+          hint={lang === 'en' ? 'Changing it recalculates quotas.' : 'Cambiarlo recalcula el cupo. No se permite dejarlo por debajo de lo ya asignado.'}
           error={errors.requested_m2?.message}
           {...form.register('requested_m2', { valueAsNumber: true })}
         />
         <Field
-          label="Dirección"
+          label={lang === 'en' ? 'Address' : 'Dirección'}
           className="sm:col-span-2"
           error={errors.address?.message}
           {...form.register('address')}
@@ -100,14 +108,14 @@ function StandEditForm({ exhibitor }: { exhibitor: ExhibitorDetail }) {
       <div className="flex items-center justify-end gap-3 border-t border-line pt-5">
         {/* Estado del formulario, siempre visible: se sabe si hay algo pendiente de guardar. */}
         {form.formState.isDirty && !mutation.isPending ? (
-          <Status tone="pending" label="Cambios sin guardar" />
+          <Status tone="pending" label={t.exhibitors.unsavedChanges} />
         ) : null}
         <Button
           type="submit"
           loading={mutation.isPending}
           disabled={!form.formState.isDirty}
         >
-          {mutation.isPending ? 'Guardando…' : 'Guardar cambios'}
+          {mutation.isPending ? t.exhibitors.savingChanges : t.exhibitors.saveChanges}
         </Button>
       </div>
     </form>
@@ -115,6 +123,7 @@ function StandEditForm({ exhibitor }: { exhibitor: ExhibitorDetail }) {
 }
 
 function ResendAccessButton({ email }: { email: string }) {
+  const { t } = useTranslation()
   const mutation = useMutation({
     mutationFn: () => api.post('/auth/request-password-setup', { email }),
   })
@@ -127,23 +136,24 @@ function ResendAccessButton({ email }: { email: string }) {
         loading={mutation.isPending}
         onClick={() => mutation.mutate()}
       >
-        {mutation.isPending ? 'Enviando…' : 'Reenviar enlace de acceso'}
+        {mutation.isPending ? t.exhibitors.resending : t.exhibitors.resendAccess}
       </Button>
       {mutation.isSuccess ? (
         <Status
           tone="ok"
-          label="Enviado, si el correo corresponde a un representante"
+          label={t.exhibitors.resendSuccess}
           className="animate-fade"
         />
       ) : null}
       {mutation.isError ? (
-        <Status tone="error" label="No se pudo enviar. Inténtelo nuevamente." />
+        <Status tone="error" label={t.exhibitors.resendError} />
       ) : null}
     </div>
   )
 }
 
 export function ExhibitorDetailPage() {
+  const { t, lang } = useTranslation()
   const { id } = useParams()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -166,19 +176,19 @@ export function ExhibitorDetailPage() {
   if (isPending) {
     return (
       <>
-        <PageHeader title="Expositor" />
-        <Loading label="Cargando el expositor" />
+        <PageHeader title={t.exhibitors.detailTitle} />
+        <Loading label={lang === 'en' ? 'Loading exhibitor…' : 'Cargando el expositor'} />
       </>
     )
   }
   if (isError) {
     return (
       <>
-        <PageHeader title="Expositor" />
+        <PageHeader title={t.exhibitors.detailTitle} />
         <ServerError error={error} />
         <div className="mt-4">
           <Link to="/admin/expositores">
-            <Button variant="secondary">Volver al listado</Button>
+            <Button variant="secondary">{t.common.backToList}</Button>
           </Link>
         </div>
       </>
@@ -196,10 +206,10 @@ export function ExhibitorDetailPage() {
         actions={
           <>
             <Link to="/admin/expositores">
-              <Button variant="secondary">Volver</Button>
+              <Button variant="secondary">{t.common.back}</Button>
             </Link>
             <Button variant="danger" onClick={() => setConfirming(true)}>
-              Eliminar
+              {t.common.delete}
             </Button>
           </>
         }
@@ -212,14 +222,14 @@ export function ExhibitorDetailPage() {
       )}
 
       <StatRow>
-        <Stat label="Metraje" value={`${data.requested_m2} m²`} note={data.stand_category} />
-        <Stat label="Cupo total" value={quota} />
-        <Stat label="Asignadas" value={assigned} />
-        <Stat label="Disponibles" value={quota - assigned} />
+        <Stat label={t.tables.standSize} value={`${data.requested_m2} m²`} note={data.stand_category} />
+        <Stat label={t.common.totalQuota} value={quota} />
+        <Stat label={t.common.assigned} value={assigned} />
+        <Stat label={t.common.available} value={quota - assigned} />
       </StatRow>
 
       <section className="mt-7">
-        <h2 className="label-caps">Cupo por categoría</h2>
+        <h2 className="label-caps">{t.exhibitors.quotaByCategory}</h2>
         <div className="mt-2.5">
           <QuotaTable
             categories={Object.keys(data.quota)}
@@ -235,29 +245,29 @@ export function ExhibitorDetailPage() {
       </div>
 
       <section className="mt-7 border-t border-line pt-5">
-        <h2 className="label-caps">Representante</h2>
+        <h2 className="label-caps">{t.exhibitors.representative}</h2>
         <dl className="mt-3 grid gap-3 text-[13px] sm:grid-cols-2 lg:max-w-3xl">
           <div>
-            <dt className="label-caps">Nombre</dt>
+            <dt className="label-caps">{t.common.name}</dt>
             <dd className="font-medium">{data.representative.full_name}</dd>
           </div>
           <div>
-            <dt className="label-caps">Cargo</dt>
+            <dt className="label-caps">{t.tables.position}</dt>
             <dd>{data.representative.position}</dd>
           </div>
           <div>
-            <dt className="label-caps">Identificación</dt>
+            <dt className="label-caps">{t.tables.identification}</dt>
             <dd className="tnum">
               {data.representative.identification}{' '}
               <span className="text-ink-faint">({data.representative.identification_type})</span>
             </dd>
           </div>
           <div>
-            <dt className="label-caps">Teléfono</dt>
+            <dt className="label-caps">{t.common.phone}</dt>
             <dd className="tnum">{data.representative.phone}</dd>
           </div>
           <div className="sm:col-span-2">
-            <dt className="label-caps">Correo de acceso</dt>
+            <dt className="label-caps">{t.exhibitors.accessEmail}</dt>
             <dd>{data.representative.email}</dd>
           </div>
         </dl>
@@ -265,7 +275,7 @@ export function ExhibitorDetailPage() {
       </section>
 
       <section className="mt-7 border-t border-line pt-5">
-        <h2 className="label-caps">Contactos adicionales</h2>
+        <h2 className="label-caps">{t.exhibitors.additionalContacts}</h2>
         <ul className="surface mt-3 divide-y divide-line">
           {data.contacts.map((contact) => (
             <li
@@ -283,9 +293,9 @@ export function ExhibitorDetailPage() {
 
       <ConfirmDialog
         open={confirming}
-        title="Eliminar este expositor"
-        description="El stand deja de aparecer en los listados y en el reporte. Sus credenciales ya emitidas se conservan, así que las identificaciones siguen reservadas en esta feria."
-        confirmLabel="Eliminar expositor"
+        title={t.exhibitors.deleteSingleTitle}
+        description={t.exhibitors.deleteSingleDesc}
+        confirmLabel={t.exhibitors.deleteSingleButton}
         busy={remove.isPending}
         onConfirm={() => {
           setConfirming(false)

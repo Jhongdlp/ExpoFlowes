@@ -3,6 +3,7 @@ import { Meter } from '../../components/ui/Meter'
 import { Status } from '../../components/ui/Status'
 import { ruleLabel, useCredentialRules } from '../../hooks/use-rules'
 import { cn } from '../../lib/cn'
+import { useTranslation } from '../i18n/LanguageContext'
 
 interface Props {
   categories: string[]
@@ -18,6 +19,7 @@ interface Props {
  * negocio se escribe aqui, ni siquiera como texto de ayuda.
  */
 export function QuotaTable({ categories, quota, assigned, available, className }: Props) {
+  const { t } = useTranslation()
   const rules = useCredentialRules()
 
   const ruleText = (category: string): string => {
@@ -32,6 +34,7 @@ export function QuotaTable({ categories, quota, assigned, available, className }
         const used = assigned[category] ?? 0
         const free = available[category] ?? 0
         const full = total > 0 && free === 0
+        const translatedCat = t.categories[category as keyof typeof t.categories] ?? category
 
         return (
           <div
@@ -47,7 +50,7 @@ export function QuotaTable({ categories, quota, assigned, available, className }
                 )}
               />
               <div className="min-w-0">
-                <p className="text-[13px] font-medium text-ink">{category}</p>
+                <p className="text-[13px] font-medium text-ink">{translatedCat}</p>
                 <p className="text-[11px] text-ink-faint">{ruleText(category)}</p>
               </div>
             </div>
@@ -61,16 +64,16 @@ export function QuotaTable({ categories, quota, assigned, available, className }
               <Meter
                 used={used}
                 total={total}
-                label={`Credenciales ${category}`}
+                label={`${t.participants.title} ${translatedCat}`}
                 barClassName={CATEGORY_BAR[category]}
               />
               <div className="flex items-center justify-between text-[11px]">
                 {total === 0 ? (
-                  <Status tone="muted" label="Sin cupo para este metraje" />
+                  <Status tone="muted" label={t.dashboard.noQuotaForSize} />
                 ) : full ? (
-                  <Status tone="error" label="Cupo agotado" />
+                  <Status tone="error" label={t.dashboard.quotaExhausted} />
                 ) : (
-                  <Status tone="ok" label={`${free} disponibles`} />
+                  <Status tone="ok" label={t.dashboard.availableCount.replace('{count}', String(free))} />
                 )}
                 <span className="tnum text-ink-faint">
                   {total === 0 ? '—' : `${Math.round((used / total) * 100)}%`}
