@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 
 import { ApiError } from './api/client'
+import { AccessibilityProvider } from './features/accessibility/AccessibilityContext'
 import { SessionProvider } from './features/auth/session'
 import { AppRoutes } from './routes/AppRoutes'
 import './index.css'
@@ -24,11 +25,13 @@ if (container === null) throw new Error('Falta el nodo #root')
 createRoot(container).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <SessionProvider>
-        <BrowserRouter>
-          <AppRoutes />
-        </BrowserRouter>
-      </SessionProvider>
+      <AccessibilityProvider>
+        <SessionProvider>
+          <BrowserRouter>
+            <AppRoutes />
+          </BrowserRouter>
+        </SessionProvider>
+      </AccessibilityProvider>
     </QueryClientProvider>
   </StrictMode>,
 )

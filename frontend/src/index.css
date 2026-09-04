@@ -143,6 +143,68 @@
       scroll-behavior: auto !important;
     }
   }
+
+  /* ── Accesibilidad: Modificadores globales ─────────────────────────────── */
+  html[data-text-size="large"] {
+    font-size: 115%;
+  }
+
+  html[data-text-size="xlarge"] {
+    font-size: 130%;
+  }
+
+  html[data-contrast="high"] {
+    --color-ink: #000000;
+    --color-ink-soft: #141414;
+    --color-ink-faint: #282828;
+    --color-line: #606060;
+    --color-line-strong: #000000;
+    --color-canvas: #ffffff;
+    --color-surface: #ffffff;
+    --color-fill: #f2f2f2;
+    --color-sage: #d9e5dc;
+    --color-ok: #0a4f30;
+    --color-alert: #871313;
+  }
+
+  html[data-contrast="high"] button,
+  html[data-contrast="high"] input,
+  html[data-contrast="high"] select,
+  html[data-contrast="high"] .surface,
+  html[data-contrast="high"] .surface-muted {
+    border-width: 2px !important;
+  }
+
+  html[data-reduced-motion="true"] *,
+  html[data-reduced-motion="true"] *::before,
+  html[data-reduced-motion="true"] *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  html[data-focus-ring="enhanced"] :focus-visible {
+    outline: 3px solid #000000 !important;
+    outline-offset: 3px !important;
+    box-shadow: 0 0 0 5px #f4d03f !important;
+  }
+
+  html[data-spacing="wide"] body {
+    line-height: 1.8 !important;
+    letter-spacing: 0.02em !important;
+  }
+
+  html[data-spacing="wide"] p,
+  html[data-spacing="wide"] li {
+    margin-bottom: 0.75em !important;
+  }
+
+  html[data-font="readable"] body {
+    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif !important;
+    letter-spacing: 0.03em !important;
+    word-spacing: 0.05em !important;
+  }
 }
 
 /* ── Utilidades del sistema ─────────────────────────────────────────────── */

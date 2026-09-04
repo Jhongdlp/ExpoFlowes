@@ -3,6 +3,8 @@ import { useIsFetching } from '@tanstack/react-query'
 import { NavLink, Outlet } from 'react-router-dom'
 
 import { useSession } from '../features/auth/session'
+import { useAccessibility } from '../features/accessibility/AccessibilityContext'
+import { AccessibilityDialog } from '../features/accessibility/AccessibilityDialog'
 import type { Role } from '../api/types'
 import { cn } from '../lib/cn'
 
@@ -268,6 +270,7 @@ function ActivityLine() {
 
 export function AppLayout() {
   const { user, signOut } = useSession()
+  const { openDialog: openAccessibilityDialog } = useAccessibility()
   // Preferencia del usuario, no del dispositivo: se recuerda entre visitas.
   const [expanded, setExpanded] = useState(() => localStorage.getItem(RAIL_KEY) === '1')
   const [menuOpen, setMenuOpen] = useState(false)
@@ -409,11 +412,12 @@ export function AppLayout() {
                       <span className="flex-1">Documentación</span>
                     </NavLink>
 
-                    {/* Accesibilidad (únicamente el botón, sin lógica adicional) */}
+                    {/* Accesibilidad */}
                     <button
                       type="button"
                       onClick={() => {
-                        // Accesibilidad: únicamente se genera el botón según lo solicitado
+                        setMenuOpen(false)
+                        openAccessibilityDialog()
                       }}
                       className="group flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-[12px] font-medium text-white/80 transition-colors hover:bg-white/10 hover:text-white"
                     >
@@ -476,6 +480,8 @@ export function AppLayout() {
           </div>
         </main>
       </div>
+
+      <AccessibilityDialog />
     </div>
   )
 }
