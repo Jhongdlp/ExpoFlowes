@@ -87,3 +87,12 @@ class DuplicateEmailError(DomainError):
 
     code = "EMAIL_ALREADY_REGISTERED"
     status_code = 409
+
+
+class InvalidPayloadError(DomainError):
+    """Invariante de forma detectado en el servicio, no por Pydantic (p. ej. un PATCH parcial
+    que solo es invalido al mezclarlo con la fila existente). Usa el MISMO code que la
+    validacion de Pydantic: al cliente no le importa que capa lo detecto (§9.1)."""
+
+    code = "VALIDATION_ERROR"
+    status_code = 422

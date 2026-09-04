@@ -110,3 +110,61 @@ def test_expired_token_is_rejected(client: TestClient, rep_a: User, monkeypatch)
     response = client.get(MY_EXHIBITOR, headers=headers)
     assert response.status_code == 401
     assert response.json()["code"] == "NOT_AUTHENTICATED"
+
+
+# --- IDOR sobre participantes (§12.1 #8, extension de R11 que F5 cierra) ----------------------
+
+PARTICIPANTS = "/api/v1/me/participants"
+
+
+def _participant_of(client: TestClient, rep: User) -> int:
+    body = client.post(
+        PARTICIPANTS,
+        json={
+            "first_name": "Ana",
+            "last_name": "Torres",
+            "identification": "1710000017",
+            "identification_type": "CEDULA",
+            "phone": "0990000001",
+            "position": "Personal de stand",
+            "category": "Exhibitor",
+        },
+        headers=auth_headers(rep),
+    ).json()
+    return int(body["id"])
+
+
+def test_representative_cannot_read_other_participant(
+    client: TestClient, rep_a: User, rep_b: User
+) -> None:
+    """404, no 403: no se confirma que el recurso exista (§8.1)."""
+    participant_id = _participant_of(client, rep_a)
+
+    response = client.get(f"{PARTICIPANTS}/{participant_id}", headers=auth_headers(rep_b))
+    assert response.status_code == 404
+    assert response.json()["code"] == "NOT_FOUND"
+
+
+def test_representative_cannot_modify_other_participant(
+    client: TestClient, rep_a: User, rep_b: User
+) -> None:
+    participant_id = _participant_of(client, rep_a)
+    headers = auth_headers(rep_b)
+
+    assert (
+        client.patch(
+            f"{PARTICIPANTS}/{participant_id}", json={"position": "Robado"}, headers=headers
+        ).status_code
+        == 404
+    )
+    assert client.delete(f"{PARTICIPANTS}/{participant_id}", headers=headers).status_code == 404
+
+
+def test_the_other_participant_survives_the_attempt(
+    client: TestClient, rep_a: User, rep_b: User
+) -> None:
+    participant_id = _participant_of(client, rep_a)
+    client.delete(f"{PARTICIPANTS}/{participant_id}", headers=auth_headers(rep_b))
+
+    still_there = client.get(f"{PARTICIPANTS}/{participant_id}", headers=auth_headers(rep_a))
+    assert still_there.status_code == 200
