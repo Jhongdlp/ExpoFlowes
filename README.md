@@ -81,9 +81,9 @@ las identificaciones son válidas por algoritmo, pero generadas.
 `Query` legacy) · Alembic · PostgreSQL 16 · JWT (`python-jose` + `passlib[bcrypt]`) ·
 `openpyxl` · `slowapi` · `pytest` + `httpx` · `ruff` + `mypy --strict`.
 
-**Frontend** · React 18 · Vite · TypeScript en modo estricto (`strict`,
-`noUncheckedIndexedAccess`, sin `any`) · TanStack Query · react-hook-form + zod · Tailwind CSS ·
-SheetJS para leer el Excel en el navegador.
+**Frontend** · React 19 · Vite · TypeScript en modo estricto (`strict`,
+`noUncheckedIndexedAccess`, sin `any`) · TanStack Query · react-hook-form + zod · Tailwind CSS con
+un set propio de componentes · SheetJS para leer el Excel en el navegador · `oxlint` + `vitest`.
 
 **Infraestructura** · Docker Compose con tres servicios: `db`, `backend`, `frontend` · GitHub
 Actions para lint, tipos y tests · despliegue automático a un VPS propio con Dokploy
