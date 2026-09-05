@@ -498,6 +498,9 @@ docs/
   der.png           Diagrama entidad-relación.
   casos-de-uso.png  Casos de uso por rol.
   capturas/         Capturas de la aplicación.
+documentacion/      Documentación extendida: arquitectura C4, análisis STRIDE, plan de
+                    pruebas y manuales de usuario y de operación. No es obligatoria por el
+                    enunciado; amplía las decisiones de diseño.
 datos_de_mocks/     Excel de ejemplo para la carga masiva, válidos y con errores.
 .github/workflows/  CI (lint, tipos, tests) y despliegue automático a Dokploy.
 scripts/            Capturas con Playwright, generación del PDF y empaquetado del ZIP.

@@ -16,11 +16,28 @@ trap 'rm -rf "$tmp"' EXIT
 
 mkdir -p "$tmp/1_Diseno_y_BD" "$tmp/2_Aplicacion/Back" "$tmp/2_Aplicacion/Front" "$tmp/3_Presentacion"
 
+# Índice en la raíz del ZIP: al descomprimir se ven tres carpetas numeradas y nada más.
+cat > "$tmp/LEEME.txt" <<'TXT'
+Entrega — Plataforma de expositores y credenciales (Expo Flor Ecuador)
+
+  1_Diseno_y_BD/   DER, casos de uso, esquema SQL, datos iniciales y migraciones
+  2_Aplicacion/    README.md (empezar aquí), Back/, Front/, docker-compose.yml,
+                   .env.example, documentacion/ y datos_de_mocks/
+  3_Presentacion/  Presentación en PDF (5 páginas)
+
+Puesta en marcha:  2_Aplicacion/README.md  ->  docker compose up -d --build
+Repositorio:       https://github.com/Jhongdlp/ExpoFlowes
+TXT
+
 # --- 1. Diseño y base de datos ---
 cp "$raiz/docs/der.png" "$raiz/docs/der.dot" "$tmp/1_Diseno_y_BD/"
 cp "$raiz/docs/casos-de-uso.png" "$raiz/docs/casos-de-uso.dot" "$tmp/1_Diseno_y_BD/"
 cp "$raiz/docs/esquema.sql" "$tmp/1_Diseno_y_BD/"
 cp "$raiz/docs/datos-iniciales.md" "$tmp/1_Diseno_y_BD/"
+# El enunciado admite "script SQL o indicación de migraciones": van las dos. La fuente de
+# verdad es la migración; el .sql es el volcado legible.
+mkdir -p "$tmp/1_Diseno_y_BD/migraciones"
+cp "$raiz"/backend/alembic/versions/*.py "$tmp/1_Diseno_y_BD/migraciones/"
 
 # --- 2. Aplicación ---
 excluidos=(
@@ -40,6 +57,10 @@ tar -C "$raiz/docs" "${excluidos[@]}" --exclude=PLAN.md -cf - . | tar -C "$tmp/2
 mkdir -p "$tmp/2_Aplicacion/.github"
 cp -r "$raiz/.github/workflows" "$tmp/2_Aplicacion/.github/"
 cp -r "$raiz/datos_de_mocks" "$tmp/2_Aplicacion/"
+
+# Documentación extendida (arquitectura C4, STRIDE, manuales de usuario y operación). No es
+# obligatoria por el enunciado; se incluye porque sostiene y amplía las decisiones de diseño.
+cp -r "$raiz/documentacion" "$tmp/2_Aplicacion/"
 
 # El compose de la entrega apunta a Back/ y Front/, que es como se llaman las carpetas en el
 # ZIP. Es la unica diferencia con el del repositorio, y por eso el ZIP se verifica levantado
@@ -63,5 +84,23 @@ with zipfile.ZipFile(destino, "w", zipfile.ZIP_DEFLATED) as z:
     for path in sorted(origen.rglob("*")):
         z.write(path, path.relative_to(origen))
 PY
-echo "ZIP: $salida"
-unzip -l "$salida" | tail -1
+echo
+echo "ZIP: $salida  ($(du -h "$salida" | cut -f1))"
+echo "Contenido (primer nivel de cada carpeta):"
+python3 - "$salida" <<'PY'
+import sys, zipfile
+names = zipfile.ZipFile(sys.argv[1]).namelist()
+top = sorted({n.split("/")[0] for n in names if n})
+for t in top:
+    print(f"  {t}")
+    subs = sorted({n.split("/")[1] for n in names if n.startswith(t + "/") and n.count("/") >= 1 and n.split("/")[1]})
+    for s in subs:
+        print(f"    {s}")
+PY
+echo
+echo "Verificación de que no viajó basura:"
+if unzip -l "$salida" | grep -qE 'node_modules|/\.env$|__pycache__|\.mypy_cache|\.pytest_cache|\.ruff_cache|\.git/|egg-info|/dist/'; then
+  echo "  ¡ATENCIÓN! el ZIP contiene artefactos que no deberían estar (ver arriba)."
+  exit 1
+fi
+echo "  OK: sin node_modules, .env, caches ni .git."
