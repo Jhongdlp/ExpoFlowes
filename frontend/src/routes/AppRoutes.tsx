@@ -1,6 +1,8 @@
-import { Navigate, Route, Routes } from 'react-router-dom'
+import { Route, Routes } from 'react-router-dom'
 
 import { AppLayout } from '../components/AppLayout'
+import { NotFoundPage } from '../components/NotFoundPage'
+import { OfflinePage } from '../components/OfflinePage'
 import { BulkUploadPage } from '../features/bulk-upload/BulkUploadPage'
 import { CredentialPrintPage } from '../features/participants/CredentialPrintPage'
 import { DocumentationPage } from '../features/docs/DocumentationPage'
@@ -11,6 +13,7 @@ import { AdminDashboardPage } from '../features/dashboard/AdminDashboardPage'
 import { ExhibitorCreatePage } from '../features/exhibitors/ExhibitorCreatePage'
 import { ExhibitorDetailPage } from '../features/exhibitors/ExhibitorDetailPage'
 import { ExhibitorListPage } from '../features/exhibitors/ExhibitorListPage'
+import { useOnlineStatus } from '../hooks/use-online-status'
 import { MyParticipantListPage } from '../features/participants/MyParticipantListPage'
 import { ParticipantCreatePage } from '../features/participants/ParticipantCreatePage'
 import { ParticipantEditPage } from '../features/participants/ParticipantEditPage'
@@ -19,6 +22,9 @@ import { RulesPage } from '../features/rules/RulesPage'
 import { StandDashboardPage } from '../features/dashboard/StandDashboardPage'
 
 export function AppRoutes() {
+  const online = useOnlineStatus()
+  if (!online) return <OfflinePage />
+
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
@@ -79,7 +85,7 @@ export function AppRoutes() {
       </Route>
 
       <Route path="/" element={<HomeRedirect />} />
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   )
 }
