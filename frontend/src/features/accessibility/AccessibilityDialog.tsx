@@ -23,7 +23,7 @@ function SwitchControl({
   return (
     <label
       htmlFor={id}
-      className="flex cursor-pointer items-start justify-between gap-3 rounded-lg border border-line bg-surface p-3 transition-colors hover:border-line-strong hover:bg-fill/40"
+      className="flex cursor-pointer items-start justify-between gap-3 rounded-lg border border-line bg-surface p-3.5 sm:p-3 transition-colors hover:border-line-strong hover:bg-fill/40 active:bg-fill/60"
     >
       <div className="min-w-0 flex-1">
         <span className="block text-[13px] font-medium text-ink">{label}</span>
@@ -71,6 +71,12 @@ export function AccessibilityDialog() {
 
   const { t } = useTranslation()
   const dialogRef = useRef<HTMLDialogElement>(null)
+  const contentRef = useRef<HTMLDivElement>(null)
+
+  // Control de arrastre táctil (swipe down to dismiss) en móvil
+  const dragStartY = useRef<number | null>(null)
+  const isDragging = useRef<boolean>(false)
+  const currentDeltaY = useRef<number>(0)
 
   const textSizes: { value: TextSize; label: string; sub: string }[] = [
     { value: 'normal', label: t.a11y.normal, sub: '100%' },
@@ -82,6 +88,9 @@ export function AccessibilityDialog() {
     const dialog = dialogRef.current
     if (dialog === null) return
     if (isDialogOpen && !dialog.open) {
+      dialog.style.transform = ''
+      dialog.style.opacity = ''
+      dialog.style.transition = ''
       dialog.showModal()
     }
     if (!isDialogOpen && dialog.open) {
@@ -89,18 +98,123 @@ export function AccessibilityDialog() {
     }
   }, [isDialogOpen])
 
+  const handleBackdropClick = (e: React.MouseEvent<HTMLDialogElement>) => {
+    const dialog = dialogRef.current
+    if (!dialog) return
+    const rect = dialog.getBoundingClientRect()
+    const isClickOutside =
+      e.clientX < rect.left ||
+      e.clientX > rect.right ||
+      e.clientY < rect.top ||
+      e.clientY > rect.bottom
+
+    if (isClickOutside) {
+      closeDialog()
+    }
+  }
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const touch = e.touches[0]
+    if (!touch) return
+    const scrollContainer = contentRef.current
+    const isScrolledToTop = !scrollContainer || scrollContainer.scrollTop <= 0
+
+    if (isScrolledToTop) {
+      dragStartY.current = touch.clientY
+      isDragging.current = true
+      currentDeltaY.current = 0
+    }
+  }
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    const touch = e.touches[0]
+    if (!touch || !isDragging.current || dragStartY.current === null) return
+    const dialog = dialogRef.current
+    if (!dialog) return
+
+    const deltaY = touch.clientY - dragStartY.current
+    if (deltaY > 0) {
+      currentDeltaY.current = deltaY
+      dialog.style.transform = `translateY(${deltaY}px)`
+      dialog.style.transition = 'none'
+    } else {
+      currentDeltaY.current = 0
+      dialog.style.transform = ''
+    }
+  }
+
+  const handleTouchEnd = () => {
+    if (!isDragging.current) return
+    isDragging.current = false
+    dragStartY.current = null
+    const dialog = dialogRef.current
+    if (!dialog) return
+
+    if (currentDeltaY.current > 70) {
+      dialog.style.transition = 'transform 180ms ease-out, opacity 180ms ease-out'
+      dialog.style.transform = 'translateY(100%)'
+      dialog.style.opacity = '0'
+      setTimeout(() => {
+        if (dialog) {
+          dialog.style.transform = ''
+          dialog.style.opacity = ''
+          dialog.style.transition = ''
+        }
+        closeDialog()
+      }, 180)
+    } else {
+      dialog.style.transition = 'transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1)'
+      dialog.style.transform = 'translateY(0)'
+      setTimeout(() => {
+        if (dialog) {
+          dialog.style.transform = ''
+          dialog.style.transition = ''
+        }
+      }, 200)
+    }
+    currentDeltaY.current = 0
+  }
+
   return (
     <dialog
       ref={dialogRef}
+      onClick={handleBackdropClick}
       onCancel={(e) => {
         e.preventDefault()
         closeDialog()
       }}
-      className="animate-rise m-auto max-h-[90vh] w-[min(32rem,calc(100vw-2rem))] overflow-y-auto rounded-xl border border-line bg-surface p-5 text-ink shadow-2xl backdrop:bg-ink/40"
+      className={cn(
+        // Asegurar que el diálogo esté completamente oculto cuando está cerrado
+        '[&:not([open])]:hidden open:flex open:flex-col',
+        // Móvil: Modal nativo bottom-sheet emergente desde abajo
+        'max-sm:fixed max-sm:inset-x-0 max-sm:bottom-0 max-sm:top-auto max-sm:m-0 max-sm:w-full max-sm:max-w-none',
+        'max-sm:max-h-[88dvh] max-sm:rounded-t-[22px] max-sm:rounded-b-none max-sm:border-x-0 max-sm:border-b-0 max-sm:border-t max-sm:border-line',
+        'max-sm:p-4 max-sm:pt-2 max-sm:pb-[calc(1rem+env(safe-area-inset-bottom,0.75rem))] max-sm:shadow-[0_-12px_40px_rgba(0,0,0,0.28)] max-sm:animate-sheet-up',
+        // Escritorio y tableta: Modal centrado
+        'sm:m-auto sm:max-h-[90vh] sm:w-[min(32rem,calc(100vw-2rem))] sm:rounded-xl sm:border sm:border-line sm:p-5 sm:shadow-2xl sm:animate-rise',
+        // Estilos base compartidos
+        'bg-surface text-ink backdrop:bg-ink/45 backdrop:backdrop-blur-[2px] overscroll-contain outline-none',
+      )}
       aria-labelledby="accessibility-dialog-title"
     >
+      {/* Pestaña / Handle táctil superior para móvil */}
+      <div
+        className="flex shrink-0 cursor-grab items-center justify-center py-1 sm:hidden touch-none select-none active:cursor-grabbing"
+        aria-hidden="true"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
+        <div className="h-1.5 w-11 rounded-full bg-line-strong/40 active:bg-line-strong/70 transition-colors" />
+      </div>
+
       {/* Cabecera */}
-      <div className="flex items-start justify-between gap-3 border-b border-line pb-3.5">
+      <div
+        className="flex shrink-0 items-start justify-between gap-3 border-b border-line pb-3 max-sm:pt-1 sm:pb-3.5"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
         <div>
           <div className="flex items-center gap-2">
             <span className="grid h-6 w-6 place-items-center rounded-full bg-sage text-ink">
@@ -133,7 +247,7 @@ export function AccessibilityDialog() {
           type="button"
           onClick={closeDialog}
           aria-label={t.a11y.close}
-          className="rounded-md p-1 text-ink-soft hover:bg-fill hover:text-ink transition-colors"
+          className="flex h-8 w-8 items-center justify-center rounded-lg text-ink-soft transition-colors hover:bg-fill hover:text-ink active:bg-fill/80"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="h-4 w-4">
             <path d="M18 6L6 18M6 6l12 12" />
@@ -141,10 +255,13 @@ export function AccessibilityDialog() {
         </button>
       </div>
 
-      {/* Controles de Configuración */}
-      <div className="mt-4 space-y-3">
+      {/* Controles de Configuración con scroll independiente */}
+      <div
+        ref={contentRef}
+        className="flex-1 overflow-y-auto min-h-0 space-y-3 py-3 pr-0.5 sm:pr-1"
+      >
         {/* Tamaño del texto */}
-        <div className="rounded-lg border border-line bg-surface p-3">
+        <div className="rounded-lg border border-line bg-surface p-3 sm:p-3.5">
           <div className="flex items-center justify-between">
             <span className="text-[13px] font-medium text-ink">{t.a11y.textSize}</span>
             <span className="text-[11px] font-semibold text-ink-faint">
@@ -165,10 +282,10 @@ export function AccessibilityDialog() {
                 type="button"
                 onClick={() => updateSetting('textSize', opt.value)}
                 className={cn(
-                  'flex flex-col items-center justify-center rounded-md py-1.5 text-center transition-all',
+                  'flex min-h-[44px] flex-col items-center justify-center rounded-md py-1.5 px-1 text-center transition-all',
                   settings.textSize === opt.value
                     ? 'bg-surface font-semibold text-ink shadow-sm ring-1 ring-line-strong/40'
-                    : 'text-ink-soft hover:bg-surface/60 hover:text-ink',
+                    : 'text-ink-soft hover:bg-surface/60 hover:text-ink active:bg-surface/80',
                 )}
               >
                 <span className="text-[12px]">{opt.label}</span>
@@ -225,12 +342,12 @@ export function AccessibilityDialog() {
       </div>
 
       {/* Pie de Acciones */}
-      <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between border-t border-line pt-3.5">
+      <div className="mt-2 flex shrink-0 flex-col-reverse gap-2 border-t border-line pt-3 sm:mt-4 sm:flex-row sm:items-center sm:justify-between sm:pt-3.5">
         <Button
           variant="ghost"
           size="sm"
           onClick={resetDefaults}
-          className="text-[12px]"
+          className="text-[12px] max-sm:w-full max-sm:py-2.5"
         >
           {t.a11y.resetDefaults}
         </Button>
@@ -239,7 +356,7 @@ export function AccessibilityDialog() {
           variant="primary"
           size="sm"
           onClick={closeDialog}
-          className="text-[12px]"
+          className="text-[12px] max-sm:w-full max-sm:py-2.5"
         >
           {t.a11y.done}
         </Button>

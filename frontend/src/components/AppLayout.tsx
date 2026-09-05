@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState, type ButtonHTMLAttributes, type ReactNode, type SVGProps } from 'react'
 import { useIsFetching } from '@tanstack/react-query'
-import { NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Outlet, useLocation } from 'react-router-dom'
 
 import { useSession } from '../features/auth/session'
 import { useAccessibility } from '../features/accessibility/AccessibilityContext'
 import { AccessibilityDialog } from '../features/accessibility/AccessibilityDialog'
 import { useTranslation } from '../features/i18n/LanguageContext'
+import { TourOverlay } from '../features/tour/TourOverlay'
+import { useTourGuide } from '../features/tour/useTourGuide'
 import type { Role } from '../api/types'
 import { cn } from '../lib/cn'
 
@@ -83,6 +85,13 @@ const ICONS = {
       <path d="M5 9.5l7 1.5 7-1.5" />
       <path d="M12 11v5" />
       <path d="M8 21l4-5 4 5" />
+    </Icon>
+  ),
+  tour: (
+    <Icon>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M9.5 9a2.5 2.5 0 0 1 5 .5c0 1.7-2.5 1.8-2.5 3.5" />
+      <path d="M12 17h.01" />
     </Icon>
   ),
   language: (
@@ -216,7 +225,7 @@ function ActivityLine() {
     <div
       aria-hidden="true"
       className={cn(
-        'pointer-events-none sticky top-0 z-20 h-0.5 overflow-hidden transition-opacity duration-200',
+        'pointer-events-none absolute top-0 inset-x-0 z-20 h-0.5 overflow-hidden transition-opacity duration-200',
         fetching > 0 ? 'opacity-100' : 'opacity-0',
       )}
     >
@@ -226,9 +235,12 @@ function ActivityLine() {
 }
 
 export function AppLayout() {
+  const location = useLocation()
+  const isFullBleed = location.pathname === '/stand' || location.pathname === '/stand/'
   const { user, signOut } = useSession()
   const { openDialog: openAccessibilityDialog } = useAccessibility()
   const { lang, setLang, t, languages } = useTranslation()
+  const tour = useTourGuide(user?.role ?? 'representative')
 
   // Preferencia del usuario, no del dispositivo: se recuerda entre visitas.
   const [expanded, setExpanded] = useState(() => localStorage.getItem(RAIL_KEY) === '1')
@@ -322,6 +334,7 @@ export function AppLayout() {
                 to={item.to}
                 end={item.to.split('/').length === 2}
                 aria-label={item.label}
+                data-tour={`nav-${item.icon}`}
                 onClick={closeOnMobile}
                 className={({ isActive }) =>
                   cn(ROW, isActive ? 'bg-white/12 text-white' : ROW_IDLE)
@@ -336,7 +349,7 @@ export function AppLayout() {
 
           <div className="mt-auto flex flex-col gap-1">
             {/* Pop-up de Opciones: Documentación, Accesibilidad e Idioma */}
-            <div ref={menuRef} className="relative">
+            <div ref={menuRef} className="relative" data-tour="nav-options">
               <RailButton
                 label={t.nav.options}
                 expanded={expanded}
@@ -400,6 +413,21 @@ export function AppLayout() {
                       <span className="flex-1">{t.nav.accessibility}</span>
                     </button>
 
+                    {/* Volver a ver el tutorial de bienvenida */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMenuOpen(false)
+                        tour.start()
+                      }}
+                      className="group flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-[12px] font-medium text-white/80 transition-colors hover:bg-white/10 hover:text-white"
+                    >
+                      <span className="shrink-0 text-white/70 group-hover:text-white">
+                        {ICONS.tour}
+                      </span>
+                      <span className="flex-1">{t.tour.restart}</span>
+                    </button>
+
                     {/* Selector de Idioma (Español / English) */}
                     <div className="mt-1 rounded-lg border border-white/10 bg-black/25 p-1.5">
                       <div className="mb-1.5 flex items-center justify-between px-1 text-[11px] font-medium text-white/70">
@@ -457,15 +485,29 @@ export function AppLayout() {
           </div>
         </div>
 
-        <main className="relative mr-1 mb-1 min-w-0 flex-1 overflow-y-auto rounded-xl bg-canvas text-ink sm:mr-1.5 sm:mb-1.5">
+        <main className="relative mr-1 mb-1 min-w-0 flex-1 overflow-x-hidden overflow-y-auto rounded-xl bg-canvas text-ink isolate sm:mr-1.5 sm:mb-1.5">
           <ActivityLine />
-          <div className="mx-auto max-w-5xl px-4 py-6 sm:px-5 sm:py-8 md:px-10">
+          {isFullBleed ? (
             <Outlet />
-          </div>
+          ) : (
+            <div className="mx-auto max-w-5xl px-4 py-6 sm:px-5 sm:py-8 md:px-10">
+              <Outlet />
+            </div>
+          )}
         </main>
       </div>
 
       <AccessibilityDialog />
+
+      {tour.stepIndex !== null ? (
+        <TourOverlay
+          steps={tour.steps}
+          stepIndex={tour.stepIndex}
+          onNext={tour.next}
+          onPrev={tour.prev}
+          onSkip={tour.skip}
+        />
+      ) : null}
     </div>
   )
 }

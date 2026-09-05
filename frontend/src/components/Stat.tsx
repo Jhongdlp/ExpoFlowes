@@ -35,7 +35,12 @@ export function Stat({ label, value, note, className }: Props) {
       <p className="stat-label truncate text-[11px] font-medium tracking-[0.08em] uppercase">
         {label}
       </p>
-      <p className="tnum mt-1.5 text-[19px] leading-none font-semibold tracking-tight">{value}</p>
+      {/* La `key` en el valor fuerza a React a remontar el nodo cuando cambia: `animate-fade`
+          se vuelve a disparar solo, sin estado ni efecto propio, y el numero avisa que se
+          movio en vez de saltar de un valor a otro sin mas. */}
+      <p key={value} className="tnum animate-fade mt-1.5 text-[19px] leading-none font-semibold tracking-tight">
+        {value}
+      </p>
       {note ? <p className="stat-label mt-1.5 truncate text-[11px]">{note}</p> : null}
     </div>
   )

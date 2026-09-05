@@ -1,6 +1,10 @@
-import type { ReactNode } from 'react'
+import { useEffect, type ReactNode } from 'react'
 
 import { cn } from '../lib/cn'
+
+/** Nombre del producto en la pestaña. Va detras del titulo, no delante: en una pestaña
+ *  estrecha lo primero que se recorta es el final. */
+const SUFFIX = 'Expoflores'
 
 interface Props {
   title: string
@@ -14,6 +18,16 @@ interface Props {
  * con el dato, solo dice dónde está uno.
  */
 export function PageHeader({ title, subtitle, actions, className }: Props) {
+  /*
+    Toda pagina de la aplicacion lleva una cabecera, asi que el titulo del documento se
+    deriva aqui una sola vez en vez de repetirlo en cada vista. Importa mas de lo que
+    parece: es lo que distingue dos pestañas abiertas, lo que queda en el historial, y lo
+    que un lector de pantalla anuncia al cambiar de ruta.
+  */
+  useEffect(() => {
+    document.title = `${title} · ${SUFFIX}`
+  }, [title])
+
   return (
     <header
       className={cn(

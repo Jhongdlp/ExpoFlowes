@@ -124,8 +124,11 @@ def list_participants(
     page_size: int,
     category: str | None = None,
     search: str | None = None,
+    without_email: bool = False,
 ) -> tuple[list[Participant], int]:
-    return ParticipantRepository(db, event_id).list(exhibitor_id, page, page_size, category, search)
+    return ParticipantRepository(db, event_id).list(
+        exhibitor_id, page, page_size, category, search, without_email
+    )
 
 
 def get_participant(
@@ -232,6 +235,22 @@ def _row_error(row: int, field: str, code: str, message: str) -> dict[str, Any]:
     }
 
 
+# Pydantic no traduce sus mensajes y el representante los lee sobre su fila del Excel.
+# Solo se cubren los tipos que este esquema puede producir; el resto cae al texto original.
+_PYDANTIC_MESSAGES = {
+    "missing": "El dato es obligatorio",
+    "string_type": "El dato es obligatorio",
+    "string_too_short": "El dato es obligatorio",
+    "string_too_long": "El texto supera el largo maximo",
+    "enum": "El valor no es uno de los admitidos",
+    "literal_error": "El valor no es uno de los admitidos",
+}
+
+
+def _pydantic_message(err: Any) -> str:
+    return _PYDANTIC_MESSAGES.get(str(err["type"]), str(err["msg"]))
+
+
 def _field_label(field: str) -> str:
     """Devuelve el encabezado del Excel, no el nombre del campo Python: el usuario corrige
     su archivo mirando la columna, no el modelo."""
@@ -278,7 +297,7 @@ def bulk_create_participants(
                     # empresa proveedora (§5.3), asi que la columna a corregir es esa.
                     _field_label(str(err["loc"][0]) if err["loc"] else "provider_company"),
                     "VALIDATION_ERROR",
-                    err["msg"],
+                    _pydantic_message(err),
                 )
                 for err in exc.errors()
             ]

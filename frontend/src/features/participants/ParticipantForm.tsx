@@ -27,6 +27,11 @@ interface Props {
   onDismissError: () => void
   /** Se llama tras un alta correcta para dejar el formulario listo para la siguiente. */
   resetSignal: number
+  /** Valores de partida. Sin ellos el formulario es un alta; con ellos, una edicion. */
+  initial?: ParticipantFormValues
+  /** Cupo libre por categoria. Una categoria agotada no se puede elegir (§9.3). */
+  available?: Record<string, number>
+  submitLabel?: string
 }
 
 export function ParticipantForm({
@@ -37,11 +42,14 @@ export function ParticipantForm({
   serverError,
   onDismissError,
   resetSignal,
+  initial = EMPTY_PARTICIPANT,
+  available,
+  submitLabel,
 }: Props) {
   const { t, lang } = useTranslation()
   const form = useForm<ParticipantFormValues>({
     resolver: zodResolver(participantSchema),
-    defaultValues: EMPTY_PARTICIPANT,
+    defaultValues: initial,
   })
   const errors = form.formState.errors
   const alertRef = useRef<HTMLDivElement>(null)
@@ -56,8 +64,8 @@ export function ParticipantForm({
   }, [isService, form])
 
   useEffect(() => {
-    if (resetSignal > 0) form.reset(EMPTY_PARTICIPANT)
-  }, [resetSignal, form])
+    if (resetSignal > 0) form.reset(initial)
+  }, [resetSignal, form, initial])
 
   useEffect(() => {
     for (const item of fieldErrors(serverError)) {
@@ -113,7 +121,11 @@ export function ParticipantForm({
               : 'Es la clave que impide acreditar a la misma persona en dos stands.'
           }
           error={errors.identification?.message}
-          {...form.register('identification')}
+          {...form.register('identification', {
+            // El digito verificador se comprueba al salir del campo, no al guardar: es el
+            // unico dato del formulario que se puede teclear mal sin notarlo.
+            onBlur: () => void form.trigger('identification'),
+          })}
         />
         <Field
           label={lang === 'en' ? 'Mobile / Phone' : 'Celular'}
@@ -140,13 +152,31 @@ export function ParticipantForm({
       </FormSection>
 
       <FormSection title={t.participants.title}>
+        {/*
+          El cupo se muestra en la propia opcion y la categoria sin cupo no se puede elegir:
+          el tope se descubre antes de escribir la ficha, no al recibir el QUOTA_EXCEEDED.
+          La categoria que la persona ya tiene nunca se bloquea —su credencial ya ocupa ese
+          cupo—, y la validacion autoritativa sigue siendo la del servidor.
+        */}
         <Select
           label={t.tables.category}
           placeholder={lang === 'en' ? 'Select category' : 'Seleccionar categoría'}
-          options={categories.map((item) => ({
-            value: item,
-            label: (t.categories as Record<string, string>)[item] ?? item,
-          }))}
+          options={categories.map((item) => {
+            const name = (t.categories as Record<string, string>)[item] ?? item
+            const free = available?.[item]
+            const isCurrent = item === initial.category
+            const exhausted = free === 0 && !isCurrent
+            return {
+              value: item,
+              label:
+                free === undefined
+                  ? name
+                  : exhausted
+                    ? `${name} — ${lang === 'en' ? 'no quota left' : 'sin cupo'}`
+                    : `${name} — ${free} ${lang === 'en' ? 'available' : 'disponibles'}`,
+              disabled: exhausted,
+            }
+          })}
           error={errors.category?.message}
           {...form.register('category')}
         />
@@ -168,7 +198,7 @@ export function ParticipantForm({
           {t.common.cancel}
         </Button>
         <Button type="submit" loading={submitting}>
-          {submitting ? t.common.saving : t.participants.newCredential}
+          {submitting ? t.common.saving : (submitLabel ?? t.participants.newCredential)}
         </Button>
       </div>
     </form>

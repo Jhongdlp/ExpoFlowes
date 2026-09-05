@@ -87,6 +87,7 @@ def _as_read(exhibitor: Exhibitor, assigned: dict[str, int], rules: Rules) -> di
         "stand_name": exhibitor.stand_name,
         "address": exhibitor.address,
         "requested_m2": exhibitor.requested_m2,
+        "banner_url": exhibitor.banner_url,
         **quota_view(exhibitor.requested_m2, assigned, rules),
     }
 
@@ -144,6 +145,7 @@ def create_exhibitor(db: Session, event_id: int, payload: ExhibitorCreate) -> di
         stand_name=payload.stand_name,
         address=payload.address,
         requested_m2=payload.requested_m2,
+        banner_url=payload.banner_url,
     )
 
     try:

@@ -15,6 +15,7 @@ export type Role = Me['role']
 
 export type AdminDashboard = Schemas['AdminDashboard']
 export type MyQuota = Schemas['MyQuota']
+export type BadgeArt = Schemas['BadgeArt']
 export type StandSizeRule = Schemas['StandSizeRuleRead']
 export type CredentialRule = Schemas['CredentialRuleRead']
 export type QuotaSimulation = Schemas['QuotaSimulation']

@@ -19,15 +19,22 @@ import { Table, TBody, TD, TH, TR } from '../../components/ui/Table'
 import { useDebounced } from '../../hooks/use-debounced'
 import { useCredentialRules } from '../../hooks/use-rules'
 import { useSelection } from '../../hooks/use-selection'
+import { useUrlState } from '../../hooks/use-url-state'
+import { rowExitDelay } from '../../lib/motion'
 import { useTranslation } from '../i18n/LanguageContext'
 
 const PAGE_SIZE = 20
 
 export function ExhibitorListPage() {
   const { t, lang } = useTranslation()
-  const [page, setPage] = useState(1)
-  const [search, setSearch] = useState('')
+  // Busqueda y pagina en la URL: un resultado concreto se puede compartir y recargar.
+  const url = useUrlState()
+  const { page } = url
+  const search = url.get('q')
   const [confirming, setConfirming] = useState(false)
+  // Filas marcadas para salir: se les aplica la animacion de salida antes de confirmar el
+  // borrado, para que el usuario vea que la accion surtio efecto en vez de un salto seco.
+  const [leaving, setLeaving] = useState<ReadonlySet<number>>(new Set())
   const queryClient = useQueryClient()
 
   // Busca el servidor, sobre todo el evento: por razon social, nombre del stand, RUC o direccion.
@@ -59,6 +66,8 @@ export function ExhibitorListPage() {
       await queryClient.invalidateQueries({ queryKey: ['exhibitors'] })
       await queryClient.invalidateQueries({ queryKey: ['dashboard'] })
     },
+    // Si falla, las filas vuelven a verse: la salida era una promesa de borrado, no el borrado.
+    onSettled: () => setLeaving(new Set()),
   })
 
   const getSubtitle = () => {
@@ -96,10 +105,7 @@ export function ExhibitorListPage() {
       <SearchInput
         value={search}
         busy={refreshing}
-        onChange={(value) => {
-          setSearch(value)
-          setPage(1)
-        }}
+        onChange={(value) => url.set('q', value)}
         placeholder={t.exhibitors.searchPlaceholder}
         aria-label={t.exhibitors.searchAriaLabel}
       />
@@ -144,7 +150,7 @@ export function ExhibitorListPage() {
               : `Ninguna empresa de la feria coincide con "${term}".`
           }
           action={
-            <Button variant="secondary" onClick={() => setSearch('')}>
+            <Button variant="secondary" onClick={url.clear}>
               {t.exhibitors.viewAllExhibitors}
             </Button>
           }
@@ -205,6 +211,11 @@ export function ExhibitorListPage() {
         />
       </div>
 
+      <div
+        className={
+          refreshing ? 'opacity-60 transition-opacity duration-[120ms]' : 'transition-opacity'
+        }
+      >
       <Table>
         <thead>
           <tr>
@@ -228,11 +239,16 @@ export function ExhibitorListPage() {
           </tr>
         </thead>
         <TBody>
-          {items.map((exhibitor) => {
+          {items.map((exhibitor, index) => {
             const assigned = Object.values(exhibitor.assigned).reduce((a, b) => a + b, 0)
             const quota = Object.values(exhibitor.quota).reduce((a, b) => a + b, 0)
             return (
-              <TR key={exhibitor.id} selected={selection.isSelected(exhibitor.id)}>
+              <TR
+                key={exhibitor.id}
+                selected={selection.isSelected(exhibitor.id)}
+                className={leaving.has(exhibitor.id) ? 'animate-row-out' : 'animate-row-in'}
+                style={{ animationDelay: `${Math.min(index, 10) * 20}ms` }}
+              >
                 <TD className="cell-select">
                   <SelectCheckbox
                     checked={selection.isSelected(exhibitor.id)}
@@ -274,6 +290,7 @@ export function ExhibitorListPage() {
           })}
         </TBody>
       </Table>
+      </div>
 
       <p className="mt-2 text-[11px] text-ink-faint">
         {t.exhibitors.quotaFootnote}
@@ -283,9 +300,10 @@ export function ExhibitorListPage() {
         page={page}
         pageSize={PAGE_SIZE}
         total={exhibitors.data.total}
+        loading={refreshing}
         onChange={(next) => {
           selection.clear()
-          setPage(next)
+          url.setPage(next)
         }}
       />
 
@@ -297,7 +315,9 @@ export function ExhibitorListPage() {
         busy={remove.isPending}
         onConfirm={() => {
           setConfirming(false)
-          remove.mutate(selection.selected)
+          const ids = selection.selected
+          setLeaving(new Set(ids))
+          window.setTimeout(() => remove.mutate(ids), rowExitDelay())
         }}
         onCancel={() => setConfirming(false)}
       />

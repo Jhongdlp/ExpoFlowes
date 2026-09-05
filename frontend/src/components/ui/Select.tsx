@@ -8,6 +8,8 @@ import { FieldError } from './FieldError'
 export interface Option {
   value: string
   label: string
+  /** Opcion visible pero no elegible (p. ej. una categoria sin cupo). */
+  disabled?: boolean
 }
 
 interface Props extends SelectHTMLAttributes<HTMLSelectElement> {
@@ -41,7 +43,7 @@ export function Select({ label, options, placeholder, error, className, id, ...p
       >
         {placeholder === undefined ? null : <option value="">{placeholder}</option>}
         {options.map((option) => (
-          <option key={option.value} value={option.value}>
+          <option key={option.value} value={option.value} disabled={option.disabled}>
             {option.label}
           </option>
         ))}

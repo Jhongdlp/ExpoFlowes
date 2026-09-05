@@ -80,6 +80,40 @@ def test_create_exhibitor_persists_representative_and_contacts(
     assert db.execute(select(ExhibitorContact)).scalars().all() != []
 
 
+def test_create_exhibitor_persists_banner_url(
+    client: TestClient, db: Session, admin_user: User
+) -> None:
+    custom_banner = "preset:tropical-orchids"
+    response = client.post(
+        EXHIBITORS,
+        json=payload(banner_url=custom_banner),
+        headers=auth_headers(admin_user),
+    )
+    assert response.status_code == 201
+    body = response.json()
+    assert body["banner_url"] == custom_banner
+
+    row = db.get(Exhibitor, body["id"])
+    assert row is not None
+    assert row.banner_url == custom_banner
+
+
+def test_patch_exhibitor_updates_banner_url(
+    client: TestClient, db: Session, admin_user: User, exhibitor_a: Exhibitor
+) -> None:
+    new_banner = "preset:lavender-mist"
+    response = client.patch(
+        f"{EXHIBITORS}/{exhibitor_a.id}",
+        json={"banner_url": new_banner},
+        headers=auth_headers(admin_user),
+    )
+    assert response.status_code == 200
+    assert response.json()["banner_url"] == new_banner
+
+    db.expire_all()
+    assert db.get(Exhibitor, exhibitor_a.id).banner_url == new_banner
+
+
 # --- R18: minimo un contacto adicional --------------------------------------------------------
 
 

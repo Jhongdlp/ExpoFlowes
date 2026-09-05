@@ -106,16 +106,18 @@ export function AdminDashboardPage() {
         />
       ) : (
         <>
-          <StatRow>
-            <Stat label={t.dashboard.exhibitors} value={data.exhibitors_total} note={t.dashboard.registeredCompanies} />
-            <Stat label={t.tables.standSize} value={`${data.total_m2} m²`} note={t.dashboard.standArea} />
-            <Stat
-              label={t.participants.title}
-              value={data.participants_total}
-              note={t.dashboard.ofQuota.replace('{total}', String(totalQuota))}
-            />
-            <Stat label={t.common.available} value={totalAvailable} note={t.dashboard.usedRate.replace('{percent}', String(burnRate))} />
-          </StatRow>
+          <div data-tour="dashboard-stats">
+            <StatRow>
+              <Stat label={t.dashboard.exhibitors} value={data.exhibitors_total} note={t.dashboard.registeredCompanies} />
+              <Stat label={t.tables.standSize} value={`${data.total_m2} m²`} note={t.dashboard.standArea} />
+              <Stat
+                label={t.participants.title}
+                value={data.participants_total}
+                note={t.dashboard.ofQuota.replace('{total}', String(totalQuota))}
+              />
+              <Stat label={t.common.available} value={totalAvailable} note={t.dashboard.usedRate.replace('{percent}', String(burnRate))} />
+            </StatRow>
+          </div>
 
           <section>
             <SectionHeading

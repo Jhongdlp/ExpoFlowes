@@ -17,7 +17,7 @@ from app.integrations.excel import (
     XLSX_MEDIA_TYPE,
     participants_template,
 )
-from app.schemas.dashboard import MyQuota
+from app.schemas.dashboard import BadgeArt, MyQuota
 from app.schemas.exhibitor import ExhibitorDetail
 from app.schemas.pagination import DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE, SEARCH_MAX_LENGTH, Page
 from app.schemas.participant import (
@@ -53,6 +53,25 @@ def my_quota(auth: RepresentativeUser, db: DbSession) -> dict[str, Any]:
     return dashboard_service.my_quota(db, event_id, exhibitor_id)
 
 
+@router.put("/badge-art", response_model=BadgeArt)
+def set_badge_art(payload: BadgeArt, auth: RepresentativeUser, db: DbSession) -> Any:
+    """Imagen de las credenciales del stand, subida por su propio representante.
+
+    Llega ya reescalada y codificada por el navegador: no hay almacenamiento de ficheros
+    en el sistema, y una imagen de 90 mm de ancho cabe de sobra en la fila del expositor.
+    El tope de tamaño y el tipo los impone el esquema (§8.4, §8.10)."""
+    event_id, exhibitor_id = scope(auth)
+    return dashboard_service.set_badge_art(db, event_id, exhibitor_id, payload.model_dump())
+
+
+@router.delete("/badge-art", status_code=status.HTTP_204_NO_CONTENT)
+def clear_badge_art(auth: RepresentativeUser, db: DbSession) -> Response:
+    """Vuelve al banner del stand como imagen de las credenciales."""
+    event_id, exhibitor_id = scope(auth)
+    dashboard_service.set_badge_art(db, event_id, exhibitor_id, None)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
 @router.get("/participants", response_model=Page[ParticipantRead])
 def list_participants(
     auth: RepresentativeUser,
@@ -61,10 +80,11 @@ def list_participants(
     page_size: Annotated[int, Query(ge=1, le=MAX_PAGE_SIZE)] = DEFAULT_PAGE_SIZE,
     category: Category | None = None,
     search: Annotated[str | None, Query(max_length=SEARCH_MAX_LENGTH)] = None,
+    without_email: bool = False,
 ) -> dict[str, Any]:
     event_id, exhibitor_id = scope(auth)
     items, total = participant_service.list_participants(
-        db, event_id, exhibitor_id, page, page_size, category, search
+        db, event_id, exhibitor_id, page, page_size, category, search, without_email
     )
     return {"items": items, "total": total, "page": page, "page_size": page_size}
 

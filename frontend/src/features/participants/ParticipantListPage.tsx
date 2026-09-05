@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { useState } from 'react'
+
 
 import { api, ApiError } from '../../api/client'
 import type { ExhibitorPage, ParticipantPage } from '../../api/types'
@@ -16,16 +16,20 @@ import { Status } from '../../components/ui/Status'
 import { Table, TBody, TD, TH, TR } from '../../components/ui/Table'
 import { useDebounced } from '../../hooks/use-debounced'
 import { useCredentialRules } from '../../hooks/use-rules'
+import { useUrlState } from '../../hooks/use-url-state'
 import { useTranslation } from '../i18n/LanguageContext'
 
 const PAGE_SIZE = 20
 
 export function ParticipantListPage() {
   const { t, lang } = useTranslation()
-  const [page, setPage] = useState(1)
-  const [exhibitorId, setExhibitorId] = useState('')
-  const [category, setCategory] = useState('')
-  const [search, setSearch] = useState('')
+  // Filtros en la URL: el admin puede mandar "las credenciales Service de tal stand" como
+  // un enlace, en vez de dictar la secuencia de clics.
+  const url = useUrlState()
+  const { page } = url
+  const exhibitorId = url.get('expositor')
+  const category = url.get('categoria')
+  const search = url.get('q')
 
   // La busqueda la resuelve el servidor sobre TODO el evento, no sobre la pagina cargada:
   // filtrar en el cliente solo encontraba a quien ya estaba a la vista.
@@ -52,17 +56,7 @@ export function ParticipantListPage() {
 
   const isFiltered = exhibitorId !== '' || category !== '' || term !== ''
 
-  const onFilter = (apply: () => void) => {
-    apply()
-    setPage(1)
-  }
-
-  const clearFilters = () => {
-    setExhibitorId('')
-    setCategory('')
-    setSearch('')
-    setPage(1)
-  }
+  const clearFilters = url.clear
 
   const items = participants.data?.items ?? []
   const refreshing = participants.isFetching && !participants.isPending
@@ -91,7 +85,7 @@ export function ParticipantListPage() {
         <SearchInput
           value={search}
           busy={refreshing}
-          onChange={(value) => onFilter(() => setSearch(value))}
+          onChange={(value) => url.set('q', value)}
           placeholder={t.participants.searchPlaceholder}
           aria-label={t.participants.searchAriaLabel}
           autoFocus
@@ -103,7 +97,7 @@ export function ParticipantListPage() {
               label={t.participants.companyFilter}
               placeholder={t.participants.all}
               value={exhibitorId}
-              onChange={(event) => onFilter(() => setExhibitorId(event.target.value))}
+              onChange={(event) => url.set('expositor', event.target.value)}
               options={(exhibitors.data?.items ?? []).map((item) => ({
                 value: String(item.id),
                 label: item.legal_name,
@@ -113,7 +107,7 @@ export function ParticipantListPage() {
               label={t.participants.categoryFilter}
               placeholder={t.participants.all}
               value={category}
-              onChange={(event) => onFilter(() => setCategory(event.target.value))}
+              onChange={(event) => url.set('categoria', event.target.value)}
               options={(rules.data ?? []).map((rule) => ({
                 value: rule.category,
                 label: (t.categories as Record<string, string>)[rule.category] ?? rule.category,
@@ -177,8 +171,12 @@ export function ParticipantListPage() {
                 </tr>
               </thead>
               <TBody>
-                {items.map((person) => (
-                  <TR key={person.id}>
+                {items.map((person, index) => (
+                  <TR
+                    key={person.id}
+                    className="animate-row-in"
+                    style={{ animationDelay: `${Math.min(index, 10) * 20}ms` }}
+                  >
                     <TD className="font-medium">
                       {person.first_name} {person.last_name}
                     </TD>
@@ -220,7 +218,8 @@ export function ParticipantListPage() {
             page={page}
             pageSize={PAGE_SIZE}
             total={participants.data.total}
-            onChange={setPage}
+            loading={refreshing}
+            onChange={url.setPage}
           />
         </>
       )}

@@ -64,10 +64,12 @@ class ParticipantRead(BaseModel):
     first_name: str
     last_name: str
     identification: str
-    identification_type: str
+    # Mismos tipos cerrados que en la escritura: ParticipantIn ya solo admite estos valores,
+    # asi que devolverlos como `str` solo servia para que el cliente los recibiera sin tipar.
+    identification_type: IdentificationType
     phone: str
     position: str
-    category: str
+    category: Category
     provider_company: str | None
     email: str | None
     credential_notified_at: datetime | None = None

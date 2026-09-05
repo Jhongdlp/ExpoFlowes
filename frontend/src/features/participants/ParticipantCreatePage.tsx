@@ -8,6 +8,7 @@ import { CATEGORY_BAR } from '../../components/CategoryBadge'
 import { Loading } from '../../components/Loading'
 import { PageHeader } from '../../components/PageHeader'
 import { Button } from '../../components/ui/Button'
+import { Meter } from '../../components/ui/Meter'
 import { Notice } from '../../components/ui/Notice'
 import { Status } from '../../components/ui/Status'
 import { ParticipantForm } from './ParticipantForm'
@@ -69,6 +70,8 @@ export function ParticipantCreatePage() {
       <div className="mb-4 grid grid-cols-1 gap-px overflow-hidden rounded-lg border border-line bg-line sm:grid-cols-3">
         {categories.map((category) => {
           const free = available[category] ?? 0
+          const total = quota.data?.quota[category] ?? 0
+          const used = quota.data?.assigned[category] ?? 0
           const displayCat = (t.categories as Record<string, string>)[category] ?? category
           return (
             <div key={category} className="bg-surface px-4 py-2.5">
@@ -79,7 +82,10 @@ export function ParticipantCreatePage() {
                 />
                 <p className="label-caps truncate">{displayCat}</p>
               </div>
-              <div className="mt-1">
+              <div className="mt-1.5">
+                <Meter used={used} total={total} label={displayCat} barClassName={CATEGORY_BAR[category]} />
+              </div>
+              <div className="mt-1.5">
                 <Status
                   tone={free === 0 ? 'error' : 'ok'}
                   label={free === 0 ? t.dashboard.quotaExhausted : t.dashboard.availableCount.replace('{count}', String(free))}
@@ -103,6 +109,7 @@ export function ParticipantCreatePage() {
       <div className="mt-6">
         <ParticipantForm
           categories={categories}
+          available={available}
           onSubmit={async (values) => {
             setLastCreated(null)
             await mutation.mutateAsync(values).catch(() => undefined)

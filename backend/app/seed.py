@@ -74,6 +74,7 @@ EXHIBITORS: list[dict[str, Any]] = [
         "stand_name": "Rosas del Cotopaxi",
         "address": "Panamericana Norte km 12, Latacunga",
         "requested_m2": 25,
+        "banner_url": "unsplash:roses-red",
         "representative": {
             "full_name": "Mariana Cevallos Ponce",
             "identification": "1712345675",
@@ -99,6 +100,7 @@ EXHIBITORS: list[dict[str, Any]] = [
         "stand_name": "Flores del Valle",
         "address": "Av. Los Shyris 220, Quito",
         "requested_m2": 8,
+        "banner_url": "unsplash:roses-pink",
         "representative": {
             "full_name": "Jorge Benitez Salas",
             "identification": "0923456784",
@@ -123,6 +125,7 @@ EXHIBITORS: list[dict[str, Any]] = [
         "stand_name": "Andean Blooms",
         "address": "Vía Cayambe - Otavalo km 4, Cayambe",
         "requested_m2": 40,
+        "banner_url": "unsplash:tropical-blooms",
         "representative": {
             "full_name": "Elena Vasquez Guerra",
             "identification": "0109876540",
@@ -190,6 +193,7 @@ def seed(db: Session) -> None:
                 "stand_name": data["stand_name"],
                 "address": data["address"],
                 "requested_m2": data["requested_m2"],
+                "banner_url": data.get("banner_url"),
                 "deleted_at": None,
             },
         )

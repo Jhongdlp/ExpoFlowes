@@ -80,10 +80,15 @@ class ParticipantRepository(EventScopedRepository):
         page_size: int,
         category: str | None = None,
         search: str | None = None,
+        without_email: bool = False,
     ) -> tuple[list[Participant], int]:
         filters = list(self._scope(exhibitor_id))
         if category is not None:
             filters.append(Participant.category == category)
+        if without_email:
+            # Mismo criterio que count_without_email: el aviso del dashboard y este filtro
+            # tienen que contar lo mismo o el enlace lleva a una lista que no cuadra.
+            filters.append(Participant.email.is_(None))
         filters.extend(
             matches(
                 search,

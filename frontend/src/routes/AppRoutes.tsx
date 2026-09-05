@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 
 import { AppLayout } from '../components/AppLayout'
 import { BulkUploadPage } from '../features/bulk-upload/BulkUploadPage'
+import { CredentialPrintPage } from '../features/participants/CredentialPrintPage'
 import { DocumentationPage } from '../features/docs/DocumentationPage'
 import { HomeRedirect, RequireRole } from '../features/auth/guards'
 import { LoginPage } from '../features/auth/LoginPage'
@@ -12,6 +13,7 @@ import { ExhibitorDetailPage } from '../features/exhibitors/ExhibitorDetailPage'
 import { ExhibitorListPage } from '../features/exhibitors/ExhibitorListPage'
 import { MyParticipantListPage } from '../features/participants/MyParticipantListPage'
 import { ParticipantCreatePage } from '../features/participants/ParticipantCreatePage'
+import { ParticipantEditPage } from '../features/participants/ParticipantEditPage'
 import { ParticipantListPage } from '../features/participants/ParticipantListPage'
 import { RulesPage } from '../features/rules/RulesPage'
 import { StandDashboardPage } from '../features/dashboard/StandDashboardPage'
@@ -29,6 +31,19 @@ export function AppRoutes() {
               <DocumentationPage />
             </div>
           </div>
+        }
+      />
+
+      <Route
+        path="/stand/credenciales/imprimir"
+        element={
+          <RequireRole role="representative">
+            <div className="min-h-dvh bg-canvas text-ink">
+              <div className="badge-print-page mx-auto max-w-5xl px-4 py-8 sm:px-6 md:px-10">
+                <CredentialPrintPage />
+              </div>
+            </div>
+          </RequireRole>
         }
       />
 
@@ -59,6 +74,7 @@ export function AppRoutes() {
         <Route path="/stand/credenciales" element={<MyParticipantListPage />} />
         <Route path="/stand/credenciales/nueva" element={<ParticipantCreatePage />} />
         <Route path="/stand/credenciales/carga" element={<BulkUploadPage />} />
+        <Route path="/stand/credenciales/:id" element={<ParticipantEditPage />} />
         <Route path="/stand/documentacion" element={<DocumentationPage />} />
       </Route>
 

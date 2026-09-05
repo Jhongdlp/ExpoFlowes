@@ -256,3 +256,57 @@ def test_exhibitors_report_downloads_and_opens(
 def test_report_is_admin_only(client: TestClient, rep_a: User) -> None:
     response = client.get("/api/v1/reports/exhibitors.xlsx", headers=auth_headers(rep_a))
     assert response.status_code == 403
+
+
+# --- Imagen de las credenciales (la sube el representante) -------------------------------------
+
+BADGE_ART = "/api/v1/me/badge-art"
+PIXEL = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAE="
+
+
+def test_badge_art_round_trips_through_the_stand(client: TestClient, rep_a: User) -> None:
+    """La imagen vive en el stand, no en el navegador: quien imprima desde otro equipo ve
+    la misma credencial."""
+    saved = client.put(
+        BADGE_ART,
+        json={"image": PIXEL, "focus_x": 30, "focus_y": 70, "zoom": 140},
+        headers=auth_headers(rep_a),
+    )
+    assert saved.status_code == 200
+
+    quota = client.get(MY_QUOTA, headers=auth_headers(rep_a)).json()
+    assert quota["badge_art"] == {"image": PIXEL, "focus_x": 30, "focus_y": 70, "zoom": 140}
+
+    assert client.delete(BADGE_ART, headers=auth_headers(rep_a)).status_code == 204
+    assert client.get(MY_QUOTA, headers=auth_headers(rep_a)).json()["badge_art"] is None
+
+
+def test_badge_art_only_accepts_embedded_images(client: TestClient, rep_a: User) -> None:
+    """Una URL remota convertiria el campo en una peticion a un tercero desde el navegador
+    de quien imprime, y quien lo escribe es un representante, no el administrador."""
+    for rejected in ("https://ejemplo.invalid/foto.png", "data:text/html;base64,PHNjcmlwdD4="):
+        response = client.put(BADGE_ART, json={"image": rejected}, headers=auth_headers(rep_a))
+        assert response.status_code == 422
+        assert response.json()["code"] == "VALIDATION_ERROR"
+
+
+def test_badge_art_rejects_an_oversized_image(client: TestClient, rep_a: User) -> None:
+    """Sin almacenamiento de ficheros, el tope de la columna es la unica defensa: el
+    navegador reescala antes de subir, pero el servidor no se fia de eso (§8.4)."""
+    huge = "data:image/jpeg;base64," + ("A" * 400_001)
+    assert (
+        client.put(BADGE_ART, json={"image": huge}, headers=auth_headers(rep_a)).status_code == 422
+    )
+
+
+def test_badge_art_is_representative_only(client: TestClient, admin_user: User) -> None:
+    response = client.put(BADGE_ART, json={"image": PIXEL}, headers=auth_headers(admin_user))
+    assert response.status_code == 403
+
+
+def test_each_stand_sees_only_its_own_badge_art(
+    client: TestClient, rep_a: User, rep_b: User
+) -> None:
+    """El exhibitor_id sale del token: A no puede pintar las credenciales de B (§8.1)."""
+    client.put(BADGE_ART, json={"image": PIXEL}, headers=auth_headers(rep_a))
+    assert client.get(MY_QUOTA, headers=auth_headers(rep_b)).json()["badge_art"] is None

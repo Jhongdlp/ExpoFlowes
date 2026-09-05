@@ -64,11 +64,15 @@ def my_quota(db: Session, event_id: int, exhibitor_id: int) -> dict[str, Any]:
 
     summary = exhibitor_service.summarize(db, event_id, [exhibitor])[0]
     participants = ParticipantRepository(db, event_id)
+    event = db.get(Event, event_id)
     return {
+        "event_name": "" if event is None else event.name,
         "exhibitor_id": exhibitor.id,
         "legal_name": exhibitor.legal_name,
         "stand_name": exhibitor.stand_name,
         "requested_m2": exhibitor.requested_m2,
+        "banner_url": exhibitor.banner_url,
+        "badge_art": exhibitor.badge_art,
         "stand_category": summary["stand_category"],
         "quota": summary["quota"],
         "assigned": summary["assigned"],
@@ -76,3 +80,19 @@ def my_quota(db: Session, event_id: int, exhibitor_id: int) -> dict[str, Any]:
         "participants_total": sum(summary["assigned"].values()),
         "participants_without_email": participants.count_without_email(exhibitor_id),
     }
+
+
+def set_badge_art(
+    db: Session, event_id: int, exhibitor_id: int, art: dict[str, Any] | None
+) -> dict[str, Any] | None:
+    """Guarda (o borra, con `None`) la imagen de las credenciales del stand.
+
+    El `exhibitor_id` llega del token, nunca de la peticion (§8.1): el representante solo
+    puede escribir sobre su propia empresa, y un id ajeno ni siquiera se encuentra.
+    """
+    exhibitor = ExhibitorRepository(db, event_id).get(exhibitor_id)
+    if exhibitor is None:
+        raise NotFoundError("El expositor solicitado no existe.")
+    exhibitor.badge_art = art
+    db.commit()
+    return exhibitor.badge_art

@@ -14,6 +14,8 @@ import {
   exhibitorSchema,
   type ExhibitorFormValues,
 } from './schema'
+import { BannerSelector } from './BannerSelector'
+import { StandSizeIndicator } from './StandSizeIndicator'
 import { useTranslation } from '../i18n/LanguageContext'
 
 interface Props {
@@ -39,6 +41,7 @@ export function ExhibitorForm({
   const contacts = useFieldArray({ control: form.control, name: 'contacts' })
   const errors = form.formState.errors
   const errorRef = useRef<HTMLDivElement>(null)
+  const watchM2 = form.watch('requested_m2') || 0
 
   // El formulario es largo y el boton esta al final: sin esto, un error del servidor se
   // renderiza arriba y el usuario cree que no paso nada.
@@ -73,7 +76,7 @@ export function ExhibitorForm({
         )}
       </div>
 
-      <FormSection title={lang === 'en' ? 'Company Information' : 'Datos de la empresa'}>
+      <FormSection title={lang === 'en' ? 'Company & Stand Information' : 'Datos de la empresa y stand'}>
         <Select
           label={t.common.identificationType}
           options={idTypes}
@@ -84,7 +87,11 @@ export function ExhibitorForm({
           label={lang === 'en' ? 'Tax Identification' : 'Identificación tributaria'}
           hint={lang === 'en' ? 'Tax ID / RUC or international tax identification.' : 'RUC o identificación fiscal internacional.'}
           error={errors.tax_id?.message}
-          {...form.register('tax_id')}
+          {...form.register('tax_id', {
+            // Igual que en la ficha de participante: el verificador se avisa al salir del
+            // campo, no despues de llenar el representante y los contactos.
+            onBlur: () => void form.trigger('tax_id'),
+          })}
         />
         <Field
           label={lang === 'en' ? 'Legal Name' : 'Razón social'}
@@ -97,20 +104,43 @@ export function ExhibitorForm({
           error={errors.stand_name?.message}
           {...form.register('stand_name')}
         />
-        <Field
-          label={lang === 'en' ? 'Requested Stand Size (m²)' : 'Metraje solicitado (m²)'}
-          type="number"
-          inputMode="numeric"
-          hint={lang === 'en' ? 'Stand category and credential quotas are calculated with this value.' : 'La categoría del stand y el cupo de credenciales se calculan con este valor.'}
-          error={errors.requested_m2?.message}
-          {...form.register('requested_m2', { valueAsNumber: true })}
-        />
+        <div className="space-y-1.5">
+          <Field
+            label={lang === 'en' ? 'Requested Stand Size (m²)' : 'Metraje solicitado (m²)'}
+            type="number"
+            inputMode="numeric"
+            hint={lang === 'en' ? 'Stand category and credential quotas are calculated with this value.' : 'La categoría del stand y el cupo de credenciales se calculan con este valor.'}
+            error={errors.requested_m2?.message}
+            {...form.register('requested_m2', { valueAsNumber: true })}
+          />
+          <StandSizeIndicator m2={watchM2} />
+        </div>
         <Field
           label={lang === 'en' ? 'Address' : 'Dirección'}
           className="sm:col-span-2"
           error={errors.address?.message}
           {...form.register('address')}
         />
+      </FormSection>
+
+      <FormSection
+        title={lang === 'en' ? 'Custom Stand Banner' : 'Personalización de Banner del Stand'}
+        description={
+          lang === 'en'
+            ? 'Choose an elegant floral theme or upload a custom image. It will appear at the top of the exhibitor account.'
+            : 'Elija un tema floral o suba una imagen. Aparecerá en la parte superior del panel general de la cuenta del expositor.'
+        }
+      >
+        <div className="sm:col-span-2">
+          <BannerSelector
+            value={form.watch('banner_url')}
+            onChange={(newBanner) => form.setValue('banner_url', newBanner, { shouldDirty: true })}
+            standName={form.watch('stand_name')}
+            legalName={form.watch('legal_name')}
+            taxId={form.watch('tax_id')}
+            requestedM2={watchM2}
+          />
+        </div>
       </FormSection>
 
       <FormSection
@@ -132,7 +162,9 @@ export function ExhibitorForm({
         <Field
           label={t.tables.identification}
           error={errors.representative?.identification?.message}
-          {...form.register('representative.identification')}
+          {...form.register('representative.identification', {
+            onBlur: () => void form.trigger('representative.identification'),
+          })}
         />
         <Field
           label={t.tables.email}

@@ -7,6 +7,7 @@ Principios que este modulo hace cumplir:
 """
 
 from datetime import date, datetime
+from typing import Any
 
 from sqlalchemy import (
     Boolean,
@@ -17,8 +18,10 @@ from sqlalchemy import (
     Index,
     Integer,
     String,
+    Text,
     UniqueConstraint,
 )
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -107,6 +110,10 @@ class Exhibitor(Base):
     stand_name: Mapped[str] = mapped_column(String(160))
     address: Mapped[str] = mapped_column(String(255))
     requested_m2: Mapped[int] = mapped_column(Integer)
+    banner_url: Mapped[str | None] = mapped_column(Text, default=None)
+    # Imagen de las credenciales del stand, con su encuadre: {image, focus_x, focus_y, zoom}.
+    # La sube el representante desde su propia pantalla; el esquema BadgeArt la valida.
+    badge_art: Mapped[dict[str, Any] | None] = mapped_column(JSONB, default=None)
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
 
     representative: Mapped["Representative"] = relationship(back_populates="exhibitor")

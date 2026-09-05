@@ -1,5 +1,6 @@
 import { z } from 'zod'
 
+import { identificationError } from '../../lib/identification'
 import { IDENTIFICATION_TYPES } from '../exhibitors/schema'
 
 export { IDENTIFICATION_TYPES }
@@ -12,8 +13,9 @@ export { IDENTIFICATION_TYPES }
  *   2. en el esquema Pydantic del backend, que es la validacion autoritativa
  *   3. en un CHECK de la base, que la garantiza ante cualquier ruta de escritura
  *
- * El resto de reglas —cupo, duplicados, algoritmo de cedula— no se replican: las valida el
- * servidor y el cliente solo pinta su `code`.
+ * Cupo y duplicados no se replican: dependen de estado que el navegador no tiene, y los
+ * valida el servidor. El digito verificador si, porque lo fija el registro civil y no puede
+ * desincronizarse de ninguna tabla de configuracion (ver `lib/identification.ts`).
  */
 
 const required = (message: string) => z.string().trim().min(1, message)
@@ -49,6 +51,12 @@ export const participantSchema = z
         path: ['provider_company'],
         message: 'La empresa proveedora solo aplica a la categoría Service.',
       })
+    }
+    // El digito verificador se comprueba con el tipo elegido: cambiar de CEDULA a PASSPORT
+    // tiene que revalidar el mismo numero contra otra regla.
+    const failure = identificationError(values.identification, values.identification_type)
+    if (failure !== undefined) {
+      ctx.addIssue({ code: 'custom', path: ['identification'], message: failure })
     }
   })
 

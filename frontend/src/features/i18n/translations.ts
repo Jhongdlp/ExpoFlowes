@@ -137,6 +137,7 @@ export const translations = {
       searchAriaLabel: 'Buscar expositores',
       registerExhibitor: 'Registrar expositor',
       viewAllExhibitors: 'Ver todos los expositores',
+      standSizeOutOfRange: 'Fuera de rango permitido',
       emptyFilteredTitle: 'Sin resultados',
       emptyFilteredDesc: 'Ninguna empresa de la feria coincide con su búsqueda.',
       emptyInitialTitle: 'Todavía no hay expositores',
@@ -162,6 +163,11 @@ export const translations = {
       saveChanges: 'Guardar cambios',
       savingChanges: 'Guardando…',
       accessEmail: 'Correo de acceso',
+      banner: 'Banner del stand',
+      bannerDescription: 'Banner personalizado que se muestra en la parte superior del panel general del expositor.',
+      bannerPresets: 'Colección Floral',
+      bannerCustom: 'Subir imagen / URL',
+      bannerLivePreview: 'Vista previa en panel del expositor',
     },
     rules: {
       title: 'Reglas y parametrización',
@@ -287,6 +293,66 @@ export const translations = {
       CEDULA: 'Cédula',
       PASAPORTE: 'Pasaporte',
       RUC: 'RUC',
+    },
+    tour: {
+      skip: 'Saltar tutorial',
+      next: 'Siguiente',
+      prev: 'Atrás',
+      done: 'Entendido',
+      restart: 'Ver tutorial',
+      stepCount: 'Paso {current} de {total}',
+      admin: {
+        dashboardStats: {
+          title: 'Resumen del evento',
+          body: 'Aquí ves de un vistazo cuántos expositores hay registrados, el metraje total y cuántas credenciales se han asignado.',
+        },
+        navPanel: {
+          title: 'Panel',
+          body: 'Tu vista general: expositores, metraje y credenciales del evento activo.',
+        },
+        navExhibitors: {
+          title: 'Expositores',
+          body: 'Aquí creas y administras las empresas participantes. Al registrar una, se crea automáticamente el acceso de su representante.',
+        },
+        navCredentials: {
+          title: 'Credenciales',
+          body: 'Lista de todas las credenciales emitidas, de cualquier empresa.',
+        },
+        navRules: {
+          title: 'Reglas',
+          body: 'Los rangos de metraje y las cuotas de credenciales vigentes para este evento.',
+        },
+        navOptions: {
+          title: 'Opciones',
+          body: 'Aquí encuentras accesibilidad, idioma y la documentación de la plataforma.',
+        },
+      },
+      representative: {
+        dashboardStats: {
+          title: 'Tu cupo de credenciales',
+          body: 'El metraje de tu stand, tu cupo total y cuántas credenciales tienes disponibles todavía.',
+        },
+        dashboardQuota: {
+          title: 'Desglose por categoría',
+          body: 'Cuántas credenciales tienes asignadas y disponibles en cada categoría: Expositor, Invitado y Servicio.',
+        },
+        navPanel: {
+          title: 'Panel',
+          body: 'El resumen de tu stand y tu cupo de credenciales.',
+        },
+        navCredentials: {
+          title: 'Credenciales',
+          body: 'Aquí registras, editas y eliminas las credenciales de tu personal.',
+        },
+        navUpload: {
+          title: 'Carga masiva',
+          body: 'Sube un Excel con varias credenciales a la vez. Puedes previsualizar los errores antes de confirmar.',
+        },
+        navOptions: {
+          title: 'Opciones',
+          body: 'Aquí encuentras accesibilidad, idioma y la documentación de la plataforma.',
+        },
+      },
     },
   },
   en: {
@@ -420,6 +486,7 @@ export const translations = {
       searchAriaLabel: 'Search exhibitors',
       registerExhibitor: 'Register exhibitor',
       viewAllExhibitors: 'View all exhibitors',
+      standSizeOutOfRange: 'Outside allowed range',
       emptyFilteredTitle: 'No results',
       emptyFilteredDesc: 'No company in the expo matches your search.',
       emptyInitialTitle: 'No exhibitors yet',
@@ -445,6 +512,11 @@ export const translations = {
       saveChanges: 'Save changes',
       savingChanges: 'Saving…',
       accessEmail: 'Access email',
+      banner: 'Stand banner',
+      bannerDescription: 'Custom banner displayed at the top of the exhibitor dashboard.',
+      bannerPresets: 'Floral Collection',
+      bannerCustom: 'Upload image / URL',
+      bannerLivePreview: 'Live preview on exhibitor dashboard',
     },
     rules: {
       title: 'Rules & Parameters',
@@ -570,6 +642,66 @@ export const translations = {
       CEDULA: 'National ID',
       PASAPORTE: 'Passport',
       RUC: 'Tax ID (RUC)',
+    },
+    tour: {
+      skip: 'Skip tutorial',
+      next: 'Next',
+      prev: 'Back',
+      done: 'Got it',
+      restart: 'View tutorial',
+      stepCount: 'Step {current} of {total}',
+      admin: {
+        dashboardStats: {
+          title: 'Event overview',
+          body: 'See at a glance how many exhibitors are registered, total floor space, and how many credentials have been issued.',
+        },
+        navPanel: {
+          title: 'Dashboard',
+          body: 'Your overview: exhibitors, floor space, and credentials for the active event.',
+        },
+        navExhibitors: {
+          title: 'Exhibitors',
+          body: 'Create and manage participating companies here. Registering one automatically creates their representative’s account.',
+        },
+        navCredentials: {
+          title: 'Credentials',
+          body: 'A list of every credential issued, across all companies.',
+        },
+        navRules: {
+          title: 'Rules',
+          body: 'The floor-space ranges and credential quotas currently in effect for this event.',
+        },
+        navOptions: {
+          title: 'Options',
+          body: 'Accessibility, language, and the platform documentation live here.',
+        },
+      },
+      representative: {
+        dashboardStats: {
+          title: 'Your credential quota',
+          body: 'Your stand’s floor space, your total quota, and how many credentials you still have available.',
+        },
+        dashboardQuota: {
+          title: 'Breakdown by category',
+          body: 'How many credentials you have assigned and available in each category: Exhibitor, Guest, and Service.',
+        },
+        navPanel: {
+          title: 'Dashboard',
+          body: 'An overview of your stand and your credential quota.',
+        },
+        navCredentials: {
+          title: 'Credentials',
+          body: 'Register, edit, and remove your staff’s credentials here.',
+        },
+        navUpload: {
+          title: 'Bulk upload',
+          body: 'Upload an Excel file with several credentials at once. You can preview errors before confirming.',
+        },
+        navOptions: {
+          title: 'Options',
+          body: 'Accessibility, language, and the platform documentation live here.',
+        },
+      },
     },
   },
 } as const

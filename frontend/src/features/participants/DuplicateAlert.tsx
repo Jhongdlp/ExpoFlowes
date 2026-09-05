@@ -1,5 +1,6 @@
 import type { ApiError } from '../../api/client'
 import { Button } from '../../components/ui/Button'
+import { useTranslation } from '../i18n/LanguageContext'
 
 /**
  * Validacion critica de §5.4, en pantalla.
@@ -9,6 +10,7 @@ import { Button } from '../../components/ui/Button'
  * convierte el requisito en un adorno (§13).
  */
 export function DuplicateAlert({ error, onDismiss }: { error: ApiError; onDismiss: () => void }) {
+  const { t } = useTranslation()
   const identification = error.details.identification
   const registeredIn = error.details.registered_in
   const category = error.details.category
@@ -53,7 +55,11 @@ export function DuplicateAlert({ error, onDismiss }: { error: ApiError; onDismis
         </div>
         <div>
           <dt className="label-caps">Categoría</dt>
-          <dd className="mt-0.5 text-ink">{typeof category === 'string' ? category : '—'}</dd>
+          <dd className="mt-0.5 text-ink">
+            {typeof category === 'string'
+              ? ((t.categories as Record<string, string>)[category] ?? category)
+              : '—'}
+          </dd>
         </div>
       </dl>
 

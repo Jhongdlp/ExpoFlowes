@@ -1,4 +1,4 @@
-import type { ReactNode, ThHTMLAttributes, TdHTMLAttributes, TableHTMLAttributes } from 'react'
+import type { CSSProperties, ReactNode, ThHTMLAttributes, TdHTMLAttributes, TableHTMLAttributes } from 'react'
 
 import { cn } from '../../lib/cn'
 
@@ -91,15 +91,18 @@ export function TBody({ children }: { children: ReactNode }) {
 export function TR({
   selected = false,
   className,
+  style,
   children,
 }: {
   selected?: boolean
   className?: string
+  style?: CSSProperties
   children: ReactNode
 }) {
   return (
     <tr
       data-selected={selected || undefined}
+      style={style}
       className={cn(
         'transition-colors duration-[120ms]',
         // Seleccionada lleva el rosa de marca; el gris es solo el paso del ratón. Así

@@ -172,6 +172,34 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/me/badge-art": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set Badge Art
+         * @description Imagen de las credenciales del stand, subida por su propio representante.
+         *
+         *     Llega ya reescalada y codificada por el navegador: no hay almacenamiento de ficheros
+         *     en el sistema, y una imagen de 90 mm de ancho cabe de sobra en la fila del expositor.
+         *     El tope de tamaño y el tipo los impone el esquema (§8.4, §8.10).
+         */
+        put: operations["set_badge_art_api_v1_me_badge_art_put"];
+        post?: never;
+        /**
+         * Clear Badge Art
+         * @description Vuelve al banner del stand como imagen de las credenciales.
+         */
+        delete: operations["clear_badge_art_api_v1_me_badge_art_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/me/participants": {
         parameters: {
             query?: never;
@@ -386,6 +414,34 @@ export interface components {
             /** Stand Categories */
             stand_categories: components["schemas"]["StandCategoryCount"][];
         };
+        /**
+         * BadgeArt
+         * @description Imagen de las credenciales del stand y su encuadre.
+         *
+         *     El encuadre no recorta la imagen: se guarda el punto de interes y el zoom, y cada
+         *     variante de la credencial (banda apaisada o foto a sangre) la encuadra sola con
+         *     `object-fit: cover`. Recortar a un aspecto fijo obligaria a elegir cual de las dos
+         *     variantes se ve bien y cual se ve mal.
+         */
+        BadgeArt: {
+            /** Image */
+            image: string;
+            /**
+             * Focus X
+             * @default 50
+             */
+            focus_x: number;
+            /**
+             * Focus Y
+             * @default 50
+             */
+            focus_y: number;
+            /**
+             * Zoom
+             * @default 100
+             */
+            zoom: number;
+        };
         /** Body_bulk_upload_api_v1_me_participants_bulk_post */
         Body_bulk_upload_api_v1_me_participants_bulk_post: {
             /** File */
@@ -485,6 +541,8 @@ export interface components {
             address: string;
             /** Requested M2 */
             requested_m2: number;
+            /** Banner Url */
+            banner_url?: string | null;
             representative: components["schemas"]["RepresentativeIn"];
             /** Contacts */
             contacts: components["schemas"]["ContactIn"][];
@@ -505,6 +563,8 @@ export interface components {
             address: string;
             /** Requested M2 */
             requested_m2: number;
+            /** Banner Url */
+            banner_url?: string | null;
             /** Stand Category */
             stand_category: string;
             /** Quota */
@@ -544,6 +604,8 @@ export interface components {
             address: string;
             /** Requested M2 */
             requested_m2: number;
+            /** Banner Url */
+            banner_url?: string | null;
             /** Stand Category */
             stand_category: string;
             /** Quota */
@@ -572,6 +634,8 @@ export interface components {
             address?: string | null;
             /** Requested M2 */
             requested_m2?: number | null;
+            /** Banner Url */
+            banner_url?: string | null;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -612,6 +676,8 @@ export interface components {
          * @description Cupo del stand propio, desglosado por categoria (§4).
          */
         MyQuota: {
+            /** Event Name */
+            event_name: string;
             /** Exhibitor Id */
             exhibitor_id: number;
             /** Legal Name */
@@ -620,6 +686,9 @@ export interface components {
             stand_name: string;
             /** Requested M2 */
             requested_m2: number;
+            /** Banner Url */
+            banner_url?: string | null;
+            badge_art?: components["schemas"]["BadgeArt"] | null;
             /** Stand Category */
             stand_category: string;
             /** Quota */
@@ -709,14 +778,20 @@ export interface components {
             last_name: string;
             /** Identification */
             identification: string;
-            /** Identification Type */
-            identification_type: string;
+            /**
+             * Identification Type
+             * @enum {string}
+             */
+            identification_type: "CEDULA" | "RUC" | "PASSPORT" | "FOREIGN_ID";
             /** Phone */
             phone: string;
             /** Position */
             position: string;
-            /** Category */
-            category: string;
+            /**
+             * Category
+             * @enum {string}
+             */
+            category: "Exhibitor" | "Guest" | "Service";
             /** Provider Company */
             provider_company: string | null;
             /** Email */
@@ -762,14 +837,20 @@ export interface components {
             last_name: string;
             /** Identification */
             identification: string;
-            /** Identification Type */
-            identification_type: string;
+            /**
+             * Identification Type
+             * @enum {string}
+             */
+            identification_type: "CEDULA" | "RUC" | "PASSPORT" | "FOREIGN_ID";
             /** Phone */
             phone: string;
             /** Position */
             position: string;
-            /** Category */
-            category: string;
+            /**
+             * Category
+             * @enum {string}
+             */
+            category: "Exhibitor" | "Guest" | "Service";
             /** Provider Company */
             provider_company: string | null;
             /** Email */
@@ -1246,6 +1327,57 @@ export interface operations {
             };
         };
     };
+    set_badge_art_api_v1_me_badge_art_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BadgeArt"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BadgeArt"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    clear_badge_art_api_v1_me_badge_art_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     list_participants_api_v1_me_participants_get: {
         parameters: {
             query?: {
@@ -1253,6 +1385,7 @@ export interface operations {
                 page_size?: number;
                 category?: ("Exhibitor" | "Guest" | "Service") | null;
                 search?: string | null;
+                without_email?: boolean;
             };
             header?: never;
             path?: never;

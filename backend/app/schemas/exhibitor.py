@@ -25,6 +25,7 @@ class ExhibitorCreate(BaseModel):
     stand_name: str = Field(min_length=1, max_length=160)
     address: str = Field(min_length=1, max_length=255)
     requested_m2: int = Field(gt=0)
+    banner_url: str | None = None
     representative: RepresentativeIn
     # Minimo un contacto adicional (§5.3). El maximo no existe.
     contacts: list[ContactIn] = Field(min_length=1)
@@ -37,6 +38,7 @@ class ExhibitorUpdate(BaseModel):
     stand_name: str | None = Field(default=None, min_length=1, max_length=160)
     address: str | None = Field(default=None, min_length=1, max_length=255)
     requested_m2: int | None = Field(default=None, gt=0)
+    banner_url: str | None = None
 
 
 class ContactRead(BaseModel):
@@ -72,6 +74,7 @@ class ExhibitorRead(BaseModel):
     stand_name: str
     address: str
     requested_m2: int
+    banner_url: str | None = None
     stand_category: str
     quota: dict[str, int]
     assigned: dict[str, int]

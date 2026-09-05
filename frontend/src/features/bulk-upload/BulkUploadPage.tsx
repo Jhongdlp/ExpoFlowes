@@ -245,7 +245,7 @@ export function BulkUploadPage() {
                 <span>
                   {t.bulk.rowsRead
                     .replace('{count}', String(preview.rows.length))
-                    .replace('{plural}', lang === 'en' ? (preview.rows.length === 1 ? '' : 's') : (preview.rows.length === 1 ? '' : 's'))}
+                    .replaceAll('{plural}', lang === 'en' ? (preview.rows.length === 1 ? '' : 's') : (preview.rows.length === 1 ? '' : 's'))}
                 </span>
                 {validate.isPending ? (
                   <Status tone="pending" label={t.bulk.validatingStatus} />

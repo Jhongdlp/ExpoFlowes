@@ -327,3 +327,29 @@ def test_listing_is_scoped_paginated_and_filterable(
     ).json()
     assert filtered["total"] == 1
     assert filtered["items"][0]["category"] == "Guest"
+
+
+def test_listing_can_isolate_participants_without_email(client: TestClient, rep_a: User) -> None:
+    """El aviso del panel cuenta las credenciales sin correo y el enlace lleva a este
+    filtro: los dos numeros tienen que salir del mismo criterio o el enlace desemboca en
+    una lista que no cuadra con el aviso que la abrio (§6.8)."""
+    create(client, rep_a, identification=CEDULAS[0], email="ana@ejemplo.demo")
+    create(client, rep_a, identification=CEDULAS[1])
+    create(client, rep_a, identification=CEDULAS[2], category="Guest")
+
+    listed = client.get(
+        PARTICIPANTS, params={"without_email": "true"}, headers=auth_headers(rep_a)
+    ).json()
+    assert listed["total"] == 2
+    assert all(person["email"] is None for person in listed["items"])
+
+    quota = client.get("/api/v1/me/quota", headers=auth_headers(rep_a)).json()
+    assert quota["participants_without_email"] == listed["total"]
+
+    # Se combina con el resto de filtros, no los sustituye.
+    both = client.get(
+        PARTICIPANTS,
+        params={"without_email": "true", "category": "Guest"},
+        headers=auth_headers(rep_a),
+    ).json()
+    assert both["total"] == 1

@@ -17,7 +17,10 @@ import { Field } from '../../components/ui/Field'
 import { Notice } from '../../components/ui/Notice'
 import { Status } from '../../components/ui/Status'
 import { QuotaTable } from '../dashboard/QuotaTable'
+import { DEFAULT_BANNER_ID } from './bannerPresets'
 import { standSchema, type StandFormValues } from './schema'
+import { StandSizeIndicator } from './StandSizeIndicator'
+import { BannerSelector } from './BannerSelector'
 import { useTranslation } from '../i18n/LanguageContext'
 
 function StandEditForm({ exhibitor }: { exhibitor: ExhibitorDetail }) {
@@ -32,6 +35,7 @@ function StandEditForm({ exhibitor }: { exhibitor: ExhibitorDetail }) {
       stand_name: exhibitor.stand_name,
       address: exhibitor.address,
       requested_m2: exhibitor.requested_m2,
+      banner_url: exhibitor.banner_url || DEFAULT_BANNER_ID,
     },
   })
 
@@ -45,6 +49,7 @@ function StandEditForm({ exhibitor }: { exhibitor: ExhibitorDetail }) {
         stand_name: updated.stand_name,
         address: updated.address,
         requested_m2: updated.requested_m2,
+        banner_url: updated.banner_url || DEFAULT_BANNER_ID,
       })
       await queryClient.invalidateQueries({ queryKey: ['exhibitors'] })
       await queryClient.invalidateQueries({ queryKey: ['dashboard'] })
@@ -72,8 +77,8 @@ function StandEditForm({ exhibitor }: { exhibitor: ExhibitorDetail }) {
           onDismiss={() => setSaved(false)}
         >
           {lang === 'en'
-            ? 'The quota was recalculated with the updated stand size.'
-            : 'La cuota se recalculó con el metraje nuevo.'}
+            ? 'The quota and stand details were updated.'
+            : 'La cuota y datos del stand se actualizaron correctamente.'}
         </Notice>
       ) : null}
 
@@ -89,20 +94,44 @@ function StandEditForm({ exhibitor }: { exhibitor: ExhibitorDetail }) {
           error={errors.stand_name?.message}
           {...form.register('stand_name')}
         />
-        <Field
-          label={lang === 'en' ? 'Stand size (m²)' : 'Metraje (m²)'}
-          type="number"
-          inputMode="numeric"
-          hint={lang === 'en' ? 'Changing it recalculates quotas.' : 'Cambiarlo recalcula el cupo. No se permite dejarlo por debajo de lo ya asignado.'}
-          error={errors.requested_m2?.message}
-          {...form.register('requested_m2', { valueAsNumber: true })}
-        />
+        <div className="space-y-1.5">
+          <Field
+            label={lang === 'en' ? 'Stand size (m²)' : 'Metraje (m²)'}
+            type="number"
+            inputMode="numeric"
+            hint={lang === 'en' ? 'Changing it recalculates quotas.' : 'Cambiarlo recalcula el cupo. No se permite dejarlo por debajo de lo ya asignado.'}
+            error={errors.requested_m2?.message}
+            {...form.register('requested_m2', { valueAsNumber: true })}
+          />
+          <StandSizeIndicator m2={form.watch('requested_m2') || 0} />
+        </div>
         <Field
           label={lang === 'en' ? 'Address' : 'Dirección'}
           className="sm:col-span-2"
           error={errors.address?.message}
           {...form.register('address')}
         />
+      </FormSection>
+
+      <FormSection
+        title={lang === 'en' ? 'Stand Banner' : 'Banner del stand'}
+        description={
+          lang === 'en'
+            ? 'Custom banner displayed on the exhibitor dashboard.'
+            : 'Banner personalizado que se muestra en el panel del expositor.'
+        }
+      >
+        <div className="sm:col-span-2">
+          <BannerSelector
+            value={form.watch('banner_url')}
+            onChange={(newBanner) => form.setValue('banner_url', newBanner, { shouldDirty: true })}
+            standName={form.watch('stand_name')}
+            legalName={form.watch('legal_name')}
+            taxId={exhibitor.tax_id}
+            requestedM2={form.watch('requested_m2') || 0}
+            standCategory={exhibitor.stand_category}
+          />
+        </div>
       </FormSection>
 
       <div className="flex items-center justify-end gap-3 border-t border-line pt-5">

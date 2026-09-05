@@ -132,6 +132,11 @@
     color: var(--color-surface);
   }
 
+  /* Asegurar que los modales y diálogos nativos no se muestren cuando están cerrados */
+  dialog:not([open]) {
+    display: none !important;
+  }
+
   /* Quien pide menos movimiento recibe cero movimiento, no menos movimiento. */
   @media (prefers-reduced-motion: reduce) {
     *,
@@ -258,6 +263,22 @@
   animation: rise 180ms var(--ease-brand) both;
 }
 
+@keyframes sheet-up {
+  from {
+    opacity: 0.9;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/** Entrada de modal tipo bottom sheet en pantallas móviles */
+@utility animate-sheet-up {
+  animation: sheet-up 240ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
 @keyframes fade {
   from {
     opacity: 0;
@@ -269,6 +290,38 @@
 
 @utility animate-fade {
   animation: fade 120ms linear both;
+}
+
+@keyframes row-in {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/** Entrada escalonada de una fila al llegar una página o un filtro nuevo (con `animation-delay` por fila). */
+@utility animate-row-in {
+  animation: row-in 200ms var(--ease-brand) both;
+}
+
+@keyframes row-out {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: translateX(6px);
+  }
+}
+
+/** Salida de una fila que se está borrando: confirma que la acción surtió efecto antes de que desaparezca. */
+@utility animate-row-out {
+  animation: row-out 180ms var(--ease-brand) forwards;
 }
 
 @keyframes progress-slide {
@@ -424,5 +477,260 @@
   .table-stack td .label-caps {
     display: block;
     margin-left: 0;
+  }
+}
+
+/* ============================================================================
+   Credenciales imprimibles
+
+   Una feria acredita en papel: la aplicacion tiene que producir el gafete, no solo
+   la fila en la tabla. Todo lo que sigue es CSS —el navegador ya sabe paginar,
+   escalar y hablar con la impresora—, asi que no entra ninguna libreria de PDF.
+
+   La tarjeta mide 90 x 130 mm: el portacredenciales colgante mas comun en ferias.
+   En milimetros, no en pixeles, porque el destino es papel.
+   ============================================================================ */
+
+.badge-sheet {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(90mm, 1fr));
+  gap: 6mm;
+}
+
+.badge {
+  display: flex;
+  width: 90mm;
+  height: 130mm;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--color-line-strong);
+  border-radius: 3mm;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  /* Color de acento del stand. Lo fija la pagina de impresion por elemento; si nadie lo
+     toca, la credencial se ve igual que antes. */
+  --badge-accent: var(--color-line-strong);
+}
+
+/* ---- Imagen del stand -------------------------------------------------------------
+   Por defecto el banner que ya usa el panel; si el representante sube la suya, esa.
+   Oculta hasta que una variante decide que hacer con ella.
+
+   `.badge-media` es el marco (recorta) y la imagen de dentro se mueve: asi el zoom no
+   se desborda sobre la cabecera, que es lo que pasaria escalando la imagen suelta
+   dentro de la tarjeta. */
+.badge-media {
+  position: relative;
+  display: none;
+  overflow: hidden;
+  width: 100%;
+}
+
+.badge-media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* El encuadre son tres numeros que fija la pantalla de impresion. Con `cover` la misma
+     imagen sirve a la banda apaisada y a la foto vertical sin recortar dos veces. */
+  object-position: var(--badge-focus-x, 50%) var(--badge-focus-y, 50%);
+  transform: scale(var(--badge-zoom, 1));
+  transform-origin: var(--badge-focus-x, 50%) var(--badge-focus-y, 50%);
+}
+
+/* ---- Variante "banda": foto arriba, nombre sobre blanco ---------------------------
+   Es la predeterminada, y la unica que no compromete la lectura: el dato que hay que
+   leer a dos metros nunca cae encima de una fotografia. */
+.badge--band .badge-media {
+  display: block;
+  height: 34mm;
+  flex-shrink: 0;
+}
+
+.badge--band .badge-head,
+.badge--plain .badge-head {
+  border-bottom: 1.2mm solid var(--badge-accent);
+}
+
+/* ---- Variante "limpia": sin foto, solo el acento ----------------------------------
+   La mas barata de imprimir y la que sobrevive a una fotocopiadora. */
+.badge--plain .badge-head {
+  background: color-mix(in srgb, var(--badge-accent) 10%, transparent);
+}
+
+/* ---- Variante "foto": imagen a sangre --------------------------------------------
+   Se ve muy bien en tarjeta plastificada y muy mal en una laser de oficina: gasta
+   tinta y depende de que el usuario active los graficos de fondo. Por eso no es la
+   predeterminada, pero el stand que imprime en imprenta la quiere. */
+.badge--photo {
+  position: relative;
+  border-color: transparent;
+  background: #101413;
+  color: #fff;
+}
+
+.badge--photo .badge-media {
+  position: absolute;
+  display: block;
+  inset: 0;
+  height: 100%;
+}
+
+/* Velo de legibilidad: mas denso donde cae el nombre. Sin el, una foto clara deja el
+   texto blanco invisible. */
+.badge--photo::after {
+  position: absolute;
+  content: '';
+  inset: 0;
+  background: linear-gradient(180deg, rgb(0 0 0 / 55%) 0%, rgb(0 0 0 / 78%) 45%, rgb(0 0 0 / 88%) 100%);
+}
+
+.badge--photo > *:not(.badge-media) {
+  position: relative;
+  z-index: 1;
+}
+
+.badge--photo .badge-head {
+  border-bottom-color: rgb(255 255 255 / 25%);
+}
+
+.badge--photo .badge-foot {
+  border-top: 1.2mm solid var(--badge-accent);
+}
+
+/* Sobre fotografia el color del texto se declara pieza por pieza en vez de confiar en la
+   herencia: cada rotulo tiene su propio `color` en la variante clara, y uno solo que se
+   escape queda tinta oscura sobre una foto oscura. */
+.badge--photo .badge-name,
+.badge--photo .badge-stand {
+  color: #fff;
+}
+
+.badge--photo .badge-event,
+.badge--photo .badge-position,
+.badge--photo .badge-provider,
+.badge--photo .badge-id {
+  color: rgb(255 255 255 / 75%);
+}
+
+.badge--photo .badge-category {
+  color: #fff;
+}
+
+.badge-head {
+  border-bottom: 1px solid var(--color-line);
+  padding: 6mm 6mm 4mm;
+}
+
+.badge-event {
+  font-size: 8pt;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-ink-faint);
+}
+
+.badge-stand {
+  margin-top: 1mm;
+  font-size: 11pt;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+/* El nombre se lleva el espacio sobrante y se centra en el: es lo unico que alguien
+   lee a dos metros de distancia. */
+.badge-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  /* El relleno inferior sube el eje de centrado: el nombre cae en el tercio superior, que
+     es la parte del gafete que queda a la vista cuando cuelga. Lo que sobra abajo es el
+     sitio natural de un QR si algun dia se añade. */
+  padding: 4mm 6mm 16mm;
+}
+
+.badge-name {
+  font-size: 20pt;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  /* Un apellido compuesto largo no puede empujar el pie de la tarjeta fuera. */
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+.badge-position {
+  margin-top: 3mm;
+  font-size: 10pt;
+  color: var(--color-ink-soft);
+}
+
+.badge-provider {
+  margin-top: 1mm;
+  font-size: 9pt;
+  color: var(--color-ink-faint);
+}
+
+.badge-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 3mm;
+  border-top: 1px solid var(--color-line);
+  padding: 4mm 6mm;
+}
+
+.badge-category {
+  display: inline-flex;
+  align-items: center;
+  gap: 2mm;
+  font-size: 9pt;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.badge-dot {
+  display: inline-block;
+  height: 2.5mm;
+  width: 2.5mm;
+  flex-shrink: 0;
+  border-radius: 50%;
+}
+
+.badge-id {
+  font-size: 8pt;
+  color: var(--color-ink-faint);
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 10mm;
+  }
+
+  /* El rail y las cabeceras no se esconden aqui: la ruta de impresion vive fuera del
+     AppLayout, asi que en la pagina no hay mas que los gafetes y su barra de control,
+     y esa barra ya se retira con la variante `print:hidden` de Tailwind. */
+
+  /* El contenedor centrado de la pagina tiene relleno lateral pensado para pantalla. En
+     A4 esos ~21mm se comen la segunda columna y cada hoja sale con un solo gafete: en
+     papel manda el margen de @page, no el del layout. */
+  .badge-print-page {
+    max-width: none;
+    padding: 0;
+  }
+
+  .badge-sheet {
+    gap: 4mm;
+  }
+
+  /* Una credencial partida entre dos hojas no sirve para nada. */
+  .badge {
+    break-inside: avoid;
+    /* El color de la categoria es informacion, no decoracion: se pide que se imprima. */
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 }
