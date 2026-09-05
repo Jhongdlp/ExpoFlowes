@@ -6,6 +6,9 @@
 
 > ### ▶︎ Pruébelo ahora: **<https://expoflores.jhongdlp.com>**
 >
+> **Repositorio:** <https://github.com/Jhongdlp/ExpoFlowes> — si está leyendo esto desde el
+> ZIP, el código vive y se actualiza ahí.
+>
 > | Rol | Correo | Contraseña |
 > |---|---|---|
 > | Organización de la feria | `admin@expoflores.demo` | `Admin123!` |
