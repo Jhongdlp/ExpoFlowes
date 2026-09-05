@@ -127,6 +127,25 @@ docker compose exec backend alembic upgrade head
 docker compose exec backend python -m app.seed
 ```
 
+Para **correr el proyecto no hace falta nada de esto**: `docker compose up` ya compila el
+frontend y lo sirve con nginx en <http://localhost:5173>. El bloque de abajo es solo para
+desarrollar el frontend con recarga en caliente.
+
+### Frontend con recarga en caliente (opcional, solo para desarrollo)
+
+El gestor de paquetes es **npm** (hay `package-lock.json`; el Dockerfile y la CI usan
+`npm ci`). No se usa pnpm ni yarn.
+
+```bash
+docker compose up -d db backend        # base y API en Docker
+cd frontend
+npm install
+npm run dev                            # Vite en http://localhost:5173, proxy de /api al backend
+```
+
+Si dejó el stack completo levantado, el puerto 5173 estará ocupado por el contenedor del
+frontend y Vite arrancará en el 5174.
+
 ---
 
 ## Credenciales de demostración
