@@ -2,8 +2,12 @@
 # Arma el ZIP de entrega con la estructura exacta que pide el enunciado.
 #
 #   1_Diseno_y_BD/   DER, casos de uso, script SQL y datos iniciales
-#   2_Aplicacion/    README.md, Back/, Front/, docker-compose.yml, .env.example
+#   2_Aplicacion/    README.md, backend/, frontend/, docker-compose.yml, .env.example
 #   3_Presentacion/  PDF de 5 paginas
+#
+# Las carpetas de codigo conservan su nombre del repositorio (backend/ y frontend/): asi el
+# docker-compose.yml, el README y los enlaces de la documentacion viajan sin reescribir nada,
+# y lo que el evaluador levanta es exactamente lo que esta en GitHub.
 #
 # No incluye node_modules, venv, caches, .git ni .env: "sin dependencias pesadas" significa
 # que el evaluador las instala con `docker compose up`, no que evitemos librerias.
@@ -14,14 +18,14 @@ salida="$raiz/entrega.zip"
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 
-mkdir -p "$tmp/1_Diseno_y_BD" "$tmp/2_Aplicacion/Back" "$tmp/2_Aplicacion/Front" "$tmp/3_Presentacion"
+mkdir -p "$tmp/1_Diseno_y_BD" "$tmp/2_Aplicacion/backend" "$tmp/2_Aplicacion/frontend" "$tmp/3_Presentacion"
 
 # Índice en la raíz del ZIP: al descomprimir se ven tres carpetas numeradas y nada más.
 cat > "$tmp/LEEME.txt" <<'TXT'
 Entrega — Plataforma de expositores y credenciales (Expo Flor Ecuador)
 
   1_Diseno_y_BD/   DER, casos de uso, esquema SQL, datos iniciales y migraciones
-  2_Aplicacion/    README.md (empezar aquí), Back/, Front/, docker-compose.yml,
+  2_Aplicacion/    README.md (empezar aquí), backend/, frontend/, docker-compose.yml,
                    .env.example, documentacion/ y datos_de_mocks/
   3_Presentacion/  Presentación en PDF (5 páginas)
 
@@ -47,8 +51,8 @@ excluidos=(
   # Salida de `generate_mocks.py` dentro del contenedor: duplica datos_de_mocks/.
   --exclude=datos_de_mocks_temp
 )
-tar -C "$raiz/backend"  "${excluidos[@]}" -cf - . | tar -C "$tmp/2_Aplicacion/Back"  -xf -
-tar -C "$raiz/frontend" "${excluidos[@]}" -cf - . | tar -C "$tmp/2_Aplicacion/Front" -xf -
+tar -C "$raiz/backend"  "${excluidos[@]}" -cf - . | tar -C "$tmp/2_Aplicacion/backend"  -xf -
+tar -C "$raiz/frontend" "${excluidos[@]}" -cf - . | tar -C "$tmp/2_Aplicacion/frontend" -xf -
 cp "$raiz/README.md" "$raiz/.env.example" "$tmp/2_Aplicacion/"
 tar -C "$raiz/docs" "${excluidos[@]}" --exclude=PLAN.md -cf - . | tar -C "$tmp/2_Aplicacion" -xf - --one-top-level=docs
 
@@ -62,13 +66,9 @@ cp -r "$raiz/datos_de_mocks" "$tmp/2_Aplicacion/"
 # obligatoria por el enunciado; se incluye porque sostiene y amplía las decisiones de diseño.
 cp -r "$raiz/documentacion" "$tmp/2_Aplicacion/"
 
-# El compose de la entrega apunta a Back/ y Front/, que es como se llaman las carpetas en el
-# ZIP. Es la unica diferencia con el del repositorio, y por eso el ZIP se verifica levantado
-# desde una carpeta limpia.
-sed -e 's#build: ./backend#build: ./Back#' \
-    -e 's#- ./backend:/app#- ./Back:/app#' \
-    -e 's#build: ./frontend#build: ./Front#' \
-    "$raiz/docker-compose.yml" > "$tmp/2_Aplicacion/docker-compose.yml"
+# El compose viaja tal cual: sus rutas (./backend, ./frontend) ya coinciden con las carpetas
+# del ZIP. Aun asi la entrega se verifica levantada desde una carpeta limpia.
+cp "$raiz/docker-compose.yml" "$tmp/2_Aplicacion/docker-compose.yml"
 
 # --- 3. Presentación ---
 cp "$raiz/docs/presentacion.pdf" "$tmp/3_Presentacion/Expoflores-presentacion.pdf"
