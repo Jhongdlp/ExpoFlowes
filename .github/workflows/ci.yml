@@ -94,3 +94,21 @@ jobs:
       # backend cambia un campo y no se regenero `schema.d.ts`, esto falla aqui (§13).
       - name: Tipos y build
         run: npm run build
+
+  deploy:
+    name: Deploy (Dokploy)
+    needs: [backend, frontend]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    # El deploy solo dispara si lint/tests de ambos jobs pasaron: nunca se despliega
+    # codigo roto. Dokploy hace pull del commit de `main` y reconstruye el stack completo
+    # (docker-compose.yml del repo), no un paso separado de por si.
+    steps:
+      - name: Disparar deploy en Dokploy
+        run: |
+          curl -sf -X POST \
+            -H "x-api-key: ${{ secrets.DOKPLOY_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d "{\"composeId\":\"${{ secrets.DOKPLOY_COMPOSE_ID }}\"}" \
+            "${{ secrets.DOKPLOY_HOST }}/api/compose.deploy"
