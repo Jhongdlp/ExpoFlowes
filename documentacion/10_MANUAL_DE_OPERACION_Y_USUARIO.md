@@ -42,6 +42,11 @@ Si un representante no activó su cuenta dentro del plazo de 72 horas:
 2. Ingrese al detalle del expositor y haga clic en **"Reenviar Invitación"**.
 3. El sistema revocará el token anterior y generará uno nuevo con 72 horas adicionales de vigencia.
 
+> **Alternativa self-service:** el propio representante puede pedir un enlace nuevo desde
+> **"¿Olvidaste tu contraseña?"** en la pantalla de inicio de sesión (`/recuperar-clave`), sin
+> intervención del administrador. El endpoint (`POST /auth/forgot-password`) responde siempre
+> igual —exista o no el correo— y está limitado por IP como el login.
+
 ---
 
 ### 1.4. Configuración de Reglas de Feria
@@ -61,6 +66,10 @@ Si un representante no activó su cuenta dentro del plazo de 72 horas:
    - Al menos 8 caracteres.
    - Combinación de letras y números.
 4. Haga clic en **"Activar Cuenta"**. Será redirigido al panel de su stand.
+
+> Si el enlace caducó (más de 72 horas) o lo extravió, use **"¿Olvidaste tu contraseña?"** en la
+> pantalla de inicio de sesión para recibir uno nuevo. El mismo flujo sirve para restablecer la
+> contraseña más adelante.
 
 ---
 

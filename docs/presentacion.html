@@ -552,6 +552,12 @@ UPDATE credential_rules  SET rounding_mode = 'ceil'  WHERE event_id = 1 AND cate
         <code>dry_run</code> antes de confirmar. El mismo endpoint hace la vista previa y la
         importación: la única diferencia es el <code>COMMIT</code>.</p>
 
+      <h3 style="margin-top:3.5mm">Se instala y abre sin conexión</h3>
+      <p>El frontend es una PWA: el <em>service worker</em> precachea el shell y la app abre
+        offline con una pantalla de <em>sin conexión</em> en vez de un error del navegador.
+        Las llamadas a <code>/api</code> quedan fuera de la caché: siempre van a la red, para
+        no mostrar cupos ni credenciales viejos.</p>
+
     </div>
   </div>
 
@@ -591,7 +597,9 @@ UPDATE credential_rules  SET rounding_mode = 'ceil'  WHERE event_id = 1 AND cate
       <p style="margin:0">
         Salen <strong>después del <code>COMMIT</code></strong>: un SMTP caído se registra y no
         tumba el alta. Al representante nunca se le manda una contraseña, sino un enlace de un
-        solo uso, 72 h, guardado hasheado. Al participante, solo si tiene correo (decisión 8).
+        solo uso, 72 h, guardado hasheado &mdash; el mismo que reenvía <em>¿Olvidaste tu
+        contraseña?</em>, público y limitado como el login, con respuesta idéntica exista o no
+        el correo. Al participante, solo si tiene correo (decisión 8).
       </p>
     </div>
     <div>

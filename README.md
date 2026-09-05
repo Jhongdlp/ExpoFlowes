@@ -45,6 +45,7 @@ rango es un `UPDATE`; no hay redeploy y no hay `if m2 > 12` en ninguna parte del
 - [Levantar el proyecto](#levantar-el-proyecto)
 - [Credenciales de demostración](#credenciales-de-demostración)
 - [Correo](#correo)
+- [Aplicación instalable (PWA)](#aplicación-instalable-pwa)
 - [Tests](#tests)
 - [Despliegue: CI/CD en un VPS con Dokploy](#despliegue-cicd-en-un-vps-con-dokploy)
 - [Cambiar las reglas sin tocar código](#cambiar-las-reglas-sin-tocar-código)
@@ -86,7 +87,8 @@ las identificaciones son válidas por algoritmo, pero generadas.
 
 **Frontend** · React 19 · Vite · TypeScript en modo estricto (`strict`,
 `noUncheckedIndexedAccess`, sin `any`) · TanStack Query · react-hook-form + zod · Tailwind CSS con
-un set propio de componentes · SheetJS para leer el Excel en el navegador · `oxlint` + `vitest`.
+un set propio de componentes · SheetJS para leer el Excel en el navegador · `vite-plugin-pwa`
+(app instalable y shell offline) · `oxlint` + `vitest`.
 
 **Infraestructura** · Docker Compose con tres servicios: `db`, `backend`, `frontend` · GitHub
 Actions para lint, tipos y tests · despliegue automático a un VPS propio con Dokploy
@@ -194,7 +196,9 @@ entorno real las sobrescribe por variable de entorno; no hay ninguna contraseña
 
 Los otros dos representantes del seed **nacen sin contraseña**, como cualquier representante
 recién creado: para entrar necesitan el enlace de un solo uso que el sistema envía por correo
-(ver abajo). Es el comportamiento real, no una limitación del demo.
+(ver abajo). Es el comportamiento real, no una limitación del demo. Si el enlace caduca, el
+propio representante puede pedir otro desde *¿Olvidaste tu contraseña?* en el login, sin
+depender del admin.
 
 Todos los datos son ficticios. Ninguna cédula ni correo corresponde a una persona real; las
 identificaciones son válidas por algoritmo pero generadas.
@@ -203,11 +207,14 @@ identificaciones son válidas por algoritmo pero generadas.
 
 ## Correo
 
-Se envían dos correos, siempre **después del `COMMIT`** y fuera de la transacción: al
-representante cuando se crea su cuenta (enlace para establecer contraseña, 72 h, un solo uso —
-**nunca una contraseña**) y al participante cuando se le asigna una credencial, si tiene correo.
-Un fallo del SMTP se registra en el log y **no revierte** la operación de negocio; hay un test
-que lo demuestra (`test_mailer_failure_does_not_rollback`).
+Se envían dos tipos de correo, siempre **después del `COMMIT`** y fuera de la transacción. El
+primero lleva el **enlace para establecer contraseña** (72 h, un solo uso — **nunca una
+contraseña**) y sale en dos casos: al crear la cuenta del representante, y cuando alguien pide
+recuperarla desde *¿Olvidaste tu contraseña?* en el login (`POST /auth/forgot-password`,
+público y limitado igual que el login, con respuesta idéntica exista o no el correo). El
+segundo avisa al participante cuando se le asigna una credencial, si tiene correo. Un fallo del
+SMTP se registra en el log y **no revierte** la operación de negocio; hay un test que lo
+demuestra (`test_mailer_failure_does_not_rollback`).
 
 Con `SMTP_HOST` vacío —el valor por defecto— el mailer **no envía nada**: escribe el correo
 renderizado en el log estructurado, que es el "correo simulado" que el enunciado admite. Para
@@ -241,6 +248,20 @@ intentarse la próxima vez que se edite esa credencial.
 Para probar el alta de un representante sin acceso al inbox, `EXPOSE_SETUP_LINK=true` devuelve
 el enlace de establecer contraseña en la respuesta del alta. **Es un interruptor de demo**: en
 producción se queda en `false` y el enlace viaja solo por correo.
+
+---
+
+## Aplicación instalable (PWA)
+
+El frontend es una PWA (`vite-plugin-pwa`, `registerType: 'autoUpdate'`). El navegador ofrece
+**instalarla** como aplicación —hay `manifest` con iconos, nombre y color de tema— y un
+*service worker* precachea el shell de la interfaz, así que abre **sin conexión** y muestra la
+pantalla *Sin conexión* (`OfflinePage`) en lugar del error del navegador.
+
+Lo que **nunca** se cachea es `/api`: toda llamada a datos va siempre a la red
+(`navigateFallbackDenylist: [/^\/api/]`), de modo que la PWA no puede mostrar credenciales ni
+cupos desactualizados. El service worker solo se registra en el `build` de producción; en
+`npm run dev` no interfiere.
 
 ---
 
@@ -524,6 +545,7 @@ Prefijo `/api/v1`. El esquema completo está en <http://localhost:8000/docs>.
 | POST | `/auth/login` | público | Devuelve el JWT. Limitado a 5 intentos por minuto y por IP. |
 | POST | `/auth/set-password` | público (token) | Consume el token de un solo uso. |
 | POST | `/auth/request-password-setup` | admin | Reenvía el enlace de acceso. |
+| POST | `/auth/forgot-password` | público | Recuperación self-service. Limitado como el login; responde igual exista o no el correo. |
 | GET | `/auth/me` | ambos | Usuario y contexto de la sesión. |
 | GET/POST | `/exhibitors` | admin | Listado paginado con cuota derivada · alta atómica. |
 | GET/PATCH/DELETE | `/exhibitors/{id}` | admin | Detalle · corrección de metraje · borrado lógico. |

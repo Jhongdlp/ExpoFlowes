@@ -28,7 +28,7 @@ El frontend de **Expo Flor Ecuador** es una Single Page Application (SPA) constr
 ```mermaid
 flowchart TD
     subgraph Root["AppRoutes.tsx (Enrutador Central)"]
-        Public["Rutas Públicas: /login · /establecer-clave · /documentacion"]
+        Public["Rutas Públicas: /login · /establecer-clave · /recuperar-clave · /documentacion"]
         G_Admin["RequireRole('admin')"]
         G_Rep["RequireRole('representative')"]
     end

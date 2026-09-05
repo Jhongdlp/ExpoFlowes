@@ -56,7 +56,7 @@ const C4_CONTAINER_CHART = `flowchart LR
 
 const BACKEND_LAYERS_CHART = `flowchart TD
     subgraph CapaAPI["1. Capa de Presentación (FastAPI Routers)"]
-        R1["/auth (login, set-password)"]
+        R1["/auth (login, set-password, forgot-password)"]
         R2["/me (quota, participants, bulk)"]
         R3["/exhibitors · /rules · /participants"]
     end
@@ -177,13 +177,15 @@ const STATE_TOKEN_CHART = `stateDiagram-v2
 
     EmailEnviado --> TokenExpirado : Transcurren más de 72h sin uso
     TokenExpirado --> TokenEmitido : Admin reenvía invitación<br/>POST /auth/request-password-setup
+    TokenExpirado --> TokenEmitido : Representante lo pide solo<br/>POST /auth/forgot-password
+    CuentaActivada --> TokenEmitido : Restablecer contraseña<br/>POST /auth/forgot-password
 
     CuentaActivada --> [*]
 `
 
 const FRONTEND_TREE_CHART = `flowchart TD
     subgraph Root["AppRoutes.tsx (Enrutador Central)"]
-        Public["Rutas Públicas: /login · /establecer-clave · /documentacion"]
+        Public["Rutas Públicas: /login · /establecer-clave · /recuperar-clave · /documentacion"]
         G_Admin["RequireRole('admin')"]
         G_Rep["RequireRole('representative')"]
     end

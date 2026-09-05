@@ -30,7 +30,8 @@ La API de **Expo Flor Ecuador** sigue el estilo arquitectónico **RESTful** con 
 | :--- | :--- | :---: | :--- |
 | `POST` | `/auth/login` | Público | Autenticación con email/password. Retorna JWT Bearer. |
 | `POST` | `/auth/request-password-setup` | `admin` | Reenvía el Magic Link de activación a un expositor. |
-| `POST` | `/auth/set-password` | Público | Consume token de 72h y establece contraseña inicial. |
+| `POST` | `/auth/forgot-password` | Público | Recuperación self-service: emite y envía un Magic Link nuevo. Rate limit igual que `login`; responde 202 exista o no el correo. |
+| `POST` | `/auth/set-password` | Público | Consume token de 72h y establece contraseña (inicial o restablecida). |
 | `GET` | `/auth/me` | Autenticado | Retorna el perfil y contexto del usuario activo. |
 
 ---
