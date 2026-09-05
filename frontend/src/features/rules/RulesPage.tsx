@@ -157,13 +157,20 @@ export function RulesPage() {
       />
 
       <section>
-        <h2 className="label-caps mb-3">{t.rules.simulatorTitle}</h2>
+        <h2 className="label-caps">{t.rules.simulatorTitle}</h2>
+        <p className="mt-1 mb-3 max-w-prose text-[12px] text-ink-soft">{t.rules.simulatorSubtitle}</p>
         <QuotaSimulator standSizes={standSizes.data} />
       </section>
 
-      <section>
+      <section className="space-y-5">
+        <div>
+          <h2 className="label-caps">{t.rules.activeRulesTitle}</h2>
+          <p className="mt-1 max-w-prose text-[12px] text-ink-soft">{t.rules.activeRulesIntro}</p>
+        </div>
+
+        <div>
         <div className="mb-3 flex items-baseline justify-between gap-3">
-          <h2 className="label-caps">{t.rules.standSizeRanges}</h2>
+          <h3 className="text-[13px] font-medium text-ink">{t.rules.standSizeRanges}</h3>
           <code className="font-mono text-[11px] text-ink-faint">stand_size_rules</code>
         </div>
         <Table>
@@ -191,11 +198,11 @@ export function RulesPage() {
         <p className="mt-2 text-[11px] text-ink-faint">
           {t.rules.standSizesFootnote}
         </p>
-      </section>
+        </div>
 
-      <section>
+        <div>
         <div className="mb-3 flex items-baseline justify-between gap-3">
-          <h2 className="label-caps">{t.rules.credentialQuotas}</h2>
+          <h3 className="text-[13px] font-medium text-ink">{t.rules.credentialQuotas}</h3>
           <code className="font-mono text-[11px] text-ink-faint">credential_rules</code>
         </div>
         <Table>
@@ -234,6 +241,7 @@ export function RulesPage() {
             ))}
           </TBody>
         </Table>
+        </div>
       </section>
 
       <section>
