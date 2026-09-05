@@ -169,6 +169,37 @@ def notify_password_setup(to: str, full_name: str, link: str) -> bool:
     return _try_send(to, "Active su cuenta de representante", body, "password_setup", body_html)
 
 
+def notify_password_reset(to: str, full_name: str, link: str) -> bool:
+    """Recuperacion de contraseña. Mismo enlace de un solo uso y 72 h; nunca una clave."""
+    body = (
+        f"Hola {full_name}:\n\n"
+        f"Recibimos una solicitud para restablecer su contraseña en {EVENT_NAME}.\n"
+        "Use este enlace, valido por 72 horas y de un solo uso:\n\n"
+        f"{link}\n\n"
+        "Si usted no lo solicito, ignore este mensaje: su contraseña no cambia.\n\n"
+        f"{FOOTER_NOTE}\n"
+    )
+    name = html.escape(full_name)
+    body_html = _layout(
+        "Restablezca su contraseña",
+        [
+            _p(f"Hola <strong>{name}</strong>:"),
+            _p(f"Recibimos una solicitud para restablecer su contraseña en {EVENT_NAME}."),
+            _button("Restablecer mi contraseña", link),
+            _p(
+                '<span style="color:#6b7280;font-size:13px">El enlace es de un solo uso y '
+                "caduca en 72 horas. Si no funciona, copie esta dirección en su navegador:<br>"
+                f'<span style="word-break:break-all">{html.escape(link)}</span></span>'
+            ),
+            _p(
+                '<span style="color:#6b7280;font-size:13px">Si usted no solicitó el cambio, '
+                "ignore este mensaje: su contraseña no cambia.</span>"
+            ),
+        ],
+    )
+    return _try_send(to, "Restablezca su contraseña", body, "password_reset", body_html)
+
+
 def notify_credential(to: str, full_name: str, exhibitor_name: str, category: str) -> bool:
     """Correo 2: credencial asignada. Solo se envia si el participante tiene correo."""
     body = (

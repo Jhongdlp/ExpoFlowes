@@ -6,6 +6,7 @@ import { OfflinePage } from '../components/OfflinePage'
 import { BulkUploadPage } from '../features/bulk-upload/BulkUploadPage'
 import { CredentialPrintPage } from '../features/participants/CredentialPrintPage'
 import { DocumentationPage } from '../features/docs/DocumentationPage'
+import { ForgotPasswordPage } from '../features/auth/ForgotPasswordPage'
 import { HomeRedirect, RequireRole } from '../features/auth/guards'
 import { LoginPage } from '../features/auth/LoginPage'
 import { SetPasswordPage } from '../features/auth/SetPasswordPage'
@@ -29,6 +30,7 @@ export function AppRoutes() {
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/establecer-clave" element={<SetPasswordPage />} />
+      <Route path="/recuperar-clave" element={<ForgotPasswordPage />} />
       <Route
         path="/documentacion"
         element={

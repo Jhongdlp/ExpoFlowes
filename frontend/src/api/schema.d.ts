@@ -81,6 +81,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/auth/forgot-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Forgot Password
+         * @description Publico y rate-limited (`request` lo exige slowapi). Responde lo mismo exista o no
+         *     el correo; el enlace de un solo uso viaja a la direccion que ya fijo el admin.
+         */
+        post: operations["forgot_password_api_v1_auth_forgot_password_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/me": {
         parameters: {
             query?: never;
@@ -186,7 +207,7 @@ export interface paths {
          *
          *     Llega ya reescalada y codificada por el navegador: no hay almacenamiento de ficheros
          *     en el sistema, y una imagen de 90 mm de ancho cabe de sobra en la fila del expositor.
-         * El tope de tamaño y el tipo los impone el esquema.
+         *     El tope de tamaño y el tipo los impone el esquema.
          */
         put: operations["set_badge_art_api_v1_me_badge_art_put"];
         post?: never;
@@ -250,7 +271,7 @@ export interface paths {
         /**
          * Bulk Upload
          * @description Un solo endpoint para preview y confirmacion: con `dry_run=true` recorre exactamente
-         * el mismo codigo de validacion y no inserta nada.
+         *     el mismo codigo de validacion y no inserta nada.
          */
         post: operations["bulk_upload_api_v1_me_participants_bulk_post"];
         delete?: never;
@@ -382,7 +403,7 @@ export interface paths {
          *
          *     Reusa `quota_view`, la MISMA funcion que deriva la cuota de un expositor real: si divergiera
          *     de ella, el simulador mentiria. Un metraje fuera de todo rango devuelve 422
-         * STAND_SIZE_OUT_OF_RANGE con los rangos vigentes en `details`, que es exactamente lo
+         *     STAND_SIZE_OUT_OF_RANGE con los rangos vigentes en `details`, que es exactamente lo
          *     que el alta de expositor responde.
          */
         get: operations["simulate_quota_api_v1_rules_quota_get"];
@@ -1072,6 +1093,41 @@ export interface operations {
         };
     };
     request_password_setup_api_v1_auth_request_password_setup_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PasswordSetupRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: string;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    forgot_password_api_v1_auth_forgot_password_post: {
         parameters: {
             query?: never;
             header?: never;

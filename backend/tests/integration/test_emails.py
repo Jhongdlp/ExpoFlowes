@@ -94,6 +94,30 @@ def test_unknown_email_sends_nothing_and_looks_the_same(
     assert outbox == []
 
 
+def test_forgot_password_emails_the_reset_link(
+    client: TestClient, rep_a: User, outbox: list[Mail]
+) -> None:
+    """Endpoint publico: sin token de admin. Reenvia el enlace de un solo uso."""
+    response = client.post("/api/v1/auth/forgot-password", json={"email": rep_a.email})
+
+    assert response.status_code == 202
+    assert len(outbox) == 1
+    to, _, body = outbox[0]
+    assert to == rep_a.email
+    assert "/establecer-clave?token=" in body
+
+
+def test_forgot_password_unknown_email_looks_the_same(
+    client: TestClient, rep_a: User, outbox: list[Mail]
+) -> None:
+    known = client.post("/api/v1/auth/forgot-password", json={"email": rep_a.email})
+    unknown = client.post("/api/v1/auth/forgot-password", json={"email": "nadie@example.com"})
+
+    assert known.status_code == unknown.status_code == 202
+    assert known.json() == unknown.json()
+    assert {mail[0] for mail in outbox} == {rep_a.email}
+
+
 def test_participant_with_email_is_notified(
     client: TestClient, db: Session, rep_a: User, outbox: list[Mail]
 ) -> None:

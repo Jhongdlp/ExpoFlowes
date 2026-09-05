@@ -84,6 +84,22 @@ def request_password_setup(db: Session, event_id: int, email: str) -> None:
     mailer.notify_password_setup(user.email, user.email, setup_password_link(token))
 
 
+def initiate_password_recovery(db: Session, email: str) -> None:
+    """Recuperacion self-service. Responde igual exista o no el correo; el detalle solo
+    va al log. El correo de destino no es dato que el usuario elige: lo fijo el admin al
+    crear la cuenta y a esa misma direccion ya se envio el enlace de activacion, asi que
+    reenviar ahi no abre superficie nueva."""
+    event = get_active_event(db)
+    user = UserRepository(db, event.id).get_by_email(email)
+    if user is None or not user.is_active:
+        logger.info("password_recovery_requested_for_unknown_email")
+        return
+
+    token = issue_password_setup_token(db, user)
+    db.commit()
+    mailer.notify_password_reset(user.email, user.email, setup_password_link(token))
+
+
 def consume_password_setup_token(db: Session, token: str, new_password: str) -> User:
     """Un solo uso y 72 h. Consumirlo marca `used_at` en la misma transaccion."""
     now = datetime.now(UTC)

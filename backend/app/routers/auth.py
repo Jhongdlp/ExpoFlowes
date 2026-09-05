@@ -45,6 +45,20 @@ def request_password_setup(
     return {"message": "Si el correo corresponde a un representante, se envio el enlace."}
 
 
+@router.post("/forgot-password", status_code=status.HTTP_202_ACCEPTED)
+@limiter.limit(login_rate_limit)
+def forgot_password(
+    request: Request, payload: PasswordSetupRequest, db: DbSession
+) -> dict[str, str]:
+    """Publico y rate-limited (`request` lo exige slowapi). Responde lo mismo exista o no
+    el correo; el enlace de un solo uso viaja a la direccion que ya fijo el admin."""
+    auth_service.initiate_password_recovery(db, str(payload.email))
+    return {
+        "message": "Si el correo corresponde a una cuenta, enviamos un enlace para "
+        "restablecer la contraseña."
+    }
+
+
 @router.get("/me", response_model=MeResponse)
 def me(auth: CurrentUser, db: DbSession) -> MeResponse:
     user = UserRepository(db, auth.event_id).get(auth.user_id)

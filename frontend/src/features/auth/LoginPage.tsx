@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { z } from 'zod'
 
 import { ApiError } from '../../api/client'
@@ -151,6 +151,15 @@ export function LoginPage() {
                 : (lang === 'en' ? 'Sign in' : 'Entrar')}
             </Button>
           </form>
+
+          <div className="mt-4 text-center">
+            <Link
+              to="/recuperar-clave"
+              className="text-[12px] text-ink-soft underline underline-offset-2"
+            >
+              {lang === 'en' ? 'Forgot your password?' : '¿Olvidaste tu contraseña?'}
+            </Link>
+          </div>
 
           <div className="mt-8 border-t border-line pt-4">
             <p className="label-caps">
