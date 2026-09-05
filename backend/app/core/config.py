@@ -17,10 +17,12 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
 
     seed_admin_email: str = "admin@expoflores.demo"
-    seed_admin_password: str = "Admin123!"
+    # Clave trivial a proposito: es de demostracion, esta publicada en el README y en la
+    # pantalla de login, y en cualquier entorno real se sobrescribe por variable de entorno.
+    seed_admin_password: str = "admin"
     # Solo el representante de la primera empresa del seed nace con clave, para que el
     # demo se pueda probar con los dos roles. El resto la establece con su token.
-    seed_rep_password: str = "Demo1234!"
+    seed_rep_password: str = "admin"
 
     smtp_host: str = ""
     smtp_port: int = 2525

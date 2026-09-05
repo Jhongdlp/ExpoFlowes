@@ -11,8 +11,8 @@
 >
 > | Rol | Correo | Contraseña |
 > |---|---|---|
-> | Organización de la feria | `admin@expoflores.demo` | `Admin123!` |
-> | Representante de stand | `mariana.cevallos@rosascotopaxi.demo` | `Demo1234!` |
+> | Organización de la feria | `admin@expoflores.demo` | `admin` |
+> | Representante de stand | `mariana.cevallos@rosascotopaxi.demo` | `admin` |
 >
 > Las dos cuentas están también en la propia pantalla de login, a un clic. Cada push a `main`
 > que pasa la CI se despliega ahí solo ([cómo](#despliegue-cicd-en-un-vps-con-dokploy)).
@@ -185,8 +185,12 @@ en la propia pantalla de login con un botón que las rellena.
 
 | Rol | Correo | Contraseña |
 |---|---|---|
-| Administrador de la feria | `admin@expoflores.demo` | `Admin123!` |
-| Representante de stand | `mariana.cevallos@rosascotopaxi.demo` | `Demo1234!` |
+| Administrador de la feria | `admin@expoflores.demo` | `admin` |
+| Representante de stand | `mariana.cevallos@rosascotopaxi.demo` | `admin` |
+
+La clave es trivial a propósito: estas dos cuentas son de demostración y están publicadas aquí
+y en la pantalla de login. Salen de `SEED_ADMIN_PASSWORD` y `SEED_REP_PASSWORD`, así que un
+entorno real las sobrescribe por variable de entorno; no hay ninguna contraseña en el código.
 
 Los otros dos representantes del seed **nacen sin contraseña**, como cualquier representante
 recién creado: para entrar necesitan el enlace de un solo uso que el sistema envía por correo

@@ -8,8 +8,8 @@ const BASE = process.argv[2] ?? 'http://localhost:5174'
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const OUT = path.join(ROOT, 'docs/capturas')
 
-const ADMIN = ['admin@expoflores.demo', 'Admin123!']
-const REP = ['mariana.cevallos@rosascotopaxi.demo', 'Demo1234!']
+const ADMIN = ['admin@expoflores.demo', 'admin']
+const REP = ['mariana.cevallos@rosascotopaxi.demo', 'admin']
 
 const DESKTOP = { width: 1440, height: 900 }
 const MOBILE = { width: 390, height: 844 }
