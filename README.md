@@ -127,24 +127,54 @@ docker compose exec backend alembic upgrade head
 docker compose exec backend python -m app.seed
 ```
 
-Para **correr el proyecto no hace falta nada de esto**: `docker compose up` ya compila el
-frontend y lo sirve con nginx en <http://localhost:5173>. El bloque de abajo es solo para
-desarrollar el frontend con recarga en caliente.
+### Desarrollo con recarga en caliente (paso a paso)
 
-### Frontend con recarga en caliente (opcional, solo para desarrollo)
+Para *ver* el proyecto no hace falta esto: `docker compose up` ya sirve el frontend en
+<http://localhost:5173>. Este flujo es para **desarrollar el frontend** con hot reload,
+apuntando al backend que corre en Docker.
 
 El gestor de paquetes es **npm** (hay `package-lock.json`; el Dockerfile y la CI usan
-`npm ci`). No se usa pnpm ni yarn.
+`npm ci`). No se usa pnpm ni yarn — instalar con otro gestor genera un lockfile que choca.
 
-```bash
-docker compose up -d db backend        # base y API en Docker
-cd frontend
-npm install
-npm run dev                            # Vite en http://localhost:5173, proxy de /api al backend
-```
+1. **Levantar base y API en Docker** (desde la raíz del repo):
 
-Si dejó el stack completo levantado, el puerto 5173 estará ocupado por el contenedor del
-frontend y Vite arrancará en el 5174.
+   ```bash
+   docker compose up -d db backend
+   ```
+
+   Añada `--build` solo si tocó el backend o su `Dockerfile`. La primera vez tarda; después
+   arranca en segundos. El contenedor aplica migraciones y seed al arrancar.
+
+2. **Comprobar que la API responde** antes de seguir:
+
+   ```bash
+   curl -s localhost:8000/api/v1/health      # -> {"status":"ok","database":"ok"}
+   ```
+
+   Si no responde, mire `docker compose logs backend` y `docker compose ps`.
+
+3. **Arrancar el frontend** en otra terminal:
+
+   ```bash
+   cd frontend
+   npm install        # solo la primera vez, o cuando cambie package.json
+   npm run dev
+   ```
+
+   Vite abre en <http://localhost:5173> y hace de proxy de `/api` hacia el backend del
+   paso 1. El error «no puede conectar al servidor» significa que el paso 1 no está arriba.
+
+**Día a día** (ya construido todo una vez): `docker compose up -d db backend` y luego
+`cd frontend && npm run dev`.
+
+**Detener:** `docker compose down` — los datos sobreviven en el volumen `pgdata`; el
+siguiente `up` reusa la misma base. Para empezar de cero, `docker compose down -v`.
+
+**Notas:**
+- Si dejó el stack completo (`docker compose up -d` sin servicios) levantado, el puerto
+  5173 lo ocupa el contenedor del frontend y Vite arrancará en el **5174**.
+- Docker no arranca solo al encender el equipo. Para que lo haga: `sudo systemctl enable
+  --now docker`. Si no, `sudo systemctl start docker` antes del paso 1.
 
 ---
 
