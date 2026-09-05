@@ -3,7 +3,7 @@
 Sin imports de sqlalchemy, fastapi ni pydantic. Recibe las reglas como parametro, nunca las
 lee: quien las lee es el servicio (F4). Asi se prueba entero sin base de datos.
 
-Es la pieza del punto extra E3 (CLAUDE.md §1.1): ni un solo numero de negocio vive aqui.
+Es la pieza del punto extra E3: ni un solo numero de negocio vive aqui.
 Rangos, bloques, credenciales por bloque y criterio de redondeo llegan en las reglas.
 """
 
@@ -33,7 +33,7 @@ class CredentialRule(Protocol):
 def classify_stand(m2: int, rules: Sequence[StandSizeRule]) -> StandSizeRule:
     """Devuelve la regla de tamaño cuyo rango contiene el metraje.
 
-    Un metraje que no cae en ningun rango se rechaza (§6.2): clasificarlo por defecto crearia
+    Un metraje que no cae en ningun rango se rechaza: clasificarlo por defecto crearia
     datos mal categorizados en silencio, y de esa columna cuelga el calculo de credenciales.
     """
     match = next((r for r in rules if m2 in range(r.min_m2, r.max_m2 + 1)), None)

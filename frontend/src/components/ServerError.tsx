@@ -5,7 +5,7 @@ import { Notice } from './ui/Notice'
 /**
  * Traduce un error del backend a un bloque visible. La UI decide por `code` y usa `details`
  * para dar el dato concreto; ningun rango ni cuota se escribe aqui, todos vienen del
- * servidor (§13, y la mitigacion del riesgo de F9: el cliente no duplica reglas).
+ * servidor (y la mitigacion del riesgo de F9: el cliente no duplica reglas).
  */
 
 interface Range {

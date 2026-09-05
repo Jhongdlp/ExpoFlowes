@@ -4,9 +4,9 @@ Dos reglas que este modulo existe para garantizar:
 
 1. **Nunca aborta una operacion de negocio.** Las funciones `notify_*` capturan cualquier
    fallo, lo registran y devuelven `False`. Un timeout de SMTP no puede tumbar el alta de un
-   expositor (§9.2, test E1b).
+   expositor (test E1b).
 2. **Nunca viaja una contraseña.** Al representante se le manda un enlace de un solo uso con
-   72 h de vida, jamas una clave (§0.5, §6.5).
+   72 h de vida, jamas una clave.
 
 Sin `SMTP_HOST` configurado el correo se escribe en el log estructurado en vez de enviarse.
 El enunciado admite expresamente el correo simulado, asi que el demo funciona sin Mailtrap.
@@ -76,7 +76,7 @@ def _try_send(to: str, subject: str, body: str, kind: str, body_html: str | None
     try:
         send(to, subject, body, body_html)
     except Exception:
-        # El fallo se registra y se sigue: la transaccion de negocio ya esta confirmada (§9.2).
+        # El fallo se registra y se sigue: la transaccion de negocio ya esta confirmada.
         logger.exception("mail_failed kind=%s", kind)
         return False
     logger.info("mail_sent kind=%s", kind)
@@ -170,7 +170,7 @@ def notify_password_setup(to: str, full_name: str, link: str) -> bool:
 
 
 def notify_credential(to: str, full_name: str, exhibitor_name: str, category: str) -> bool:
-    """Correo 2: credencial asignada. Solo se envia si el participante tiene correo (§6.8)."""
+    """Correo 2: credencial asignada. Solo se envia si el participante tiene correo."""
     body = (
         f"Hola {full_name}:\n\n"
         f"{exhibitor_name} le asigno una credencial para {EVENT_NAME}.\n\n"

@@ -1,7 +1,7 @@
 """Agregados de los dos dashboards.
 
 Ninguna cifra de este modulo se lee de una columna: cuota y disponibilidad se derivan del
-metraje y de las reglas vigentes en cada peticion (§6.4).
+metraje y de las reglas vigentes en cada peticion.
 """
 
 from datetime import date
@@ -49,7 +49,7 @@ class CategoryTotals(BaseModel):
 
 
 class StandCategoryCount(BaseModel):
-    """Cuantos stands caen en cada rango. La categoria es informativa (§6.7)."""
+    """Cuantos stands caen en cada rango. La categoria es informativa."""
 
     label: str
     min_m2: int
@@ -78,7 +78,7 @@ class AdminDashboard(BaseModel):
 
 
 class MyQuota(BaseModel):
-    """Cupo del stand propio, desglosado por categoria (§4)."""
+    """Cupo del stand propio, desglosado por categoria."""
 
     # Rotulo del evento en la credencial impresa; el aislamiento sigue siendo por event_id.
     event_name: str
@@ -93,5 +93,5 @@ class MyQuota(BaseModel):
     assigned: dict[str, int]
     available: dict[str, int]
     participants_total: int
-    # Sin correo no hay notificacion de credencial, pero el alta es valida (§6.8).
+    # Sin correo no hay notificacion de credencial, pero el alta es valida.
     participants_without_email: int

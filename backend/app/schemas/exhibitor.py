@@ -27,7 +27,7 @@ class ExhibitorCreate(BaseModel):
     requested_m2: int = Field(gt=0)
     banner_url: str | None = None
     representative: RepresentativeIn
-    # Minimo un contacto adicional (§5.3). El maximo no existe.
+    # Minimo un contacto adicional. El maximo no existe.
     contacts: list[ContactIn] = Field(min_length=1)
 
 
@@ -63,7 +63,7 @@ class RepresentativeRead(BaseModel):
 
 
 class ExhibitorRead(BaseModel):
-    """Fila de listado. `stand_category` y `quota` son DERIVADAS: no hay columna (§6.4, §6.7)."""
+    """Fila de listado. `stand_category` y `quota` son DERIVADAS: no hay columna."""
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -84,6 +84,6 @@ class ExhibitorRead(BaseModel):
 class ExhibitorDetail(ExhibitorRead):
     representative: RepresentativeRead
     contacts: list[ContactRead]
-    # Solo en el demo con EXPOSE_SETUP_LINK=true (§15). En produccion siempre es null: el
+    # Solo en el demo con EXPOSE_SETUP_LINK=true. En produccion siempre es null: el
     # enlace viaja unicamente por correo.
     password_setup_link: str | None = None

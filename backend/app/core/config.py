@@ -4,7 +4,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    """Configuracion por entorno. Ningun secreto tiene valor literal aqui (CLAUDE.md §8.6)."""
+    """Configuracion por entorno. Ningun secreto tiene valor literal aqui."""
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     seed_admin_email: str = "admin@expoflores.demo"
     seed_admin_password: str = "Admin123!"
     # Solo el representante de la primera empresa del seed nace con clave, para que el
-    # demo se pueda probar con los dos roles. El resto la establece con su token (§6.5).
+    # demo se pueda probar con los dos roles. El resto la establece con su token.
     seed_rep_password: str = "Demo1234!"
 
     smtp_host: str = ""
@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     smtp_user: str = ""
     smtp_password: str = ""
     mail_from: str = "no-reply@expoflores.demo"
-    # Fallback de demo (§15): expone el enlace de set-password en la respuesta del alta para
+    # Fallback de demo: expone el enlace de set-password en la respuesta del alta para
     # poder activar cuentas sin inbox. Falso en produccion.
     expose_setup_link: bool = False
 

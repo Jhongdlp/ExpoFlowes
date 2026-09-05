@@ -120,7 +120,7 @@ function ExpandIcon({ open }: { open: boolean }) {
   )
 }
 
-/** Aviso permanente del demo (§14.5). Vive en el marco negro, nunca se cierra. */
+/** Aviso permanente del demo. Vive en el marco negro, nunca se cierra. */
 export function DemoBanner() {
   const { t } = useTranslation()
   return (

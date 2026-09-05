@@ -14,7 +14,7 @@ export const HOME_BY_ROLE: Record<Role, string> = {
 
 /**
  * Guarda por rol. Un token caducado no deja pantalla en blanco: la sesion ya se limpio y
- * aqui se redirige al login recordando a donde iba el usuario (§13).
+ * aqui se redirige al login recordando a donde iba el usuario.
  */
 function Unreachable() {
   return (

@@ -1,4 +1,4 @@
-"""Seed idempotente (CLAUDE.md §7.3): upsert por clave natural.
+"""Seed idempotente: upsert por clave natural.
 
 Correrlo dos veces no falla ni duplica. Todos los datos son ficticios; las identificaciones
 son validas por algoritmo pero generadas, no pertenecen a ninguna persona real.
@@ -50,14 +50,14 @@ EVENT = {
     "ends_on": date(2026, 10, 9),
 }
 
-# §5.1 - rangos de metraje, inclusivos en ambos extremos
+# Rangos de metraje, inclusivos en ambos extremos
 STAND_SIZE_RULES = [
     {"label": "Pequeño", "min_m2": 5, "max_m2": 12},
     {"label": "Mediano", "min_m2": 13, "max_m2": 30},
     {"label": "Grande", "min_m2": 31, "max_m2": 50},
 ]
 
-# §5.2 - cuotas por bloque de metraje
+# Cuotas por bloque de metraje
 CREDENTIAL_RULES = [
     {"category": "Exhibitor", "credentials_per_block": 2, "block_m2": 5, "rounding_mode": "floor"},
     {"category": "Guest", "credentials_per_block": 2, "block_m2": 10, "rounding_mode": "floor"},
@@ -112,7 +112,7 @@ EXHIBITORS: list[dict[str, Any]] = [
         "contacts": [
             {"name": "Karla Mena", "phone": "0992000002", "email": "karla@floresdelvalle.demo"},
         ],
-        # Stand de 8 m2: cuota Exhibitor 2, Guest 0, Service 0 (consecuencia de floor, §5.2)
+        # Stand de 8 m2: cuota Exhibitor 2, Guest 0, Service 0 (consecuencia de floor)
         "participants": [
             ("Karla", "Mena", "1800000042", "Exhibitor", None, "karla@floresdelvalle.demo"),
             ("Ivan", "Puma", "1100000056", "Exhibitor", None, None),
@@ -207,7 +207,7 @@ def seed(db: Session) -> None:
         )
 
         # El usuario del representante nace sin password_hash: establece su clave con el
-        # token de un solo uso (§6.5). La unica excepcion es la cuenta de demostracion, y su
+        # token de un solo uso. La unica excepcion es la cuenta de demostracion, y su
         # clave se reescribe solo si el seed la declara: re-sembrar no pisa claves reales.
         user_values: dict[str, Any] = {
             "role": "representative",

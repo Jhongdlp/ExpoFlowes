@@ -1,4 +1,4 @@
-"""Esquema unico de participante (CLAUDE.md §8.4).
+"""Esquema unico de participante.
 
 La carga masiva de F11 valida cada fila del Excel con ESTE mismo esquema: un solo sitio donde
 cambiar las reglas de forma del dato, y el alta manual y la masiva no pueden divergir.
@@ -14,7 +14,7 @@ IdentificationType = Literal["CEDULA", "RUC", "PASSPORT", "FOREIGN_ID"]
 
 
 def check_provider_company(category: str | None, provider_company: str | None) -> None:
-    """Campo condicional (§5.3): obligatorio si y solo si la categoria es Service.
+    """Campo condicional: obligatorio si y solo si la categoria es Service.
 
     El mismo invariante vive como CHECK en la base; esta es la capa que da el mensaje.
     """
@@ -33,7 +33,7 @@ class ParticipantIn(BaseModel):
     position: str = Field(min_length=1, max_length=80)
     category: Category
     provider_company: str | None = Field(default=None, max_length=200)
-    # Opcional (§6.8): sin correo no hay notificacion, pero el alta no falla.
+    # Opcional: sin correo no hay notificacion, pero el alta no falla.
     email: EmailStr | None = None
 
     @model_validator(mode="after")
@@ -83,7 +83,7 @@ class ParticipantWithExhibitor(ParticipantRead):
 
 
 class BulkUploadReport(BaseModel):
-    """Informe de la carga masiva. Con `dry_run` es identico salvo `inserted` (§11)."""
+    """Informe de la carga masiva. Con `dry_run` es identico salvo `inserted`."""
 
     total_rows: int
     valid_rows: int

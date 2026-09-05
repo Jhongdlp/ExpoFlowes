@@ -1,4 +1,4 @@
-"""Capa 1 de la validacion de dos capas (CLAUDE.md §9.1): lo que garantiza la base.
+"""Capa 1 de la validacion de dos capas: lo que garantiza la base.
 
 La capa 2 (servicio, con el mensaje amigable) llega en F5. Aqui se prueba que aunque el
 servicio fallara, la base no deja pasar el dato malo.
@@ -63,7 +63,7 @@ def make_participant(
 
 
 def test_same_identification_twice_in_one_event_is_rejected(db: Session) -> None:
-    """§5.4: una persona no puede estar en dos empresas del mismo evento."""
+    """: una persona no puede estar en dos empresas del mismo evento."""
     event = make_event(db, "feria-2026")
     a = make_exhibitor(db, event, "1791234561001")
     b = make_exhibitor(db, event, "0992345675001")
@@ -74,7 +74,7 @@ def test_same_identification_twice_in_one_event_is_rejected(db: Session) -> None
 
 
 def test_same_identification_in_two_events_is_allowed(db: Session) -> None:
-    """§6.6: las ferias son ediciones independientes; la restriccion es por evento."""
+    """: las ferias son ediciones independientes; la restriccion es por evento."""
     e2026 = make_event(db, "feria-2026")
     e2027 = make_event(db, "feria-2027")
     a = make_exhibitor(db, e2026, "1791234561001")
@@ -116,7 +116,7 @@ def test_duplicate_tax_id_in_same_event_is_rejected(db: Session) -> None:
 
 
 def test_soft_deleted_exhibitor_frees_its_tax_id(db: Session) -> None:
-    """El indice unico es parcial: solo aplica a los expositores vivos (§7.2)."""
+    """El indice unico es parcial: solo aplica a los expositores vivos."""
     event = make_event(db, "feria-2026")
     make_exhibitor(db, event, "1791234561001", deleted_at=datetime.now(UTC))
 

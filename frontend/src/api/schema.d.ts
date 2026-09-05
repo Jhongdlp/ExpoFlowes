@@ -13,7 +13,7 @@ export interface paths {
         };
         /**
          * Health
-         * @description Verifica conectividad real con la base, no solo que el proceso viva (§9.5).
+         * @description Verifica conectividad real con la base, no solo que el proceso viva.
          */
         get: operations["health_api_v1_health_get"];
         put?: never;
@@ -72,7 +72,7 @@ export interface paths {
         put?: never;
         /**
          * Request Password Setup
-         * @description Responde lo mismo exista o no el correo (§8.12). El evento sale del token del admin.
+         * @description Responde lo mismo exista o no el correo. El evento sale del token del admin.
          */
         post: operations["request_password_setup_api_v1_auth_request_password_setup_post"];
         delete?: never;
@@ -186,7 +186,7 @@ export interface paths {
          *
          *     Llega ya reescalada y codificada por el navegador: no hay almacenamiento de ficheros
          *     en el sistema, y una imagen de 90 mm de ancho cabe de sobra en la fila del expositor.
-         *     El tope de tamaño y el tipo los impone el esquema (§8.4, §8.10).
+         * El tope de tamaño y el tipo los impone el esquema.
          */
         put: operations["set_badge_art_api_v1_me_badge_art_put"];
         post?: never;
@@ -227,7 +227,7 @@ export interface paths {
         };
         /**
          * Participants Template Xlsx
-         * @description Plantilla generada desde el MISMO diccionario de columnas que valida la carga (§13).
+         * @description Plantilla generada desde el MISMO diccionario de columnas que valida la carga.
          */
         get: operations["participants_template_xlsx_api_v1_me_participants_template_xlsx_get"];
         put?: never;
@@ -250,7 +250,7 @@ export interface paths {
         /**
          * Bulk Upload
          * @description Un solo endpoint para preview y confirmacion: con `dry_run=true` recorre exactamente
-         *     el mismo codigo de validacion y no inserta nada (§11).
+         * el mismo codigo de validacion y no inserta nada.
          */
         post: operations["bulk_upload_api_v1_me_participants_bulk_post"];
         delete?: never;
@@ -382,7 +382,7 @@ export interface paths {
          *
          *     Reusa `quota_view`, la MISMA funcion que deriva la cuota de un expositor real: si divergiera
          *     de ella, el simulador mentiria. Un metraje fuera de todo rango devuelve 422
-         *     STAND_SIZE_OUT_OF_RANGE con los rangos vigentes en `details` (§6.2), que es exactamente lo
+         * STAND_SIZE_OUT_OF_RANGE con los rangos vigentes en `details`, que es exactamente lo
          *     que el alta de expositor responde.
          */
         get: operations["simulate_quota_api_v1_rules_quota_get"];
@@ -449,7 +449,7 @@ export interface components {
         };
         /**
          * BulkUploadReport
-         * @description Informe de la carga masiva. Con `dry_run` es identico salvo `inserted` (§11).
+         * @description Informe de la carga masiva. Con `dry_run` es identico salvo `inserted`.
          */
         BulkUploadReport: {
             /** Total Rows */
@@ -587,7 +587,7 @@ export interface components {
         };
         /**
          * ExhibitorRead
-         * @description Fila de listado. `stand_category` y `quota` son DERIVADAS: no hay columna (§6.4, §6.7).
+         * @description Fila de listado. `stand_category` y `quota` son DERIVADAS: no hay columna.
          */
         ExhibitorRead: {
             /** Id */
@@ -673,7 +673,7 @@ export interface components {
         };
         /**
          * MyQuota
-         * @description Cupo del stand propio, desglosado por categoria (§4).
+         * @description Cupo del stand propio, desglosado por categoria.
          */
         MyQuota: {
             /** Event Name */
@@ -932,7 +932,7 @@ export interface components {
         };
         /**
          * StandCategoryCount
-         * @description Cuantos stands caen en cada rango. La categoria es informativa (§6.7).
+         * @description Cuantos stands caen en cada rango. La categoria es informativa.
          */
         StandCategoryCount: {
             /** Label */

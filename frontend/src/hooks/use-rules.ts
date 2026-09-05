@@ -4,7 +4,7 @@ import { api } from '../api/client'
 import type { CredentialRule, StandSizeRule } from '../api/types'
 
 /**
- * Reglas parametrizadas, leidas del servidor (§7.1.3 / punto extra E3).
+ * Reglas parametrizadas, leidas del servidor (/ punto extra E3).
  *
  * Ninguna pantalla escribe un numero de negocio: los rangos, los bloques y las credenciales
  * por bloque llegan de `credential_rules` y `stand_size_rules`. Si el organizador corre el

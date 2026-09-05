@@ -20,7 +20,7 @@ const PAGE_SIZE = 100
 
 /**
  * El valor de la URL es texto que el usuario ve y comparte, asi que va en español; la clase
- * CSS es codigo y va en ingles (§16). Este mapa es la unica costura entre los dos, y de
+ * CSS es codigo y va en ingles. Este mapa es la unica costura entre los dos, y de
  * paso valida: cualquier `estilo` que alguien invente a mano cae en la variante por
  * defecto en vez de dejar la tarjeta sin estilo.
  */
@@ -28,7 +28,7 @@ const BADGE_STYLES = { banda: 'band', limpio: 'plain', foto: 'photo' } as const
 
 type BadgeStyleKey = keyof typeof BADGE_STYLES
 
-/** Todas las credenciales del stand. El listado pagina de 100 en 100 (§9.5). */
+/** Todas las credenciales del stand. El listado pagina de 100 en 100. */
 async function fetchAllParticipants(): Promise<Participant[]> {
   const all: Participant[] = []
   for (let page = 1; ; page += 1) {

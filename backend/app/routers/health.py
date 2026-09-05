@@ -12,7 +12,7 @@ router = APIRouter(tags=["health"])
 
 @router.get("/health")
 def health(db: Annotated[Session, Depends(get_db)]) -> Any:
-    """Verifica conectividad real con la base, no solo que el proceso viva (§9.5)."""
+    """Verifica conectividad real con la base, no solo que el proceso viva."""
     try:
         db.execute(text("SELECT 1"))
     except Exception:

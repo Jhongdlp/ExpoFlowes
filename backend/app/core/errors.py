@@ -1,6 +1,6 @@
-"""Traduccion de excepciones al formato unico {code, message, details} (CLAUDE.md §9.4).
+"""Traduccion de excepciones al formato unico {code, message, details}.
 
-Ningun stack trace ni detalle interno sale hacia el cliente (§8.9): el detalle va al log.
+Ningun stack trace ni detalle interno sale hacia el cliente: el detalle va al log.
 """
 
 import logging

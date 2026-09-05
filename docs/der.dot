@@ -121,9 +121,9 @@ digraph DER {
     <table border="0" cellspacing="0" cellpadding="2">
       <tr><td align="left"><b>No existen</b> columnas de cuota ni de categoria de stand:</td></tr>
       <tr><td align="left">ambas son derivadas del metraje y de las tablas de reglas</td></tr>
-      <tr><td align="left">(CLAUDE.md §6.4, §6.7).</td></tr>
+      <tr><td align="left">vigentes (decisiones 4 y 7 del documento de decisiones).</td></tr>
       <tr><td align="left"> </td></tr>
       <tr><td align="left"><b>event_id en toda tabla operativa</b>: el aislamiento entre</td></tr>
-      <tr><td align="left">ferias es requisito, no adorno (§7.1).</td></tr>
+      <tr><td align="left">ferias es requisito, no adorno.</td></tr>
     </table>>];
 }

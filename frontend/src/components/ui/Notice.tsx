@@ -20,7 +20,7 @@ interface Props {
   title: string
   tone?: Tone
   children?: ReactNode
-  /** Persistente: solo se cierra si el usuario lo cierra (§13, error de duplicado). */
+  /** Persistente: solo se cierra si el usuario lo cierra (error de duplicado). */
   onDismiss?: () => void
   className?: string
 }

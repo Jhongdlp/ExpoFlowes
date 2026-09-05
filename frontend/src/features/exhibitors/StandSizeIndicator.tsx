@@ -6,7 +6,7 @@ interface Props {
   m2: number
 }
 
-/** floor|ceil|round sobre bloques, igual que el motor de reglas del backend (§6.1). */
+/** floor|ceil|round sobre bloques, igual que el motor de reglas del backend. */
 function blocksFor(m2: number, blockM2: number, mode: string): number {
   if (mode === 'ceil') return Math.ceil(m2 / blockM2)
   if (mode === 'round') return Math.round(m2 / blockM2)

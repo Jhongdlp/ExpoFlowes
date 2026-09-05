@@ -1,6 +1,6 @@
 """Alta y mantenimiento de expositores (corte vertical F4).
 
-Trazabilidad CLAUDE.md §12.2: R2, R12, R13, R16, R18.
+Trazabilidad: R2, R12, R13, R16, R18.
 Todas las identificaciones son ficticias, validas por algoritmo.
 """
 
@@ -51,7 +51,7 @@ def test_create_exhibitor_creates_user(client: TestClient, db: Session, admin_us
     assert user.role == "representative"
     assert user.exhibitor_id == body["id"]
     assert user.event_id == admin_user.event_id
-    # Nace sin clave: la establece con el token de un solo uso (§6.5).
+    # Nace sin clave: la establece con el token de un solo uso.
     assert user.password_hash is None
 
     token = db.execute(

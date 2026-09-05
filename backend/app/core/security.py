@@ -1,4 +1,4 @@
-"""Autenticacion: hashing, JWT y el contexto de autorizacion (CLAUDE.md §8.1.1).
+"""Autenticacion: hashing, JWT y el contexto de autorizacion.
 
 Regla rectora: `event_id` y `exhibitor_id` salen SIEMPRE del token, nunca de la URL, la query
 ni el body. Las dependencias de este modulo son el unico sitio del sistema que los produce.
@@ -21,7 +21,7 @@ ALGORITHM = "HS256"
 _pwd = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # Hash de descarte: se verifica contra el cuando el usuario no existe o no tiene clave, para
-# que el login tarde lo mismo en los tres casos y no filtre por tiempo (§8.8).
+# que el login tarde lo mismo en los tres casos y no filtre por tiempo.
 _DUMMY_HASH = _pwd.hash("tiempo-constante-no-es-una-clave-real")
 
 _bearer = HTTPBearer(auto_error=False)
@@ -34,7 +34,7 @@ def hash_password(plain: str) -> str:
 
 
 def verify_password(plain: str, hashed: str | None) -> bool:
-    """Un usuario sin `password_hash` (aun no establecio clave) nunca autentica (§6.5)."""
+    """Un usuario sin `password_hash` (aun no establecio clave) nunca autentica."""
     if not hashed:
         _pwd.verify(plain, _DUMMY_HASH)  # gasta el mismo tiempo que una verificacion real
         return False

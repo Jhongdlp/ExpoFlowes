@@ -55,7 +55,7 @@ export function LoginPage() {
       await signIn(values.email, values.password)
       navigate('/', { replace: true })
     } catch (error) {
-      // El backend responde lo mismo exista o no el correo (§8.8); la UI no añade pistas.
+      // El backend responde lo mismo exista o no el correo; la UI no añade pistas.
       setFailure(
         error instanceof ApiError
           ? error.message

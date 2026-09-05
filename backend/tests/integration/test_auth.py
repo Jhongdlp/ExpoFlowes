@@ -1,4 +1,4 @@
-"""Login, token de un solo uso y rate limit. Trazabilidad: R15, §8.7, §8.11, §8.12."""
+"""Login, token de un solo uso y rate limit. Trazabilidad: R15,,,"""
 
 from datetime import UTC, datetime, timedelta
 
@@ -65,7 +65,7 @@ def test_inactive_user_cannot_login(client: TestClient, db: Session, rep_a: User
     assert login(client, rep_a.email, REP_PASSWORD).status_code == 401
 
 
-# --- §8.7: rate limit ------------------------------------------------------------------------
+# ---: rate limit ------------------------------------------------------------------------
 
 
 def test_sixth_login_attempt_in_a_minute_is_rate_limited(client: TestClient) -> None:
@@ -77,7 +77,7 @@ def test_sixth_login_attempt_in_a_minute_is_rate_limited(client: TestClient) -> 
     assert response.json()["code"] == "RATE_LIMITED"
 
 
-# --- §8.11: token de un solo uso -------------------------------------------------------------
+# ---: token de un solo uso -------------------------------------------------------------
 
 
 def test_setup_token_is_stored_hashed_never_in_clear(
@@ -140,7 +140,7 @@ def test_short_password_is_rejected(
     assert response.json()["code"] == "VALIDATION_ERROR"
 
 
-# --- §8.12: la solicitud de enlace responde igual exista o no el correo -----------------------
+# ---: la solicitud de enlace responde igual exista o no el correo -----------------------
 
 
 def test_password_setup_request_does_not_reveal_whether_the_email_exists(

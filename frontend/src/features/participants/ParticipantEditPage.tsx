@@ -17,7 +17,7 @@ import { useTranslation } from '../i18n/LanguageContext'
  * Edicion de una credencial ya emitida.
  *
  * El id va en la ruta pero no se usa para filtrar: el backend resuelve el participante
- * dentro del `exhibitor_id` del token, asi que una credencial ajena responde 404 (§8.1).
+ * dentro del `exhibitor_id` del token, asi que una credencial ajena responde 404.
  * Aqui eso se pinta como "no existe", sin distinguir el caso.
  */
 export function ParticipantEditPage() {

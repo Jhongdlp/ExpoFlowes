@@ -2,10 +2,10 @@ import { describe, expect, it } from 'vitest'
 
 import { ERROR_MESSAGES, FALLBACK_MESSAGE } from './errors'
 
-/** §13: la UI decide por `code`, nunca por el texto del servidor. */
+/**: la UI decide por `code`, nunca por el texto del servidor. */
 describe('mapa de errores', () => {
   it('traduce por codigo cada error de dominio del backend', () => {
-    // Los codigos de §9.4. Si el backend añade uno y aqui no se traduce, el usuario ve el
+    // Los codigos de Si el backend añade uno y aqui no se traduce, el usuario ve el
     // mensaje generico en lugar de saber que hacer.
     const domainCodes = [
       'PARTICIPANT_ALREADY_REGISTERED',
@@ -30,7 +30,7 @@ describe('mapa de errores', () => {
   })
 
   it('ningun mensaje filtra detalle interno', () => {
-    // §8.9: nada de SQL, nombres de constraint ni rutas en lo que lee el usuario.
+    //: nada de SQL, nombres de constraint ni rutas en lo que lee el usuario.
     for (const [code, message] of Object.entries(ERROR_MESSAGES)) {
       expect(message, code).not.toMatch(/select |uq_|traceback|sqlalchemy|\.py/i)
     }

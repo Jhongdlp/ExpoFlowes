@@ -1,6 +1,6 @@
 """Correos transaccionales (F13, punto extra E1).
 
-Trazabilidad CLAUDE.md §12.2: E1, E1b.
+Trazabilidad: E1, E1b.
 
 Los tests no envian nada: se sustituye `mailer.send`, que es el unico punto que habla con el
 SMTP. Con `SMTP_HOST` vacio el mailer ya escribe al log en vez de enviar, asi que la suite es
@@ -62,7 +62,7 @@ def test_exhibitor_creation_sends_setup_link(
     to, _, body = outbox[0]
     assert to == "jorge.benitez@example.com"
     assert "/establecer-clave?token=" in body
-    # Nunca una contraseña en el correo (§0.5). El demo no expone el enlace por defecto.
+    # Nunca una contraseña en el correo. El demo no expone el enlace por defecto.
     assert response.json()["password_setup_link"] is None
 
 
@@ -83,7 +83,7 @@ def test_resending_the_link_emails_the_representative(
 def test_unknown_email_sends_nothing_and_looks_the_same(
     client: TestClient, admin_user: User, outbox: list[Mail]
 ) -> None:
-    """§8.12: la respuesta es identica exista o no el correo; el envio no."""
+    """: la respuesta es identica exista o no el correo; el envio no."""
     response = client.post(
         "/api/v1/auth/request-password-setup",
         json={"email": "nadie@example.com"},
@@ -117,7 +117,7 @@ def test_participant_with_email_is_notified(
 def test_participant_without_email_does_not_fail(
     client: TestClient, db: Session, rep_a: User, outbox: list[Mail]
 ) -> None:
-    """§6.8: el correo es opcional; sin el, el alta funciona y no se envia nada."""
+    """: el correo es opcional; sin el, el alta funciona y no se envia nada."""
     response = client.post(PARTICIPANTS, json=participant_payload(), headers=auth_headers(rep_a))
 
     assert response.status_code == 201
@@ -168,7 +168,7 @@ def test_adding_the_email_later_sends_the_credential(
 def test_mailer_failure_does_not_rollback(
     client: TestClient, db: Session, admin_user: User, broken_mailer: None
 ) -> None:
-    """El SMTP se cae y el expositor se crea igual: el correo va despues del COMMIT (§9.2)."""
+    """El SMTP se cae y el expositor se crea igual: el correo va despues del COMMIT."""
     response = client.post(EXHIBITORS, json=exhibitor_payload(), headers=auth_headers(admin_user))
 
     assert response.status_code == 201
@@ -216,7 +216,7 @@ def test_bulk_upload_notifies_after_commit(
 def test_demo_flag_exposes_the_setup_link(
     client: TestClient, admin_user: User, outbox: list[Mail], monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Fallback documentado (§15): con EXPOSE_SETUP_LINK=true el enlace vuelve en la respuesta
+    """Fallback documentado: con EXPOSE_SETUP_LINK=true el enlace vuelve en la respuesta
     del alta para poder activar la cuenta sin inbox. Sigue sin viajar ninguna contraseña."""
     from app.core.config import get_settings
 

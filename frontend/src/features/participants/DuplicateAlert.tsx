@@ -3,11 +3,11 @@ import { Button } from '../../components/ui/Button'
 import { useTranslation } from '../i18n/LanguageContext'
 
 /**
- * Validacion critica de §5.4, en pantalla.
+ * Validacion critica de, en pantalla.
  *
  * Es un bloque persistente, NO un toast: el usuario tiene que poder leer que empresa ya
  * registro a esa persona, copiarla y decidir. Un aviso que se desvanece a los tres segundos
- * convierte el requisito en un adorno (§13).
+ * convierte el requisito en un adorno.
  */
 export function DuplicateAlert({ error, onDismiss }: { error: ApiError; onDismiss: () => void }) {
   const { t } = useTranslation()

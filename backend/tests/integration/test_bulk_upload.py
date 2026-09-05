@@ -1,6 +1,6 @@
 """Carga masiva de credenciales desde Excel (F11, punto extra E2a).
 
-Trazabilidad CLAUDE.md §12.2: R14. Identificaciones ficticias, validas por algoritmo.
+Trazabilidad: R14. Identificaciones ficticias, validas por algoritmo.
 """
 
 from io import BytesIO
@@ -97,7 +97,7 @@ def test_invalid_rows_report_and_no_inserts(client: TestClient, db: Session, rep
 
 
 def test_duplicate_within_file_detected(client: TestClient, db: Session, rep_a: User) -> None:
-    """§13: los duplicados DENTRO del archivo tambien se reportan, no solo los de la base."""
+    """: los duplicados DENTRO del archivo tambien se reportan, no solo los de la base."""
     rows = [row(cedula(0)), row(cedula(1)), row(cedula(0), nombre="Otra")]
 
     response = upload(client, rep_a, workbook_bytes(rows))
@@ -123,7 +123,7 @@ def test_duplicate_against_database_reports_owner(
 
 
 def test_dry_run_inserts_nothing(client: TestClient, db: Session, rep_a: User) -> None:
-    """§11: mismo informe con y sin `dry_run`; la unica diferencia es el COMMIT."""
+    """: mismo informe con y sin `dry_run`; la unica diferencia es el COMMIT."""
     content = workbook_bytes([row(cedula(0)), row(cedula(1))])
 
     preview = upload(client, rep_a, content, dry_run=True).json()
@@ -160,7 +160,7 @@ def test_service_row_requires_provider_company(client: TestClient, rep_a: User) 
 
 
 def test_optional_email_is_imported(client: TestClient, db: Session, rep_a: User) -> None:
-    """§6.8: la columna `correo` es opcional; si viene, se guarda."""
+    """: la columna `correo` es opcional; si viene, se guarda."""
     rows = [row(cedula(0), correo="ana@example.com"), row(cedula(1))]
 
     assert upload(client, rep_a, workbook_bytes(rows)).status_code == 200
@@ -169,7 +169,7 @@ def test_optional_email_is_imported(client: TestClient, db: Session, rep_a: User
     assert emails == {"ana@example.com", None}
 
 
-# --- Rechazo del archivo antes de parsearlo (§8.10) --------------------------------------------
+# --- Rechazo del archivo antes de parsearlo --------------------------------------------
 
 
 def test_csv_renamed_to_xlsx_is_rejected(client: TestClient, rep_a: User) -> None:
@@ -219,7 +219,7 @@ def test_numeric_cells_are_read_as_text(client: TestClient, db: Session, rep_a: 
     assert participant.phone == "990000001"
 
 
-# --- Plantilla (§13) ---------------------------------------------------------------------------
+# --- Plantilla ---------------------------------------------------------------------------
 
 
 def test_template_has_the_exact_columns(client: TestClient, rep_a: User) -> None:

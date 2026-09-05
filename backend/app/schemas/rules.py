@@ -1,4 +1,4 @@
-"""Lectura de las tablas de reglas (CLAUDE.md §A.11: solo lectura, no hay CRUD de reglas).
+"""Lectura de las tablas de reglas (solo lectura, no hay CRUD de reglas).
 
 El frontend las consume para rotular rangos y cuotas sin conocer ningun numero de negocio.
 """

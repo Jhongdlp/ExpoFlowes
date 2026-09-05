@@ -1,6 +1,6 @@
-"""Autorizacion a nivel de objeto (CLAUDE.md §8.1, trazabilidad R11).
+"""Autorizacion a nivel de objeto (trazabilidad R11).
 
-Version F3, a nivel de expositor. F5 la extiende a participantes y cierra §12.1 #8.
+Version F3, a nivel de expositor. F5 la extiende a participantes y cierra #8.
 """
 
 from datetime import UTC, datetime, timedelta
@@ -42,7 +42,7 @@ def test_a_forged_exhibitor_id_in_the_token_finds_nothing(
     client: TestClient, rep_a: User, exhibitor_b: Exhibitor
 ) -> None:
     """Aunque el token apunte a una empresa de otro evento, el filtro por event_id no la
-    encuentra y la respuesta es 404: no se confirma que exista (§8.1)."""
+    encuentra y la respuesta es 404: no se confirma que exista."""
     context = AuthContext(
         user_id=rep_a.id,
         role="representative",
@@ -112,7 +112,7 @@ def test_expired_token_is_rejected(client: TestClient, rep_a: User, monkeypatch)
     assert response.json()["code"] == "NOT_AUTHENTICATED"
 
 
-# --- IDOR sobre participantes (§12.1 #8, extension de R11 que F5 cierra) ----------------------
+# --- IDOR sobre participantes (#8, extension de R11 que F5 cierra) ----------------------
 
 PARTICIPANTS = "/api/v1/me/participants"
 
@@ -137,7 +137,7 @@ def _participant_of(client: TestClient, rep: User) -> int:
 def test_representative_cannot_read_other_participant(
     client: TestClient, rep_a: User, rep_b: User
 ) -> None:
-    """404, no 403: no se confirma que el recurso exista (§8.1)."""
+    """404, no 403: no se confirma que el recurso exista."""
     participant_id = _participant_of(client, rep_a)
 
     response = client.get(f"{PARTICIPANTS}/{participant_id}", headers=auth_headers(rep_b))

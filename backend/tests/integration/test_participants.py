@@ -1,6 +1,6 @@
 """Participantes y credenciales (corte vertical F5).
 
-Trazabilidad CLAUDE.md §12.2: R8, R9, R10, R17.
+Trazabilidad: R8, R9, R10, R17.
 Identificaciones ficticias, validas por algoritmo.
 """
 
@@ -64,7 +64,7 @@ def test_create_participant(client: TestClient, db: Session, rep_a: User) -> Non
 
 
 def test_email_is_optional(client: TestClient, rep_a: User) -> None:
-    """§6.8: el enunciado no lo pide entre los datos requeridos; sin correo el alta funciona."""
+    """: el enunciado no lo pide entre los datos requeridos; sin correo el alta funciona."""
     assert create(client, rep_a).json()["email"] is None
     assert (
         create(client, rep_a, identification=CEDULAS[1], email="ana@example.com").json()["email"]
@@ -129,7 +129,7 @@ def test_duplicate_within_the_same_company_is_also_rejected(
 def test_same_identification_different_events_allowed(
     client: TestClient, db: Session, rep_a: User, event: Event
 ) -> None:
-    """§6.6: las ferias son ediciones independientes."""
+    """: las ferias son ediciones independientes."""
     assert create(client, rep_a).status_code == 201
 
     other = Event(
@@ -172,7 +172,7 @@ def test_same_identification_different_events_allowed(
 def test_the_database_layer_produces_the_same_error(
     client: TestClient, db: Session, rep_a: User, rep_b: User, exhibitor_a: Exhibitor
 ) -> None:
-    """Capa 2 de §9.1: si el duplicado se cuela hasta el INSERT, el JSON de error es
+    """Capa 2 de: si el duplicado se cuela hasta el INSERT, el JSON de error es
     EXACTAMENTE el mismo que produce la validacion previa del servicio."""
     from app.services import participant_service
 
@@ -218,7 +218,7 @@ def test_quota_exceeded(client: TestClient, db: Session, rep_b: User) -> None:
 def test_small_stand_has_zero_guest_and_service_quota(
     client: TestClient, db: Session, rep_b: User
 ) -> None:
-    """§5.2, consecuencia de floor: 5-9 m² dan 0 Guest y 0 Service, y nada se rompe."""
+    """, consecuencia de floor: 5-9 m² dan 0 Guest y 0 Service, y nada se rompe."""
     exhibitor = db.get(Exhibitor, rep_b.exhibitor_id)
     assert exhibitor is not None
     exhibitor.requested_m2 = 8
@@ -332,7 +332,7 @@ def test_listing_is_scoped_paginated_and_filterable(
 def test_listing_can_isolate_participants_without_email(client: TestClient, rep_a: User) -> None:
     """El aviso del panel cuenta las credenciales sin correo y el enlace lleva a este
     filtro: los dos numeros tienen que salir del mismo criterio o el enlace desemboca en
-    una lista que no cuadra con el aviso que la abrio (§6.8)."""
+    una lista que no cuadra con el aviso que la abrio."""
     create(client, rep_a, identification=CEDULAS[0], email="ana@ejemplo.demo")
     create(client, rep_a, identification=CEDULAS[1])
     create(client, rep_a, identification=CEDULAS[2], category="Guest")

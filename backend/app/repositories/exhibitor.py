@@ -9,7 +9,7 @@ from app.repositories.search import matches
 
 
 class ExhibitorRepository(EventScopedRepository):
-    """Todo metodo filtra por `self.event_id`; no existe forma de listar sin scope (§8.1.1)."""
+    """Todo metodo filtra por `self.event_id`; no existe forma de listar sin scope."""
 
     def _alive(self) -> tuple[ColumnElement[bool], ColumnElement[bool]]:
         """Scope obligatorio: evento del token y expositor no borrado."""
@@ -34,7 +34,7 @@ class ExhibitorRepository(EventScopedRepository):
 
     def all(self) -> list[Exhibitor]:
         """Todos los vivos del evento. Solo para agregados y reportes, nunca para un listado
-        de API: los listados paginan (§9.5)."""
+        de API: los listados paginan."""
         stmt = select(Exhibitor).where(*self._alive()).order_by(Exhibitor.legal_name)
         return list(self.db.execute(stmt).scalars())
 

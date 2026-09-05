@@ -15,7 +15,7 @@ interface Props {
 
 /**
  * Cupo por categoria: una fila por categoria dentro de una sola superficie, no tres tarjetas.
- * La regla que genera cada cuota se lee de `credential_rules` (§7.1): ningun numero de
+ * La regla que genera cada cuota se lee de `credential_rules`: ningun numero de
  * negocio se escribe aqui, ni siquiera como texto de ayuda.
  */
 export function QuotaTable({ categories, quota, assigned, available, className }: Props) {

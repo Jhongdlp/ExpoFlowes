@@ -45,7 +45,7 @@ def add_participant(
 def test_admin_dashboard_aggregates(
     client: TestClient, db: Session, admin_user: User, exhibitor_a: Exhibitor
 ) -> None:
-    """25 m2 -> Exhibitor 10, Guest 4, Service 6 (§5.2). Dos asignadas dejan ocho libres."""
+    """25 m2 -> Exhibitor 10, Guest 4, Service 6. Dos asignadas dejan ocho libres."""
     add_participant(db, exhibitor_a, "1710000017", "Exhibitor", "ana@demo.test")
     add_participant(db, exhibitor_a, "0920000023", "Exhibitor", None)
 
@@ -67,7 +67,7 @@ def test_admin_dashboard_counts_stands_by_size_category(
     exhibitor_a: Exhibitor,
     exhibitor_b: Exhibitor,
 ) -> None:
-    """La categoria de stand es informativa (§6.7), pero el dashboard la muestra agrupada."""
+    """La categoria de stand es informativa, pero el dashboard la muestra agrupada."""
     exhibitor_b.requested_m2 = 8  # Pequeño
     db.flush()
 
@@ -111,14 +111,14 @@ def test_my_quota_breakdown(
     assert body["assigned"] == {"Exhibitor": 1, "Guest": 1, "Service": 0}
     assert body["available"] == {"Exhibitor": 9, "Guest": 3, "Service": 6}
     assert body["participants_total"] == 2
-    # Uno de los dos no tiene correo: no recibira la notificacion de credencial (§6.8)
+    # Uno de los dos no tiene correo: no recibira la notificacion de credencial
     assert body["participants_without_email"] == 1
 
 
 def test_my_quota_renders_zero_for_small_stands(
     client: TestClient, db: Session, rep_b: User, exhibitor_b: Exhibitor
 ) -> None:
-    """Consecuencia aceptada de `floor` (§5.2): 8 m2 da 0 credenciales Guest y 0 Service."""
+    """Consecuencia aceptada de `floor`: 8 m2 da 0 credenciales Guest y 0 Service."""
     exhibitor_b.requested_m2 = 8
     db.flush()
 
@@ -180,7 +180,7 @@ def test_participants_listing_is_admin_only(client: TestClient, rep_a: User) -> 
 
 
 def test_page_size_above_maximum_is_rejected(client: TestClient, admin_user: User) -> None:
-    """El maximo es 100 (§9.5). Se rechaza en vez de servir en silencio una pagina enorme."""
+    """El maximo es 100. Se rechaza en vez de servir en silencio una pagina enorme."""
     for url in ("/api/v1/exhibitors", "/api/v1/participants"):
         response = client.get(f"{url}?page_size=500", headers=auth_headers(admin_user))
         assert response.status_code == 422
@@ -292,7 +292,7 @@ def test_badge_art_only_accepts_embedded_images(client: TestClient, rep_a: User)
 
 def test_badge_art_rejects_an_oversized_image(client: TestClient, rep_a: User) -> None:
     """Sin almacenamiento de ficheros, el tope de la columna es la unica defensa: el
-    navegador reescala antes de subir, pero el servidor no se fia de eso (§8.4)."""
+    navegador reescala antes de subir, pero el servidor no se fia de eso."""
     huge = "data:image/jpeg;base64," + ("A" * 400_001)
     assert (
         client.put(BADGE_ART, json={"image": huge}, headers=auth_headers(rep_a)).status_code == 422
@@ -307,6 +307,6 @@ def test_badge_art_is_representative_only(client: TestClient, admin_user: User) 
 def test_each_stand_sees_only_its_own_badge_art(
     client: TestClient, rep_a: User, rep_b: User
 ) -> None:
-    """El exhibitor_id sale del token: A no puede pintar las credenciales de B (§8.1)."""
+    """El exhibitor_id sale del token: A no puede pintar las credenciales de B."""
     client.put(BADGE_ART, json={"image": PIXEL}, headers=auth_headers(rep_a))
     assert client.get(MY_QUOTA, headers=auth_headers(rep_b)).json()["badge_art"] is None

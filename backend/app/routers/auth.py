@@ -40,7 +40,7 @@ def set_password(payload: SetPasswordRequest, db: DbSession) -> Response:
 def request_password_setup(
     payload: PasswordSetupRequest, auth: AdminUser, db: DbSession
 ) -> dict[str, str]:
-    """Responde lo mismo exista o no el correo (§8.12). El evento sale del token del admin."""
+    """Responde lo mismo exista o no el correo. El evento sale del token del admin."""
     auth_service.request_password_setup(db, auth.event_id, str(payload.email))
     return {"message": "Si el correo corresponde a un representante, se envio el enlace."}
 

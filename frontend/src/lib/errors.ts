@@ -1,7 +1,7 @@
 /**
  * Unico sitio donde un `code` del backend se convierte en texto para el usuario.
  *
- * La UI decide SIEMPRE por `code`, nunca por el texto del `message` (CLAUDE.md §13): un
+ * La UI decide SIEMPRE por `code`, nunca por el texto del `message`: un
  * mensaje se puede reescribir sin avisar, un codigo es contrato.
  */
 

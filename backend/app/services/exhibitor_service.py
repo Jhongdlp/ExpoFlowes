@@ -40,7 +40,7 @@ logger = logging.getLogger(__name__)
 
 
 def _translate(exc: IntegrityError) -> Exception:
-    """Capa 2 de la validacion en dos capas (§9.1): el cliente no distingue quien fallo."""
+    """Capa 2 de la validacion en dos capas: el cliente no distingue quien fallo."""
     constraint = getattr(getattr(exc.orig, "diag", None), "constraint_name", "") or ""
     if "uq_exhibitors_event_tax_id" in constraint:
         return DuplicateExhibitorError(
@@ -52,7 +52,7 @@ def _translate(exc: IntegrityError) -> Exception:
 
 
 class Rules(NamedTuple):
-    """Las dos tablas de reglas leidas una sola vez por peticion (§7.1.3)."""
+    """Las dos tablas de reglas leidas una sola vez por peticion."""
 
     stand_sizes: list[StandSizeRule]
     credentials: list[CredentialRule]
@@ -66,7 +66,7 @@ def load_rules(db: Session, event_id: int) -> Rules:
 def quota_view(m2: int, assigned: dict[str, int], rules: Rules) -> dict[str, Any]:
     """Categoria de stand y cuota, siempre derivadas del metraje y de las reglas vigentes.
 
-    Nunca se lee de una columna: si el admin corrige el metraje, esto cambia solo (§6.4).
+    Nunca se lee de una columna: si el admin corrige el metraje, esto cambia solo.
     """
     category = classify_stand(m2, rules.stand_sizes)
     quota = quota_breakdown(m2, rules.credentials)
@@ -120,7 +120,7 @@ def get_exhibitor(db: Session, event_id: int, exhibitor_id: int) -> dict[str, An
 
 
 def create_exhibitor(db: Session, event_id: int, payload: ExhibitorCreate) -> dict[str, Any]:
-    """Alta atomica: expositor + representante + contactos + usuario + token (§9.2).
+    """Alta atomica: expositor + representante + contactos + usuario + token.
 
     El correo se envia DESPUES del commit (F13). Si fallara, el alta ya esta confirmada.
     """
@@ -128,7 +128,7 @@ def create_exhibitor(db: Session, event_id: int, payload: ExhibitorCreate) -> di
     validate_identification(
         payload.representative.identification, payload.representative.identification_type
     )
-    # Valida el rango de metraje contra las reglas de la base antes de escribir nada (§6.2).
+    # Valida el rango de metraje contra las reglas de la base antes de escribir nada.
     classify_stand(payload.requested_m2, RulesRepository(db, event_id).stand_sizes())
 
     repo = ExhibitorRepository(db, event_id)
@@ -170,7 +170,7 @@ def create_exhibitor(db: Session, event_id: int, payload: ExhibitorCreate) -> di
                     )
                 )
 
-            # El usuario nace SIN password_hash: la clave se establece con el token (§6.5).
+            # El usuario nace SIN password_hash: la clave se establece con el token.
             user = User(
                 event_id=event_id,
                 exhibitor_id=exhibitor.id,
@@ -186,7 +186,7 @@ def create_exhibitor(db: Session, event_id: int, payload: ExhibitorCreate) -> di
 
     db.commit()
 
-    # Correo DESPUES del commit y fuera de la transaccion (§9.2). `notify_*` no lanza: si el
+    # Correo DESPUES del commit y fuera de la transaccion. `notify_*` no lanza: si el
     # SMTP falla, el alta ya esta confirmada y el admin reenvia el enlace desde la UI.
     link = auth_service.setup_password_link(token)
     representative = payload.representative
@@ -204,7 +204,7 @@ def update_exhibitor(
     db: Session, event_id: int, exhibitor_id: int, payload: ExhibitorUpdate
 ) -> dict[str, Any]:
     """Cambiar el metraje recalcula la cuota. Si queda por debajo de lo ya asignado, se bloquea
-    el cambio en vez de dejar el estado inconsistente (§6.4)."""
+    el cambio en vez de dejar el estado inconsistente."""
     repo = ExhibitorRepository(db, event_id)
     exhibitor = repo.get(exhibitor_id)
     if exhibitor is None:
@@ -236,7 +236,7 @@ def update_exhibitor(
 
 
 def delete_exhibitor(db: Session, event_id: int, exhibitor_id: int) -> None:
-    """Soft delete: borrar en duro una empresa con credenciales emitidas es destructivo (§7.1)."""
+    """Soft delete: borrar en duro una empresa con credenciales emitidas es destructivo."""
     repo = ExhibitorRepository(db, event_id)
     exhibitor = repo.get(exhibitor_id)
     if exhibitor is None:

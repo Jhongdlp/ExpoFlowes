@@ -1,5 +1,5 @@
 """Rutas del administrador. El `event_id` sale del token; el `{id}` de la ruta solo se usa
-para buscar DENTRO de ese evento, nunca para filtrar por si mismo (§8.1.1)."""
+para buscar DENTRO de ese evento, nunca para filtrar por si mismo."""
 
 from typing import Annotated, Any
 

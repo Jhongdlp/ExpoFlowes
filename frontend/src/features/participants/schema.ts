@@ -6,7 +6,7 @@ import { IDENTIFICATION_TYPES } from '../exhibitors/schema'
 export { IDENTIFICATION_TYPES }
 
 /**
- * El campo condicional de §5.3: `provider_company` es obligatoria si y solo si la categoria
+ * El campo condicional de: `provider_company` es obligatoria si y solo si la categoria
  * es Service. El discriminante es la categoria y vive en tres sitios, a proposito:
  *
  *   1. aqui, para que el formulario no deje enviar una fila invalida
@@ -32,7 +32,7 @@ export const participantSchema = z
     position: required('Escriba el cargo.'),
     category: z.enum(['Exhibitor', 'Guest', 'Service']),
     provider_company: z.string().trim().optional(),
-    // Opcional (§6.8): sin correo no hay notificacion, pero el alta es valida.
+    // Opcional: sin correo no hay notificacion, pero el alta es valida.
     email: z.union([z.literal(''), z.email('Escriba un correo válido.')]).optional(),
   })
   .superRefine((values, ctx) => {

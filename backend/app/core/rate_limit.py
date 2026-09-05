@@ -1,4 +1,4 @@
-"""Rate limiting del login (CLAUDE.md §8.7). Por IP, con el limite en configuracion."""
+"""Rate limiting del login. Por IP, con el limite en configuracion."""
 
 from typing import Any
 

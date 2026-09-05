@@ -11,7 +11,7 @@ interface Props {
   loading?: boolean
 }
 
-/** Paginacion de todos los listados (§9.5). Dice donde esta el usuario, no solo el numero. */
+/** Paginacion de todos los listados. Dice donde esta el usuario, no solo el numero. */
 export function Pagination({ page, pageSize, total, onChange, loading = false }: Props) {
   const { t } = useTranslation()
   const lastPage = Math.max(1, Math.ceil(total / pageSize))

@@ -1,4 +1,4 @@
-"""Excepciones de dominio (CLAUDE.md §9.4). Sin dependencias de framework."""
+"""Excepciones de dominio. Sin dependencias de framework."""
 
 from typing import Any
 
@@ -92,7 +92,7 @@ class DuplicateEmailError(DomainError):
 class InvalidPayloadError(DomainError):
     """Invariante de forma detectado en el servicio, no por Pydantic (p. ej. un PATCH parcial
     que solo es invalido al mezclarlo con la fila existente). Usa el MISMO code que la
-    validacion de Pydantic: al cliente no le importa que capa lo detecto (§9.1)."""
+    validacion de Pydantic: al cliente no le importa que capa lo detecto."""
 
     code = "VALIDATION_ERROR"
     status_code = 422

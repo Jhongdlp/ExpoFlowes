@@ -92,7 +92,7 @@ export function MyParticipantListPage() {
   const clearFilters = url.clear
 
   const remove = useMutation({
-    // En serie, no en paralelo: cada baja toca el cupo del stand con la fila bloqueada (§9.3).
+    // En serie, no en paralelo: cada baja toca el cupo del stand con la fila bloqueada.
     mutationFn: async (ids: readonly number[]) => {
       for (const id of ids) await api.delete<void>(`/me/participants/${id}`)
     },

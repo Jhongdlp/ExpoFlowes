@@ -1,8 +1,8 @@
-"""Busqueda de texto de los listados (§9.5).
+"""Busqueda de texto de los listados.
 
 Lo que se prueba no es que exista un `LIKE`, sino las tres cosas que se pueden romper solas:
 que ignore tildes, que varias palabras acoten en vez de ampliar, y que la busqueda NO sea una
-puerta trasera al scope del token (§8.1).
+puerta trasera al scope del token.
 """
 
 from fastapi.testclient import TestClient
@@ -68,7 +68,7 @@ def test_search_does_not_escape_the_token_scope(
     exhibitor_b: Exhibitor,
     rep_a: User,
 ) -> None:
-    """El comodin `%` es texto, no un comodin, y el scope del token sigue mandando (§8.1)."""
+    """El comodin `%` es texto, no un comodin, y el scope del token sigue mandando."""
     add(db, event, exhibitor_b, first_name="Ajeno", last_name="Vera", identification="0920000023")
 
     assert client.get(f"{MINE}?search=ajeno", headers=auth_headers(rep_a)).json()["total"] == 0

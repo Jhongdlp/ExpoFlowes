@@ -121,7 +121,7 @@
     font-variant-numeric: tabular-nums;
   }
 
-  /* Foco siempre visible y del mismo grosor en todo el sistema (accesibilidad, §13). */
+  /* Foco siempre visible y del mismo grosor en todo el sistema (accesibilidad). */
   :focus-visible {
     outline: 2px solid var(--color-ink);
     outline-offset: 2px;

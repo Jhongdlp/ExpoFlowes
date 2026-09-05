@@ -57,7 +57,7 @@ def admin_dashboard(db: Session, event_id: int) -> dict[str, Any]:
 
 
 def my_quota(db: Session, event_id: int, exhibitor_id: int) -> dict[str, Any]:
-    """Cupo del stand propio. El `exhibitor_id` viene del token, nunca de la peticion (§8.1)."""
+    """Cupo del stand propio. El `exhibitor_id` viene del token, nunca de la peticion."""
     exhibitor = ExhibitorRepository(db, event_id).get(exhibitor_id)
     if exhibitor is None:
         raise NotFoundError("El expositor solicitado no existe.")
@@ -87,7 +87,7 @@ def set_badge_art(
 ) -> dict[str, Any] | None:
     """Guarda (o borra, con `None`) la imagen de las credenciales del stand.
 
-    El `exhibitor_id` llega del token, nunca de la peticion (§8.1): el representante solo
+    El `exhibitor_id` llega del token, nunca de la peticion: el representante solo
     puede escribir sobre su propia empresa, y un id ajeno ni siquiera se encuentra.
     """
     exhibitor = ExhibitorRepository(db, event_id).get(exhibitor_id)

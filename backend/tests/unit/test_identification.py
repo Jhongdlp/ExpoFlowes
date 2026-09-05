@@ -1,4 +1,4 @@
-"""Validacion de cedula y RUC con el algoritmo real (CLAUDE.md §9.5, trazabilidad R16).
+"""Validacion de cedula y RUC con el algoritmo real (trazabilidad R16).
 
 Todas las identificaciones son ficticias: validas por algoritmo, generadas, no pertenecen a
 ninguna persona ni empresa real.

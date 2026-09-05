@@ -202,7 +202,7 @@ export function ExhibitorForm({
                   variant="ghost"
                   size="sm"
                   onClick={() => contacts.remove(index)}
-                  // Con un solo contacto no se puede quitar: el minimo es uno (§5.3).
+                  // Con un solo contacto no se puede quitar: el minimo es uno.
                   disabled={contacts.fields.length === 1}
                   title={
                     contacts.fields.length === 1 ? (lang === 'en' ? 'At least one contact must remain' : 'Debe quedar al menos un contacto') : undefined

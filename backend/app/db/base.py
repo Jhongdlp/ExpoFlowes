@@ -5,7 +5,7 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
 class Base(DeclarativeBase):
-    """Base declarativa. Toda tabla lleva created_at/updated_at (CLAUDE.md §7.1.4)."""
+    """Base declarativa. Toda tabla lleva created_at/updated_at."""
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False

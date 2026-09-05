@@ -30,7 +30,7 @@ function formatFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(2)} MB`
 }
 
-/** Errores por fila del BULK_UPLOAD_INVALID_ROWS (§9.4). La UI decide por `code`, no por texto. */
+/** Errores por fila del BULK_UPLOAD_INVALID_ROWS. La UI decide por `code`, no por texto. */
 function rowErrors(error: unknown): RowError[] {
   if (!(error instanceof ApiError) || error.code !== 'BULK_UPLOAD_INVALID_ROWS') return []
   const raw = error.details.errors

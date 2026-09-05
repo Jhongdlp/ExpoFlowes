@@ -1,7 +1,7 @@
 /**
  * Alias sobre el esquema OpenAPI generado (`npm run gen:api`).
  *
- * Ni un solo tipo de la API se escribe a mano (§13): si el backend cambia un campo, el
+ * Ni un solo tipo de la API se escribe a mano: si el backend cambia un campo, el
  * `tsc -b` de CI lo detecta aqui antes que un usuario en produccion.
  */
 

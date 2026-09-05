@@ -27,11 +27,19 @@ excluidos=(
   --exclude=node_modules --exclude=dist --exclude=.venv --exclude=venv
   --exclude=__pycache__ --exclude=.mypy_cache --exclude=.pytest_cache --exclude=.ruff_cache
   --exclude=*.egg-info --exclude=.env --exclude=.git
+  # Salida de `generate_mocks.py` dentro del contenedor: duplica datos_de_mocks/.
+  --exclude=datos_de_mocks_temp
 )
 tar -C "$raiz/backend"  "${excluidos[@]}" -cf - . | tar -C "$tmp/2_Aplicacion/Back"  -xf -
 tar -C "$raiz/frontend" "${excluidos[@]}" -cf - . | tar -C "$tmp/2_Aplicacion/Front" -xf -
 cp "$raiz/README.md" "$raiz/.env.example" "$tmp/2_Aplicacion/"
 tar -C "$raiz/docs" "${excluidos[@]}" --exclude=PLAN.md -cf - . | tar -C "$tmp/2_Aplicacion" -xf - --one-top-level=docs
+
+# El README enlaza el pipeline y los Excel de prueba: si no viajan, esos enlaces se rompen
+# dentro del ZIP y el evaluador no puede ver como se despliega ni probar la carga masiva.
+mkdir -p "$tmp/2_Aplicacion/.github"
+cp -r "$raiz/.github/workflows" "$tmp/2_Aplicacion/.github/"
+cp -r "$raiz/datos_de_mocks" "$tmp/2_Aplicacion/"
 
 # El compose de la entrega apunta a Back/ y Front/, que es como se llaman las carpetas en el
 # ZIP. Es la unica diferencia con el del repositorio, y por eso el ZIP se verifica levantado

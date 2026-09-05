@@ -1,7 +1,7 @@
 """Listado global de participantes: solo admin.
 
 Es el unico endpoint donde un `exhibitor_id` llega por query, y solo porque el rol admin ya
-alcanza al evento entero. El `event_id` sigue saliendo del token (§8.1).
+alcanza al evento entero. El `event_id` sigue saliendo del token.
 """
 
 from typing import Annotated, Any

@@ -1,9 +1,9 @@
-"""Modelo de datos (CLAUDE.md §7.2). SQLAlchemy 2.0: Mapped[] + mapped_column().
+"""Modelo de datos. SQLAlchemy 2.0: Mapped[] + mapped_column().
 
 Principios que este modulo hace cumplir:
-- toda tabla operativa lleva `event_id` (aislamiento entre ferias, §7.1.1)
-- las restricciones unicas son compuestas por evento, nunca simples (§7.1.2)
-- no existe columna de cuota ni de categoria de stand: ambas son derivadas (§6.4, §6.7)
+- toda tabla operativa lleva `event_id` (aislamiento entre ferias)
+- las restricciones unicas son compuestas por evento, nunca simples
+- no existe columna de cuota ni de categoria de stand: ambas son derivadas
 """
 
 from datetime import date, datetime
@@ -49,7 +49,7 @@ class Event(Base):
 
 
 class StandSizeRule(Base):
-    """Rangos de metraje parametrizados (§5.1). Cambiar una fila cambia la clasificacion."""
+    """Rangos de metraje parametrizados. Cambiar una fila cambia la clasificacion."""
 
     __tablename__ = "stand_size_rules"
     __table_args__ = (
@@ -65,7 +65,7 @@ class StandSizeRule(Base):
 
 
 class CredentialRule(Base):
-    """Cuota de credenciales parametrizada (§5.2): credentials_per_block por cada block_m2."""
+    """Cuota de credenciales parametrizada: credentials_per_block por cada block_m2."""
 
     __tablename__ = "credential_rules"
     __table_args__ = (
@@ -90,7 +90,7 @@ class CredentialRule(Base):
 class Exhibitor(Base):
     __tablename__ = "exhibitors"
     __table_args__ = (
-        # Unico por evento solo entre los vivos: el soft delete libera el tax_id (§7.2)
+        # Unico por evento solo entre los vivos: el soft delete libera el tax_id
         Index(
             "uq_exhibitors_event_tax_id",
             "event_id",
@@ -121,7 +121,7 @@ class Exhibitor(Base):
 
 
 class Representative(Base):
-    """Coordinador de la empresa: uno por expositor. No consume credencial (§6.3)."""
+    """Coordinador de la empresa: uno por expositor. No consume credencial."""
 
     __tablename__ = "representatives"
     __table_args__ = (
@@ -146,7 +146,7 @@ class Representative(Base):
 
 
 class ExhibitorContact(Base):
-    """Contactos adicionales: minimo uno, sin maximo (§5.3). El minimo lo valida el servicio."""
+    """Contactos adicionales: minimo uno, sin maximo. El minimo lo valida el servicio."""
 
     __tablename__ = "exhibitor_contacts"
 
@@ -181,7 +181,7 @@ class User(Base):
         ForeignKey("exhibitors.id", ondelete="CASCADE"), default=None
     )
     email: Mapped[str] = mapped_column(String(255))
-    # Nulo hasta que el representante establece su clave con el token (§6.5).
+    # Nulo hasta que el representante establece su clave con el token.
     # Un usuario sin password_hash no puede autenticarse.
     password_hash: Mapped[str | None] = mapped_column(String(255), default=None)
     role: Mapped[str] = mapped_column(String(20))
@@ -189,7 +189,7 @@ class User(Base):
 
 
 class PasswordSetupToken(Base):
-    """Token de un solo uso, 72 h. Se guarda hasheado, nunca en claro (§8.11)."""
+    """Token de un solo uso, 72 h. Se guarda hasheado, nunca en claro."""
 
     __tablename__ = "password_setup_tokens"
 
@@ -205,8 +205,8 @@ class Participant(Base):
 
     __tablename__ = "participants"
     __table_args__ = (
-        # Validacion critica §5.4: la misma persona no puede estar en dos empresas del mismo
-        # evento. Por evento, nunca global (§6.6).
+        # Validacion critica: la misma persona no puede estar en dos empresas del mismo
+        # evento. Por evento, nunca global.
         UniqueConstraint("event_id", "identification", name="uq_participants_event_id_ident"),
         CheckConstraint(_in("category", CREDENTIAL_CATEGORIES), name="ck_participants_category"),
         CheckConstraint(
@@ -231,7 +231,7 @@ class Participant(Base):
     position: Mapped[str] = mapped_column(String(80))
     category: Mapped[str] = mapped_column(String(20))
     provider_company: Mapped[str | None] = mapped_column(String(200), default=None)
-    email: Mapped[str | None] = mapped_column(String(255), default=None)  # opcional (§6.8)
+    email: Mapped[str | None] = mapped_column(String(255), default=None)  # opcional
     credential_notified_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), default=None
     )

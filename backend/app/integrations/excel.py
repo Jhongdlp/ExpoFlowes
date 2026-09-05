@@ -75,7 +75,7 @@ def exhibitors_report(
 # --- Carga masiva de participantes (F11) --------------------------------------------------
 
 # Encabezado exacto del Excel -> campo del esquema. El orden del dict ES el orden de las
-# columnas de la plantilla (§13): un solo sitio define ambos, no pueden divergir.
+# columnas de la plantilla: un solo sitio define ambos, no pueden divergir.
 PARTICIPANT_COLUMNS: dict[str, str] = {
     "nombre": "first_name",
     "apellido": "last_name",
@@ -95,11 +95,11 @@ _XLSX_MAGIC = b"PK\x03\x04"  # un .xlsx es un ZIP; un .csv renombrado no lo es
 
 
 class InvalidWorkbookError(Exception):
-    """El archivo no es utilizable. El servicio la traduce al error HTTP (§9.4)."""
+    """El archivo no es utilizable. El servicio la traduce al error HTTP."""
 
 
 def ensure_xlsx(filename: str | None, content: bytes) -> None:
-    """Tipo y tamaño ANTES de parsear (§8.10): un archivo hostil no llega a openpyxl."""
+    """Tipo y tamaño ANTES de parsear: un archivo hostil no llega a openpyxl."""
     if not (filename or "").lower().endswith(".xlsx"):
         raise InvalidWorkbookError("El archivo debe tener extension .xlsx.")
     if len(content) > MAX_UPLOAD_BYTES:
@@ -125,7 +125,7 @@ def read_participant_rows(content: bytes) -> list[tuple[int, dict[str, str | Non
     """(numero de fila del Excel, valores) por cada fila con datos.
 
     No valida negocio: solo convierte el archivo en filas. Quien decide si una fila es valida
-    es el mismo esquema Pydantic del alta manual (§8.4).
+    es el mismo esquema Pydantic del alta manual.
     """
     from openpyxl import load_workbook  # import local: solo lo paga quien sube un archivo
 
@@ -173,7 +173,7 @@ def read_participant_rows(content: bytes) -> list[tuple[int, dict[str, str | Non
 
 
 def participants_template() -> bytes:
-    """Plantilla con las 9 columnas de §13, en orden, mas una fila de ejemplo."""
+    """Plantilla con las 9 columnas de, en orden, mas una fila de ejemplo."""
     workbook = Workbook()
     sheet = workbook.active
     sheet.title = "Participantes"

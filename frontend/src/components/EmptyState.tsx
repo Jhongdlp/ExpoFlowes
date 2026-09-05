@@ -6,7 +6,7 @@ interface Props {
   action?: ReactNode
 }
 
-/** Ninguna vista queda en blanco: se dice que no hay datos y que hacer (§13). */
+/** Ninguna vista queda en blanco: se dice que no hay datos y que hacer. */
 export function EmptyState({ title, description, action }: Props) {
   return (
     <div className="animate-fade rounded-lg border border-dashed border-line-strong bg-surface/60 px-6 py-10 text-center">

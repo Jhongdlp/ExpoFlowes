@@ -99,7 +99,7 @@ def event(db: Session) -> Event:
     db.add(row)
     db.flush()
 
-    # Mismas reglas que el seed (§5.1 y §5.2). Viven en la base, no en el codigo: los tests
+    # Mismas reglas que el seed (y). Viven en la base, no en el codigo: los tests
     # de parametrizacion las modifican con UPDATE y el comportamiento cambia solo.
     for label, min_m2, max_m2 in [("Pequeño", 5, 12), ("Mediano", 13, 30), ("Grande", 31, 50)]:
         db.add(StandSizeRule(event_id=row.id, label=label, min_m2=min_m2, max_m2=max_m2))
@@ -196,7 +196,7 @@ def rep_b(db: Session, event: Event, exhibitor_b: Exhibitor) -> User:
 
 @pytest.fixture
 def rep_without_password(db: Session, event: Event, exhibitor_b: Exhibitor) -> User:
-    """Representante recien creado: aun no establecio su clave (§6.5)."""
+    """Representante recien creado: aun no establecio su clave."""
     return _user(db, event, "nuevo@example.com", "representative", exhibitor_id=exhibitor_b.id)
 
 

@@ -1,6 +1,6 @@
 """Motor de reglas: se prueba la REGLA, no el framework. Sin base de datos.
 
-Trazabilidad con CLAUDE.md §12.2: R1, R2, R3, R4, R5, R6.
+Trazabilidad: R1, R2, R3, R4, R5, R6.
 """
 
 from dataclasses import dataclass
@@ -26,7 +26,7 @@ class CredRule:
     rounding_mode: str = "floor"
 
 
-# Reglas equivalentes al seed (§5.1 y §5.2). Son DATOS del test: cambiarlas cambia el
+# Reglas equivalentes al seed (y). Son DATOS del test: cambiarlas cambia el
 # resultado esperado, que es exactamente lo que se quiere demostrar.
 SIZE_RULES = [
     SizeRule("Pequeño", 5, 12),
@@ -68,7 +68,7 @@ def test_classify_out_of_range(m2: int) -> None:
     assert exc.value.details["requested_m2"] == m2
 
 
-# --- R3, R4, R5: la tabla completa de §5.2 ---------------------------------------------------
+# --- R3, R4, R5: la tabla completa de ---------------------------------------------------
 
 
 @pytest.mark.parametrize(
@@ -89,7 +89,7 @@ def test_quota_service(m2: int, expected: int) -> None:
 
 
 def test_small_stand_gets_zero_guest_and_service(m2: int = 8) -> None:
-    """Consecuencia aceptada de floor (§5.2, nota): 5-9 m² no dan Guest ni Service."""
+    """Consecuencia aceptada de floor (nota): 5-9 m² no dan Guest ni Service."""
     assert quota_breakdown(m2, CREDENTIAL_RULES) == {"Exhibitor": 2, "Guest": 0, "Service": 0}
 
 

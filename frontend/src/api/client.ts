@@ -1,7 +1,7 @@
 /**
  * Cliente HTTP unico.
  *
- * Todo error del backend llega con la forma {code, message, details} (§9.4) y sale de aqui
+ * Todo error del backend llega con la forma {code, message, details} y sale de aqui
  * como `ApiError`, para que ninguna pantalla tenga que mirar `response.ok` ni adivinar.
  */
 
@@ -76,7 +76,7 @@ async function request<T>(method: string, path: string, body?: Body): Promise<T>
 
 async function finish<T>(response: Response): Promise<T> {
   if (response.status === 401) {
-    // Token ausente, caducado o revocado: se limpia y se avisa una sola vez (§13).
+    // Token ausente, caducado o revocado: se limpia y se avisa una sola vez.
     clearToken()
     window.dispatchEvent(new Event(SESSION_EXPIRED_EVENT))
     throw await toApiError(response)

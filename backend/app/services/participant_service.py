@@ -2,9 +2,9 @@
 
 Dos invariantes que este modulo protege y que no pueden vivir en el router:
 
-1. **Cupo sin condicion de carrera** (§9.3): la verificacion y el INSERT ocurren en la misma
+1. **Cupo sin condicion de carrera**: la verificacion y el INSERT ocurren en la misma
    transaccion, con `SELECT ... FOR UPDATE` sobre la fila del expositor.
-2. **Duplicado en dos capas** (§9.1): se valida en el servicio y se captura el IntegrityError,
+2. **Duplicado en dos capas**: se valida en el servicio y se captura el IntegrityError,
    traducido al MISMO error estructurado. El cliente no puede distinguir cual de las dos
    capas disparo.
 """
@@ -50,7 +50,7 @@ DUPLICATE_MESSAGE = (
 
 
 def _duplicate_error(repo: ParticipantRepository, identification: str) -> DuplicateParticipantError:
-    """Construye el error con la forma exacta de §9.4, venga de la capa que venga."""
+    """Construye el error con la forma exacta de, venga de la capa que venga."""
     owner = repo.find_owner(identification)
     details: dict[str, Any] = {"identification": identification}
     if owner is not None:
@@ -88,11 +88,11 @@ def _check_quota(
 def _notify_credentials(
     db: Session, exhibitor_id: int, participants: Sequence[Participant]
 ) -> None:
-    """Correo 2 (§9.2): DESPUES del commit y fuera de la transaccion.
+    """Correo 2: DESPUES del commit y fuera de la transaccion.
 
     `credential_notified_at` marca al que ya recibio el aviso, asi que un alta corregida o un
     segundo intento no reenvian. Sin correo no se envia nada y el alta sigue siendo valida
-    (§6.8). Un fallo del mailer no lanza: solo deja la marca sin poner.
+    . Un fallo del mailer no lanza: solo deja la marca sin poner.
     """
     pending = [p for p in participants if p.email and p.credential_notified_at is None]
     if not pending:
@@ -215,7 +215,7 @@ def update_participant(
 
 
 def delete_participant(db: Session, event_id: int, exhibitor_id: int, participant_id: int) -> None:
-    """Borrado fisico: libera cupo y libera la identificacion para un alta nueva (§7.2)."""
+    """Borrado fisico: libera cupo y libera la identificacion para un alta nueva."""
     repo = ParticipantRepository(db, event_id)
     participant = repo.get(exhibitor_id, participant_id)
     if participant is None:
@@ -268,7 +268,7 @@ def bulk_create_participants(
     content: bytes,
     dry_run: bool,
 ) -> dict[str, Any]:
-    """Carga masiva todo-o-nada (§11). `dry_run` recorre EXACTAMENTE el mismo codigo de
+    """Carga masiva todo-o-nada. `dry_run` recorre EXACTAMENTE el mismo codigo de
     validacion; la unica diferencia es que no inserta ni confirma.
 
     El cupo se verifica contra el lote completo dentro de la transaccion con el mismo
@@ -294,7 +294,7 @@ def bulk_create_participants(
                 _row_error(
                     row_number,
                     # loc vacio = invariante entre campos; el unico que hay es el de
-                    # empresa proveedora (§5.3), asi que la columna a corregir es esa.
+                    # empresa proveedora, asi que la columna a corregir es esa.
                     _field_label(str(err["loc"][0]) if err["loc"] else "provider_company"),
                     "VALIDATION_ERROR",
                     _pydantic_message(err),
@@ -342,7 +342,7 @@ def bulk_create_participants(
         valid = [p for p in valid if p.identification not in owners]
 
     if errors:
-        # Todo o nada: con una sola fila invalida no entra ninguna (§0.12).
+        # Todo o nada: con una sola fila invalida no entra ninguna.
         raise BulkUploadValidationError(
             "El archivo tiene filas invalidas. No se importo ninguna credencial.",
             {
@@ -398,6 +398,6 @@ def bulk_create_participants(
 
     db.commit()
     # Los correos del lote salen tras confirmar la insercion; un fallo individual se registra
-    # y no revierte nada (§9.2).
+    # y no revierte nada.
     _notify_credentials(db, exhibitor_id, inserted)
     return report

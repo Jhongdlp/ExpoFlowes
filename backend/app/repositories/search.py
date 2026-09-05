@@ -1,4 +1,4 @@
-"""Busqueda de texto compartida por los listados (§9.5).
+"""Busqueda de texto compartida por los listados.
 
 Sin extensiones de Postgres ni indices de texto completo: `translate` pliega los acentos en
 SQL y `unicodedata` hace lo mismo con el termino en Python, asi "jose" encuentra a "José" y

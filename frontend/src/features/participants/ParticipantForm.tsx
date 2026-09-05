@@ -29,7 +29,7 @@ interface Props {
   resetSignal: number
   /** Valores de partida. Sin ellos el formulario es un alta; con ellos, una edicion. */
   initial?: ParticipantFormValues
-  /** Cupo libre por categoria. Una categoria agotada no se puede elegir (§9.3). */
+  /** Cupo libre por categoria. Una categoria agotada no se puede elegir. */
   available?: Record<string, number>
   submitLabel?: string
 }
@@ -180,7 +180,7 @@ export function ParticipantForm({
           error={errors.category?.message}
           {...form.register('category')}
         />
-        {/* Campo condicional (§13): aparece con la categoria Service y se anuncia al llegar. */}
+        {/* Campo condicional: aparece con la categoria Service y se anuncia al llegar. */}
         {isService ? (
           <div className="animate-rise">
             <Field

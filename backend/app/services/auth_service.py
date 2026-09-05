@@ -1,4 +1,4 @@
-"""Autenticacion y establecimiento de contraseña (CLAUDE.md §6.5, §8.8, §8.11)."""
+"""Autenticacion y establecimiento de contraseña."""
 
 import hashlib
 import logging
@@ -19,12 +19,12 @@ logger = logging.getLogger(__name__)
 
 TOKEN_TTL = timedelta(hours=72)
 
-# Mensaje unico para usuario inexistente, contraseña incorrecta y usuario sin clave (§8.8).
+# Mensaje unico para usuario inexistente, contraseña incorrecta y usuario sin clave.
 INVALID_CREDENTIALS_MESSAGE = "Credenciales invalidas."
 
 
 def get_active_event(db: Session) -> Event:
-    """El MVP opera sobre el unico evento activo (§A.6). El esquema ya soporta varios."""
+    """El MVP opera sobre el unico evento activo. El esquema ya soporta varios."""
     event = db.execute(select(Event).where(Event.is_active.is_(True))).scalars().first()
     if event is None:
         raise InvalidCredentialsError(INVALID_CREDENTIALS_MESSAGE)
@@ -51,7 +51,7 @@ def _digest(token: str) -> str:
 
 
 def issue_password_setup_token(db: Session, user: User) -> str:
-    """Devuelve el token en claro UNA vez. En base solo queda su hash (§8.11).
+    """Devuelve el token en claro UNA vez. En base solo queda su hash.
 
     El llamador lo usa para armar el enlace y lo descarta; nunca se persiste ni se registra.
     """
@@ -72,7 +72,7 @@ def setup_password_link(token: str) -> str:
 
 
 def request_password_setup(db: Session, event_id: int, email: str) -> None:
-    """Reenvia el enlace. Responde igual exista o no el correo (§8.12): el efecto visible
+    """Reenvia el enlace. Responde igual exista o no el correo: el efecto visible
     para el llamador es siempre el mismo, y el detalle solo va al log."""
     user = UserRepository(db, event_id).get_by_email(email)
     if user is None or user.role != "representative":

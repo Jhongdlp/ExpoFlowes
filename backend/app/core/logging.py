@@ -1,4 +1,4 @@
-"""Logging JSON estructurado + request_id por peticion (CLAUDE.md §9.5)."""
+"""Logging JSON estructurado + request_id por peticion."""
 
 import json
 import logging

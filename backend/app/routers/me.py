@@ -1,7 +1,7 @@
 """Rutas del representante.
 
 Ningun id de empresa aparece en la ruta: el `exhibitor_id` y el `event_id` salen del token
-(§8.1.1). Pedir un recurso ajeno no da 403 sino 404: no se confirma que exista.
+. Pedir un recurso ajeno no da 403 sino 404: no se confirma que exista.
 """
 
 from typing import Annotated, Any
@@ -59,7 +59,7 @@ def set_badge_art(payload: BadgeArt, auth: RepresentativeUser, db: DbSession) ->
 
     Llega ya reescalada y codificada por el navegador: no hay almacenamiento de ficheros
     en el sistema, y una imagen de 90 mm de ancho cabe de sobra en la fila del expositor.
-    El tope de tamaño y el tipo los impone el esquema (§8.4, §8.10)."""
+    El tope de tamaño y el tipo los impone el esquema."""
     event_id, exhibitor_id = scope(auth)
     return dashboard_service.set_badge_art(db, event_id, exhibitor_id, payload.model_dump())
 
@@ -101,7 +101,7 @@ def create_participant(payload: ParticipantIn, auth: RepresentativeUser, db: DbS
     responses={200: {"content": {XLSX_MEDIA_TYPE: {}}, "description": "Plantilla de carga"}},
 )
 def participants_template_xlsx(auth: RepresentativeUser) -> Response:
-    """Plantilla generada desde el MISMO diccionario de columnas que valida la carga (§13)."""
+    """Plantilla generada desde el MISMO diccionario de columnas que valida la carga."""
     return Response(
         content=participants_template(),
         media_type=XLSX_MEDIA_TYPE,
@@ -117,10 +117,10 @@ def bulk_upload(
     dry_run: bool = False,
 ) -> dict[str, Any]:
     """Un solo endpoint para preview y confirmacion: con `dry_run=true` recorre exactamente
-    el mismo codigo de validacion y no inserta nada (§11)."""
+    el mismo codigo de validacion y no inserta nada."""
     event_id, exhibitor_id = scope(auth)
     if file.size is not None and file.size > MAX_UPLOAD_BYTES:
-        # Se rechaza por el tamaño declarado, sin llegar a leer el cuerpo (§8.10).
+        # Se rechaza por el tamaño declarado, sin llegar a leer el cuerpo.
         raise InvalidPayloadError(
             f"El archivo supera el maximo de {MAX_UPLOAD_BYTES // (1024 * 1024)} MB."
         )

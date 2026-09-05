@@ -1,5 +1,5 @@
 /*
- * Casos de uso (CLAUDE.md §14.1). Dos actores y nada mas: el contrato prohibe roles extra.
+ * Casos de uso. Dos actores y nada mas: el contrato prohibe roles extra.
  * Genera el PNG con:  dot -Tpng docs/casos-de-uso.dot -o docs/casos-de-uso.png
  */
 digraph CasosDeUso {

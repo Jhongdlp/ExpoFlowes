@@ -1,4 +1,4 @@
-"""La condicion de carrera del cupo (CLAUDE.md §9.3).
+"""La condicion de carrera del cupo.
 
 Este test NO usa el fixture `db`: necesita dos conexiones reales con COMMIT de verdad, en
 hilos distintos, peleando por la ultima credencial disponible. Sin el `SELECT ... FOR UPDATE`

@@ -1,4 +1,4 @@
-"""Lectura de las reglas parametrizadas. Ambos roles leen; nadie escribe por API (§A.11):
+"""Lectura de las reglas parametrizadas. Ambos roles leen; nadie escribe por API:
 los rangos se cambian con un UPDATE, sin redeploy, y el test R7 lo demuestra."""
 
 from typing import Annotated, Any
@@ -38,7 +38,7 @@ def simulate_quota(
 
     Reusa `quota_view`, la MISMA funcion que deriva la cuota de un expositor real: si divergiera
     de ella, el simulador mentiria. Un metraje fuera de todo rango devuelve 422
-    STAND_SIZE_OUT_OF_RANGE con los rangos vigentes en `details` (§6.2), que es exactamente lo
+    STAND_SIZE_OUT_OF_RANGE con los rangos vigentes en `details`, que es exactamente lo
     que el alta de expositor responde.
     """
     rules = exhibitor_service.load_rules(db, auth.event_id)

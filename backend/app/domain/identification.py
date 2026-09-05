@@ -1,6 +1,6 @@
-"""Validacion de identificacion (CLAUDE.md §9.5). Modulo puro, sin framework.
+"""Validacion de identificacion. Modulo puro, sin framework.
 
-La identificacion es la clave de deduplicacion de todo el sistema (§5.4), asi que la cedula y
+La identificacion es la clave de deduplicacion de todo el sistema, asi que la cedula y
 el RUC ecuatorianos se validan con el algoritmo real, no con una expresion regular de longitud.
 PASSPORT y FOREIGN_ID no pasan por algoritmo: formato libre no vacio.
 """

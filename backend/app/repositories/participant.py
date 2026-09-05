@@ -9,7 +9,7 @@ from app.repositories.search import matches
 
 class ParticipantRepository(EventScopedRepository):
     """Scope doble: evento y expositor, ambos del token. Un participante ajeno no se
-    encuentra, y el router responde 404 sin confirmar que exista (§8.1)."""
+    encuentra, y el router responde 404 sin confirmar que exista."""
 
     def _scope(self, exhibitor_id: int) -> tuple[ColumnElement[bool], ColumnElement[bool]]:
         return (
@@ -124,7 +124,7 @@ class ParticipantRepository(EventScopedRepository):
 
     def count_without_email(self, exhibitor_id: int) -> int:
         """Participantes que no recibiran la notificacion de credencial por no tener correo
-        (§6.8). El dashboard del representante lo muestra para que pueda completarlos."""
+        . El dashboard del representante lo muestra para que pueda completarlos."""
         stmt = (
             select(func.count())
             .select_from(Participant)
@@ -134,7 +134,7 @@ class ParticipantRepository(EventScopedRepository):
 
     def find_owner(self, identification: str) -> tuple[Participant, Exhibitor] | None:
         """Quien ya registro esa identificacion en este evento. Da el `registered_in` del
-        error de duplicado (§9.4)."""
+        error de duplicado."""
         stmt = (
             select(Participant, Exhibitor)
             .join(Exhibitor, Exhibitor.id == Participant.exhibitor_id)
@@ -164,7 +164,7 @@ class ParticipantRepository(EventScopedRepository):
         return {identification: name for identification, name in self.db.execute(stmt)}
 
     def lock_exhibitor(self, exhibitor_id: int) -> Exhibitor | None:
-        """SELECT ... FOR UPDATE sobre la fila del expositor (§9.3).
+        """SELECT... FOR UPDATE sobre la fila del expositor.
 
         Sin este bloqueo, dos altas simultaneas sobre la ultima credencial disponible pasan
         ambas la verificacion de cupo y el stand acaba con una credencial de mas.
@@ -184,5 +184,5 @@ class ParticipantRepository(EventScopedRepository):
         self.db.add(participant)
 
     def delete(self, participant: Participant) -> None:
-        """Borrado fisico: libera cupo y libera la identificacion en el evento (§7.2)."""
+        """Borrado fisico: libera cupo y libera la identificacion en el evento."""
         self.db.delete(participant)

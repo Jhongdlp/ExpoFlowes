@@ -1,6 +1,22 @@
 # Plataforma de expositores y credenciales — Expo Flor Ecuador
 
 [![CI](https://github.com/Jhongdlp/ExpoFlowes/actions/workflows/ci.yml/badge.svg)](https://github.com/Jhongdlp/ExpoFlowes/actions/workflows/ci.yml)
+[![Demo](https://img.shields.io/badge/demo-expoflores.jhongdlp.com-1b3a30)](https://expoflores.jhongdlp.com)
+[![Despliegue](https://img.shields.io/badge/deploy-Dokploy%20%C2%B7%20VPS-a83a63)](#despliegue-cicd-en-un-vps-con-dokploy)
+
+> ### ▶︎ Pruébelo ahora: **<https://expoflores.jhongdlp.com>**
+>
+> | Rol | Correo | Contraseña |
+> |---|---|---|
+> | Organización de la feria | `admin@expoflores.demo` | `Admin123!` |
+> | Representante de stand | `mariana.cevallos@rosascotopaxi.demo` | `Demo1234!` |
+>
+> Las dos cuentas están también en la propia pantalla de login, a un clic. Cada push a `main`
+> que pasa la CI se despliega ahí solo ([cómo](#despliegue-cicd-en-un-vps-con-dokploy)).
+> Datos ficticios, `noindex`, y un banner permanente que avisa de que no está afiliado a
+> Expoflores.
+>
+> **Presentación de 5 páginas:** [`docs/presentacion.pdf`](docs/presentacion.pdf).
 
 Gestión de las empresas que exponen en una feria y de las credenciales del personal que opera
 sus stands. El administrador registra expositores y ve, stand por stand, cuántas credenciales
@@ -21,17 +37,41 @@ rango es un `UPDATE`; no hay redeploy y no hay `if m2 > 12` en ninguna parte del
 
 ## Índice
 
+- [Demo en vivo](#demo-en-vivo)
 - [Stack](#stack)
 - [Levantar el proyecto](#levantar-el-proyecto)
 - [Credenciales de demostración](#credenciales-de-demostración)
 - [Correo](#correo)
 - [Tests](#tests)
+- [Despliegue: CI/CD en un VPS con Dokploy](#despliegue-cicd-en-un-vps-con-dokploy)
 - [Cambiar las reglas sin tocar código](#cambiar-las-reglas-sin-tocar-código)
 - [Reglas de negocio vigentes](#reglas-de-negocio-vigentes)
 - [Decisiones que sostienen la entrega](#decisiones-que-sostienen-la-entrega)
 - [Trazabilidad: requisito → test](#trazabilidad-requisito--test)
 - [Estructura del repositorio](#estructura-del-repositorio)
 - [API](#api)
+
+---
+
+## Demo en vivo
+
+**<https://expoflores.jhongdlp.com>** — desplegado en un VPS propio, con HTTPS y certificado
+automático. Es el mismo `docker-compose.yml` del repositorio: no hay una configuración
+«de producción» distinta que pudiera divergir de lo que usted levanta en su máquina.
+
+Qué mirar en tres minutos, si tiene poco tiempo:
+
+| Entre como | Y vaya a | Para ver |
+|---|---|---|
+| Organización | **Reglas** (`/admin/reglas`) | Las dos tablas de configuración leídas de la base, y un simulador de cuota. Es el punto que el enunciado dice que se evalúa. |
+| Organización | **Panel** | Cupo emitido vs. disponible de toda la feria, con la categoría de cada stand derivada del metraje. |
+| Representante | **Nueva credencial** | Escriba la identificación `1800000042` y guarde: es de alguien ya acreditado por otra empresa. Aparece el bloque de duplicado con el nombre de esa empresa. |
+| Representante | **Carga masiva** | Suba `datos_de_mocks/07_prueba_errores_de_validacion_filas.xlsx`: valida fila por fila y no importa nada mientras haya un error. |
+| Representante | **Imprimir credenciales** | Hoja de gafetes de 90 × 130 mm, cuatro por hoja A4, armada en el navegador sin librería de PDF. |
+
+Higiene del demo: `noindex` por meta, `robots.txt` y cabecera `X-Robots-Tag`; banner permanente
+de «datos ficticios, no afiliado a Expoflores»; y ni una cédula ni un correo de persona real —
+las identificaciones son válidas por algoritmo, pero generadas.
 
 ---
 
@@ -45,7 +85,9 @@ rango es un `UPDATE`; no hay redeploy y no hay `if m2 > 12` en ninguna parte del
 `noUncheckedIndexedAccess`, sin `any`) · TanStack Query · react-hook-form + zod · Tailwind CSS ·
 SheetJS para leer el Excel en el navegador.
 
-**Infraestructura** · Docker Compose con tres servicios: `db`, `backend`, `frontend`.
+**Infraestructura** · Docker Compose con tres servicios: `db`, `backend`, `frontend` · GitHub
+Actions para lint, tipos y tests · despliegue automático a un VPS propio con Dokploy
+([detalle](#despliegue-cicd-en-un-vps-con-dokploy)).
 
 Los tipos de la API del frontend **no se escriben a mano**: se generan desde el esquema OpenAPI
 con `npm run gen:api`, y el `tsc` falla si el backend cambia un campo.
@@ -86,7 +128,8 @@ docker compose exec backend python -m app.seed
 
 ## Credenciales de demostración
 
-Están también visibles en la pantalla de login del demo.
+Sirven igual en local y en el [demo público](https://expoflores.jhongdlp.com), y están visibles
+en la propia pantalla de login con un botón que las rellena.
 
 | Rol | Correo | Contraseña |
 |---|---|---|
@@ -171,11 +214,73 @@ docker compose exec backend mypy app
 cd frontend && npm run lint && npm run typecheck && npm run build
 ```
 
-Estas mismas comprobaciones corren en cada push en `.github/workflows/ci.yml`: un job de
-backend con un Postgres 16 real como servicio (los tests usan índices parciales, `CHECK` y
-`SELECT ... FOR UPDATE`, así que probar contra SQLite probaría otra cosa) y otro de frontend.
-El `build` del frontend es `tsc -b && vite build`, de modo que si el backend cambia un campo y
-no se regeneró `schema.d.ts`, la CI lo detecta.
+Estas mismas comprobaciones corren en cada push en [`.github/workflows/ci.yml`](.github/workflows/ci.yml):
+un job de backend con un Postgres 16 real como servicio (los tests usan índices parciales,
+`CHECK` y `SELECT ... FOR UPDATE`, así que probar contra SQLite probaría otra cosa) y otro de
+frontend. El `build` del frontend es `tsc -b && vite build`, de modo que si el backend cambia un
+campo y no se regeneró `schema.d.ts`, la CI lo detecta.
+
+Y son las que **habilitan el despliegue**: el demo público solo se actualiza si todo esto pasa
+([cómo funciona](#despliegue-cicd-en-un-vps-con-dokploy)).
+
+---
+
+## Despliegue: CI/CD en un VPS con Dokploy
+
+`main` está siempre desplegado en <https://expoflores.jhongdlp.com>, y llega ahí solo. No hay
+un paso manual ni una carpeta que alguien suba por SFTP.
+
+```mermaid
+flowchart LR
+  P["push a main<br/>(o pull request)"] --> B
+  P --> F
+  B["CI · BACKEND<br/>ruff · ruff format<br/>mypy --strict<br/>pytest contra Postgres 16"]
+  F["CI · FRONTEND<br/>oxlint · vitest<br/>tsc -b + vite build"]
+  B --> G{"¿los dos<br/>en verde?"}
+  F --> G
+  G -- no --> X["no se despliega<br/>nada"]
+  G -- "sí, y solo desde main" --> D["POST /api/compose.deploy<br/>a Dokploy"]
+  D --> V["VPS<br/>pull del commit + build<br/>alembic upgrade + seed"]
+  V --> W["expoflores.jhongdlp.com"]
+```
+
+**El deploy es un job más del pipeline, con `needs: [backend, frontend]`.** No es un webhook que
+Dokploy dispare por su cuenta al detectar un push: si `ruff`, `mypy`, `pytest`, `oxlint`,
+`vitest` o el `tsc` fallan, el job de deploy ni siquiera arranca y el demo sigue sirviendo el
+último commit sano. La condición `github.ref == 'refs/heads/main' && github.event_name ==
+'push'` hace además que un pull request corra toda la CI **sin** desplegar nada.
+
+**Dokploy reconstruye el stack completo del `docker-compose.yml` del repositorio.** Por eso el
+demo y su máquina corren exactamente lo mismo: el arranque del backend es
+`alembic upgrade head && python -m app.seed && uvicorn …`, y como ambos pasos son idempotentes,
+cada deploy migra lo que falte y deja el seed en su sitio sin duplicar ni pisar datos. Un
+esquema nuevo llega solo con la migración; no hay que entrar por SSH a correr nada.
+
+**Un solo origen para el navegador.** En producción nginx sirve el bundle de Vite y hace de
+proxy de `/api/` hacia el backend (`frontend/nginx.conf`). Consecuencias: no hay CORS que
+configurar, no hay una URL de API absoluta compilada dentro del bundle —así que la misma imagen
+sirve en cualquier dominio— y el `index.html` va con `Cache-Control: no-cache` mientras los
+assets con hash de Vite se cachean un año, de modo que un deploy nunca deja a nadie con un
+bundle viejo.
+
+**Los secretos no están en el repositorio.** `SECRET_KEY`, las credenciales SMTP y las de la
+base viven en el entorno del despliegue; el token de la API de Dokploy y el id del stack, en los
+*secrets* del repositorio (`DOKPLOY_API_TOKEN`, `DOKPLOY_COMPOSE_ID`, `DOKPLOY_HOST`). Lo
+versionado es `.env.example`, con valores de demo.
+
+| Pieza | Dónde |
+|---|---|
+| Pipeline completo | [`.github/workflows/ci.yml`](.github/workflows/ci.yml) |
+| Servicios y arranque | [`docker-compose.yml`](docker-compose.yml) |
+| Nginx: SPA, proxy y caché | [`frontend/nginx.conf`](frontend/nginx.conf) |
+| Variables esperadas | [`.env.example`](.env.example) |
+
+Por qué Dokploy y no un `git push` a un PaaS: el VPS ya existía, el proyecto son tres
+contenedores que ya están descritos en un Compose, y Dokploy da HTTPS con renovación automática
+y despliegue por API sin que haya que aprender un formato de manifiesto nuevo. La alternativa
+—una acción que entre por SSH y haga `docker compose pull && up -d`— habría funcionado, pero
+obliga a guardar una clave SSH del servidor en GitHub; un token revocable con un único permiso
+es menos superficie.
 
 ---
 
@@ -337,9 +442,13 @@ frontend/src/
 docs/
   adr/              Cuatro decisiones estructurales.
   decisiones.md     Las ocho ambigüedades del enunciado.
+  presentacion.pdf  Presentación de 5 páginas (propuesta, decisiones, reglas, capturas).
   der.png           Diagrama entidad-relación.
   casos-de-uso.png  Casos de uso por rol.
   capturas/         Capturas de la aplicación.
+datos_de_mocks/     Excel de ejemplo para la carga masiva, válidos y con errores.
+.github/workflows/  CI (lint, tipos, tests) y despliegue automático a Dokploy.
+scripts/            Capturas con Playwright, generación del PDF y empaquetado del ZIP.
 ```
 
 La dependencia entre capas es unidireccional: un router nunca consulta la base, un repositorio

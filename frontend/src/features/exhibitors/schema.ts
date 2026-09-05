@@ -7,7 +7,7 @@ import { DEFAULT_BANNER_ID } from './bannerPresets'
  * zod valida FORMA: requerido, tipo, minimo un contacto.
  *
  * Los rangos de metraje y las cuotas NO se validan aqui: viven en tablas parametrizadas
- * (§7.1) y pueden cambiar sin redeploy, asi que una copia en el cliente acabaria rechazando
+ * y pueden cambiar sin redeploy, asi que una copia en el cliente acabaria rechazando
  * un metraje que la feria si acepta. El digito verificador de cedula y RUC es lo contrario
  * —algoritmo fijo del registro civil, igual en todos los eventos— y por eso si se comprueba
  * antes de enviar (`lib/identification.ts`).
@@ -65,7 +65,7 @@ export const exhibitorSchema = standSchema.extend({
       position: required('Escriba el cargo.'),
     })
     .superRefine(checkIdentification('identification')),
-  // Minimo un contacto adicional (§5.3). El formulario lo impide antes de llamar a la API.
+  // Minimo un contacto adicional. El formulario lo impide antes de llamar a la API.
   contacts: z.array(contactSchema).min(1, 'Agregue al menos un contacto adicional.'),
 }).superRefine((values, ctx) => {
   const failure = identificationError(values.tax_id, values.tax_id_type)

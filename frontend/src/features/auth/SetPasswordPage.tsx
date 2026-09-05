@@ -22,7 +22,7 @@ const schema = z
 type Values = z.infer<typeof schema>
 
 /**
- * Pantalla del enlace de un solo uso (§6.5). El token viaja en la URL, se consume una vez y
+ * Pantalla del enlace de un solo uso. El token viaja en la URL, se consume una vez y
  * caduca a las 72 h; nunca se envia una contraseña por correo.
  */
 export function SetPasswordPage() {

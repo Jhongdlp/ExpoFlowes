@@ -1,4 +1,4 @@
-"""Contrato de repositorio (CLAUDE.md §8.1.1).
+"""Contrato de repositorio.
 
 Un repositorio NO se construye sin `event_id`. No es una comodidad: es la barrera que impide
 que exista un metodo de listado sin scope de evento, que es como se cuelan los IDOR y las

@@ -32,7 +32,7 @@ function EyeIcon({ open }: { open: boolean }) {
 }
 
 /**
- * Campo con etiqueta, pista y error enlazados por `aria-describedby` (§13, accesibilidad).
+ * Campo con etiqueta, pista y error enlazados por `aria-describedby` (accesibilidad).
  * El error se anuncia con `role="alert"`: un lector de pantalla no depende del color.
  * `type="password"` gana un botón para mostrar/ocultar en texto plano.
  */

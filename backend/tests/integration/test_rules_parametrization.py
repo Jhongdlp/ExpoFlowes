@@ -146,7 +146,7 @@ def test_quota_simulator_follows_the_rules_in_the_database(
 def test_quota_simulator_rejects_a_size_outside_every_range(
     client: TestClient, admin_user: User
 ) -> None:
-    """Fuera de rango responde igual que el alta (§6.2) y devuelve los rangos vigentes."""
+    """Fuera de rango responde igual que el alta y devuelve los rangos vigentes."""
     response = client.get(
         "/api/v1/rules/quota", params={"m2": 60}, headers=auth_headers(admin_user)
     )

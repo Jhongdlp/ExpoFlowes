@@ -245,7 +245,7 @@ def upgrade() -> None:
         sa.Column("email", sa.String(255), nullable=True),
         sa.Column("credential_notified_at", TS, nullable=True),
         *_stamps(),
-        # Validacion critica §5.4, por evento y no global (§6.6).
+        # Validacion critica, por evento y no global.
         sa.UniqueConstraint("event_id", "identification", name="uq_participants_event_id_ident"),
         sa.CheckConstraint(
             "category IN ('Exhibitor', 'Guest', 'Service')", name="ck_participants_category"

@@ -3,7 +3,7 @@
  * enunciado).
  *
  * Este modulo lee y nada mas. **Ninguna decision de validez se toma aqui**: quien dice si una
- * fila entra es el servidor con `dry_run=true` (§13). Duplicar las reglas en el cliente para
+ * fila entra es el servidor con `dry_run=true`. Duplicar las reglas en el cliente para
  * "dar feedback antes" es exactamente como divergen cliente y servidor.
  */
 
