@@ -35,12 +35,12 @@ export function LoginPage() {
     {
       role: t.nav.roles.admin,
       email: 'admin@expoflores.demo',
-      password: 'Admin123!',
+      password: 'admin',
     },
     {
       role: t.nav.roles.representative,
       email: 'mariana.cevallos@rosascotopaxi.demo',
-      password: 'Demo1234!',
+      password: 'admin',
     },
   ]
 
