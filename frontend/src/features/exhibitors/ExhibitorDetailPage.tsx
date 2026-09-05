@@ -158,25 +158,30 @@ function ResendAccessButton({ email }: { email: string }) {
   })
 
   return (
-    <div className="mt-4 flex flex-wrap items-center gap-3">
-      <Button
-        variant="secondary"
-        size="sm"
-        loading={mutation.isPending}
-        onClick={() => mutation.mutate()}
-      >
-        {mutation.isPending ? t.exhibitors.resending : t.exhibitors.resendAccess}
-      </Button>
-      {mutation.isSuccess ? (
-        <Status
-          tone="ok"
-          label={t.exhibitors.resendSuccess}
-          className="animate-fade"
-        />
-      ) : null}
-      {mutation.isError ? (
-        <Status tone="error" label={t.exhibitors.resendError} />
-      ) : null}
+    <div className="mt-4">
+      <div className="flex flex-wrap items-center gap-3">
+        <Button
+          variant="secondary"
+          size="sm"
+          loading={mutation.isPending}
+          onClick={() => mutation.mutate()}
+        >
+          {mutation.isPending ? t.exhibitors.resending : t.exhibitors.resendAccess}
+        </Button>
+        {mutation.isSuccess ? (
+          <Status
+            tone="ok"
+            label={t.exhibitors.resendSuccess}
+            className="animate-fade"
+          />
+        ) : null}
+        {mutation.isError ? (
+          <Status tone="error" label={t.exhibitors.resendError} />
+        ) : null}
+      </div>
+      <p className="mt-2 max-w-prose text-xs leading-relaxed text-ink-faint">
+        {t.exhibitors.demoMailNote}
+      </p>
     </div>
   )
 }
